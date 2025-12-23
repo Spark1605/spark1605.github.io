@@ -1,0 +1,62 @@
+<style>
+      input{
+            width: 80%;
+            font-size: 70;
+            border-radius: 25px;
+            padding: 1%;
+            outline: none;
+            margin-top: 150px;
+            margin-left: 90;
+            font-weight: 1000;
+            outline: none;
+            border: 10px solid rgb(0,0,130);
+      }
+      button{
+            font-size: 70;
+            padding: 1%;
+            font-weight: 1000;
+            background: lightblue;
+            border-radius: 25px;
+            border: 10px solid rgb(0,0,130);
+            margin: 100 350;
+            outline: none;
+      }
+      h1{
+            font-size: 100;
+            padding: 1%;
+            font-weight: 1000;
+            border-radius: 25px;
+            text-align: center;
+            color: #000050;
+      }
+      span{
+           color: crimson;
+           font-size: 100;
+           padding: 1%;
+           font-weight: 1000;
+           border-radius: 25px;
+           text-align: center;
+}
+      .m {
+            font-size: 75;
+            padding: 1%;
+            font-weight: 1000;
+            border-radius: 25px;
+            text-align: center;
+            color: #000050;
+}
+</style>
+<head><title>Live-Chat</title></head>
+<body>
+      <h1>Live-Chat</h1>
+      <h1 class="m">For public chat type "message" in room name.</h1>
+      <input required type="name" placeholder="Room Name" id="room" name="room">
+      <button onclick="opn()" id="submit">Submit</button>
+</body>
+<script>
+       function opn(){
+               var roomName = document.querySelector("#room").value;
+               var link = "https://ShashankDAV.github.io/live-chat/live.html?room="+roomName;
+               window.open(link,"_self");
+}
+  </script>
