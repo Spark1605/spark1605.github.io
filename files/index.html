@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Repository</title>
+    <title>File Repository & Search</title>
     <style>
         :root {
             --bg-color: #f4f7f6;
@@ -11,25 +11,23 @@
             --text-color: #333333;
             --primary-color: #007aff;
             --primary-hover: #0056b3;
+            --border-color: #e0e0e0;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             line-height: 1.6;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
 
         .container {
             width: 100%;
-            max-width: 600px;
-            padding: 20px;
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 20px;
             box-sizing: border-box;
         }
 
@@ -39,71 +37,105 @@
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             margin-bottom: 10px;
             color: #111;
         }
 
-        p {
-            color: #666;
-            margin: 0;
+        .search-container {
+            margin-bottom: 40px;
         }
 
-        .links-list {
+        .search-input {
+            width: 100%;
+            padding: 14px 20px;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .folder-section {
+            margin-bottom: 35px;
+        }
+
+        .folder-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #222;
+            text-transform: capitalize;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .file-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
-        .link-card {
+        .file-card {
             background: var(--card-bg);
-            padding: 18px 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 16px 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
             display: flex;
             justify-content: space-between;
             align-items: center;
             text-decoration: none;
             color: inherit;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(0,0,0,0.02);
         }
 
-        .link-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        .file-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
         }
 
-        .link-info {
+        .file-info {
             display: flex;
             flex-direction: column;
         }
 
-        .link-title {
+        .file-name {
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             color: #111;
         }
 
-        .link-type {
+        .file-type {
             font-size: 0.85rem;
-            color: #888;
+            color: #777;
             margin-top: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .btn-view {
+        .btn-action {
             background-color: var(--primary-color);
             color: white;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 6px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 500;
-            transition: background-color 0.2s ease;
         }
 
-        .link-card:hover .btn-view {
+        .file-card:hover .btn-action {
             background-color: var(--primary-hover);
+        }
+
+        .no-results {
+            text-align: center;
+            color: #777;
+            font-size: 1.1rem;
+            margin-top: 4px;
+            display: none;
         }
     </style>
 </head>
@@ -111,21 +143,102 @@
 
     <div class="container">
         <header>
-            <h1>Resource Library</h1>
-            <p>Access and download your study materials below.</p>
+            <h1>File Repository</h1>
         </header>
 
-        <main class="links-list">
-            <a href="https://sprk-web.github.io/files/Ch_1_PYQS.pdf" target="_blank" rel="noopener noreferrer" class="link-card">
-                <div class="link-info">
-                    <span class="link-title">Chapter 1 Previous Year Questions (PYQs)</span>
-                    <span class="link-type">PDF Document</span>
-                </div>
-                <span class="btn-view">Open</span>
-            </a>
-            
-            </main>
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search files by name or type...">
+        </div>
+
+        <main id="repoContent"></main>
+        <div id="noResults" class="no-results">No matching files found.</div>
     </div>
 
+    <script>
+        // 1. DATA CONFIGURATION
+        // Add all your files here. The script handles the subfolder sorting, URL generation, and formatting automatically.
+        const repoConfig = {
+            baseUrl: "https://sprk-web.github.io/files/",
+            files: [
+                { name: "Ch_1_PYQs", folder: "pdfs", type: "PDF" },
+                { name: "Sample_Test_Paper", folder: "pdfs", type: "PDF" },
+                { name: "Hero_Banner", folder: "images", type: "PNG" },
+                { name: "Logo_Dark", folder: "images", type: "SVG" },
+                { name: "Lab_Assignment_1", folder: "docs", type: "DOCX" }
+            ]
+        };
+
+        // 2. RENDER ENGINE
+        function renderFiles(filterText = "") {
+            const container = document.getElementById("repoContent");
+            const noResults = document.getElementById("noResults");
+            container.innerHTML = ""; // Clear existing UI
+            
+            // Group files by their subfolder
+            const grouped = {};
+            let matchCount = 0;
+
+            repoConfig.files.forEach(file => {
+                const matchesSearch = file.name.toLowerCase().includes(filterText.toLowerCase()) || 
+                                      file.type.toLowerCase().includes(filterText.toLowerCase()) ||
+                                      file.folder.toLowerCase().includes(filterText.toLowerCase());
+                
+                if (matchesSearch) {
+                    if (!grouped[file.folder]) {
+                        grouped[file.folder] = [];
+                    }
+                    grouped[file.folder].push(file);
+                    matchCount++;
+                }
+            });
+
+            // Toggle "No results" message
+            noResults.style.display = matchCount === 0 ? "block" : "none";
+
+            // Generate HTML structure dynamically
+            for (const folder in grouped) {
+                const section = document.createElement("section");
+                section.className = "folder-section";
+
+                // Title (Name of subfolder)
+                const heading = document.createElement("h2");
+                heading.className = "folder-title";
+                heading.textContent = folder; 
+                section.appendChild(heading);
+
+                const list = document.createElement("div");
+                list.className = "file-list";
+
+                grouped[folder].forEach(file => {
+                    const card = document.createElement("a");
+                    card.className = "file-card";
+                    // Dynamically constructs: base + folder + file + extension (lowercase type shortcut)
+                    card.href = `${repoConfig.baseUrl}${file.folder}/${file.name}.${file.type.toLowerCase()}`;
+                    card.target = "_blank";
+                    card.rel = "noopener noreferrer";
+
+                    card.innerHTML = `
+                        <div class="file-info">
+                            <span class="file-name">${file.name.replace(/_/g, ' ')}</span>
+                            <span class="file-type">File type: ${file.type}</span>
+                        </div>
+                        <span class="btn-action">View</span>
+                    `;
+                    list.appendChild(card);
+                });
+
+                section.appendChild(list);
+                container.appendChild(section);
+            }
+        }
+
+        // 3. SEARCH EVENT LISTENER
+        document.getElementById("searchInput").addEventListener("input", (e) => {
+            renderFiles(e.target.value);
+        });
+
+        // Initial launch load
+        renderFiles();
+    </script>
 </body>
 </html>
