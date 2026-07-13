@@ -156,11 +156,10 @@
 
     <script>
         // 1. DATA CONFIGURATION
-        // Add all your files here. The script handles the subfolder sorting, URL generation, and formatting automatically.
         const repoConfig = {
             baseUrl: "https://sprk-web.github.io/files/",
             files: [
-                { name: "Ch_1_PYQs", folder: "pdfs", type: "PDF" },
+                { name: "Ch_1_PYQS", folder: false, type: "PDF" }, // Fixed: 'False' changed to JS 'false'
                 { name: "Sample_Test_Paper", folder: "pdfs", type: "PDF" },
                 { name: "Hero_Banner", folder: "images", type: "PNG" },
                 { name: "Logo_Dark", folder: "images", type: "SVG" },
@@ -179,15 +178,20 @@
             let matchCount = 0;
 
             repoConfig.files.forEach(file => {
+                // Determine folder name string safely for search filtering
+                const folderSearchStr = file.folder ? file.folder.toLowerCase() : "root";
+                
                 const matchesSearch = file.name.toLowerCase().includes(filterText.toLowerCase()) || 
                                       file.type.toLowerCase().includes(filterText.toLowerCase()) ||
-                                      file.folder.toLowerCase().includes(filterText.toLowerCase());
+                                      folderSearchStr.includes(filterText.toLowerCase());
                 
                 if (matchesSearch) {
-                    if (!grouped[file.folder]) {
-                        grouped[file.folder] = [];
+                    // Group root files under a clear category name like "Root Files"
+                    const groupKey = file.folder ? file.folder : "Root Files";
+                    if (!grouped[groupKey]) {
+                        grouped[groupKey] = [];
                     }
-                    grouped[file.folder].push(file);
+                    grouped[groupKey].push(file);
                     matchCount++;
                 }
             });
@@ -200,7 +204,7 @@
                 const section = document.createElement("section");
                 section.className = "folder-section";
 
-                // Title (Name of subfolder)
+                // Title of subfolder
                 const heading = document.createElement("h2");
                 heading.className = "folder-title";
                 heading.textContent = folder; 
@@ -212,8 +216,11 @@
                 grouped[folder].forEach(file => {
                     const card = document.createElement("a");
                     card.className = "file-card";
-                    // Dynamically constructs: base + folder + file + extension (lowercase type shortcut)
-                    card.href = `${repoConfig.baseUrl}${file.folder}/${file.name}.${file.type.toLowerCase()}`;
+                    
+                    // Core Feature Change: If file.folder is false/none, don't inject a sub-folder directory into the URL path
+                    const folderPath = file.folder ? `${file.folder}/` : "";
+                    card.href = `${repoConfig.baseUrl}${folderPath}${file.name}.${file.type.toLowerCase()}`;
+                    
                     card.target = "_blank";
                     card.rel = "noopener noreferrer";
 
