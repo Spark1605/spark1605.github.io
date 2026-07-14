@@ -3,249 +3,330 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Repository & Search</title>
-    <style>
-        :root {
-            --bg-color: #f4f7f6;
-            --card-bg: #ffffff;
-            --text-color: #333333;
-            --primary-color: #007aff;
-            --primary-hover: #0056b3;
-            --border-color: #e0e0e0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            box-sizing: border-box;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            color: #111;
-        }
-
-        .search-container {
-            margin-bottom: 40px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            box-sizing: border-box;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus {
-            border-color: var(--primary-color);
-        }
-
-        .folder-section {
-            margin-bottom: 35px;
-        }
-
-        .folder-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #222;
-            text-transform: capitalize;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-        }
-
-        .file-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .file-card {
-            background: var(--card-bg);
-            padding: 16px 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            text-decoration: none;
-            color: inherit;
-            transition: transform 0.2s, box-shadow 0.2s;
-            border: 1px solid rgba(0,0,0,0.02);
-        }
-
-        .file-card:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .file-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .file-name {
-            font-weight: 600;
-            font-size: 1.05rem;
-            color: #111;
-        }
-
-        .file-type {
-            font-size: 0.85rem;
-            color: #777;
-            margin-top: 4px;
-        }
-
-        .btn-action {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .file-card:hover .btn-action {
-            background-color: var(--primary-hover);
-        }
-
-        .no-results {
-            text-align: center;
-            color: #777;
-            font-size: 1.1rem;
-            margin-top: 4px;
-            display: none;
-        }
-    </style>
+    <title>SPRK Question Bank Runner</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col">
 
-    <div class="container">
-        <header>
-            <h1>File Repository</h1>
-        </header>
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i data-lucide="brain-circuit" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+                <span class="font-bold text-lg tracking-tight">SPRK <span class="text-indigo-600 dark:text-indigo-400">QuizHub</span></span>
+            </div>
+            <button id="theme-toggle" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" aria-label="Toggle Theme">
+                <i id="theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </header>
 
-        <div class="search-container">
-            <input type="text" id="searchInput" class="search-input" placeholder="Search files by name or type...">
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 flex flex-col justify-center items-center">
+        
+        <div id="loading-state" class="flex flex-col items-center gap-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Loading question bank...</p>
         </div>
 
-        <main id="repoContent"></main>
-        <div id="noResults" class="no-results">No matching files found.</div>
-    </div>
+        <div id="error-state" class="hidden text-center max-w-md p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl">
+            <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+            <h2 class="text-xl font-semibold text-red-800 dark:text-red-400 mb-2">Failed to Load Content</h2>
+            <p id="error-message" class="text-sm text-red-600 dark:text-red-400/80 mb-4">No valid path parameter found in URL.</p>
+            <p class="text-xs text-slate-400">Expected format: ?path=your-filename</p>
+        </div>
+
+        <div id="mode-selection" class="hidden w-full max-w-xl text-center space-y-6">
+            <div class="space-y-2">
+                <h1 class="text-3xl font-extrabold tracking-tight">Select Study Mode</h1>
+                <p class="text-slate-500 dark:text-slate-400" id="bank-title">Your file is successfully loaded. Choose how you want to learn.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                <button onclick="startApp('quiz')" class="group p-6 text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-500 shadow-sm hover:shadow transition flex flex-col justify-between cursor-pointer">
+                    <div>
+                        <div class="p-3 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="list-ordered" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-1">1. Quiz Mode</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Interactive testing with scores, immediate feedback, and results summary at the end.</p>
+                    </div>
+                </button>
+                <button onclick="startApp('question')" class="group p-6 text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-500 shadow-sm hover:shadow transition flex flex-col justify-between cursor-pointer">
+                    <div>
+                        <div class="p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-xl w-fit mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="eye" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold mb-1">2. Question Mode</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Flashcard-style review. View questions cleanly and reveal the answers at your own pace.</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <div id="app-interface" class="hidden w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl">
+            <div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full mb-6 overflow-hidden">
+                <div id="progress-bar" class="bg-indigo-600 dark:bg-indigo-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <div class="flex justify-between items-center text-sm font-medium text-slate-500 dark:text-slate-400 mb-6">
+                <span id="question-counter">Question 1 of --</span>
+                <span id="score-counter" class="hidden px-3 py-1 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 rounded-full">Score: 0</span>
+            </div>
+
+            <div class="mb-8" id="question-container">
+                </div>
+
+            <div id="action-zone" class="space-y-3">
+                </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <button id="exit-btn" onclick="location.reload()" class="text-sm font-medium text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 flex items-center gap-1 transition cursor-pointer">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Change Mode
+                </button>
+                <button id="next-btn" disabled class="hidden px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-2 cursor-pointer">
+                    Next <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="summary-screen" class="hidden w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center shadow-xl space-y-6">
+            <div class="w-20 h-20 bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                <i data-lucide="trophy" class="w-10 h-10"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-bold mb-1">Quiz Completed!</h2>
+                <p class="text-slate-500 dark:text-slate-400">Great job finishing the question bank.</p>
+            </div>
+            <div class="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <span class="text-xs font-bold tracking-wider text-slate-400 block uppercase mb-1">Final Score</span>
+                <span class="text-4xl font-extrabold text-indigo-600 dark:text-indigo-400" id="final-score">0 / 0</span>
+            </div>
+            <button onclick="location.reload()" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition shadow-lg shadow-indigo-600/20 cursor-pointer">
+                Restart Practice
+            </button>
+        </div>
+
+    </main>
 
     <script>
-        // 1. DATA CONFIGURATION
-        const repoConfig = {
-            baseUrl: "https://sprk-web.github.io/files/",
-            files: [
-                { name: "Ch_1_PYQS", folder: false, type: "PDF" }, // Fixed: 'False' changed to JS 'false'
-                { name: "Sample_Test_Paper", folder: "pdfs", type: "PDF" },
-                { name: "Hero_Banner", folder: "images", type: "PNG" },
-                { name: "Logo_Dark", folder: "images", type: "SVG" },
-                { name: "Lab_Assignment_1", folder: "docs", type: "DOCX" }
-            ]
-        };
+        // -------------------------------------------------------------------
+        // 1. Theme Management (Light / Dark Mode with LocalStorage persistence)
+        // -------------------------------------------------------------------
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
 
-        // 2. RENDER ENGINE
-        function renderFiles(filterText = "") {
-            const container = document.getElementById("repoContent");
-            const noResults = document.getElementById("noResults");
-            container.innerHTML = ""; // Clear existing UI
+        // Check user preferences or default settings
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            updateThemeIcon(true);
+        } else {
+            document.documentElement.classList.remove('dark');
+            updateThemeIcon(false);
+        }
+
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
+        });
+
+        function updateThemeIcon(isDark) {
+            themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            if (window.lucide) lucide.createIcons(); // Rerender dynamic icons
+        }
+
+        // -------------------------------------------------------------------
+        // 2. Data Fetching & Core App State Setup
+        // -------------------------------------------------------------------
+        let questions = [];
+        let currentIdx = 0;
+        let selectedMode = ''; // 'quiz' or 'question'
+        let currentScore = 0;
+        let answered = false;
+
+        // Extracting query parameter data
+        const urlParams = new URLSearchParams(window.location.search);
+        const pathParam = urlParams.get('path');
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.lucide) lucide.createIcons();
             
-            // Group files by their subfolder
-            const grouped = {};
-            let matchCount = 0;
+            if (!pathParam) {
+                showError("No 'path' parameter defined in URL query parameters.");
+                return;
+            }
 
-            repoConfig.files.forEach(file => {
-                // Determine folder name string safely for search filtering
-                const folderSearchStr = file.folder ? file.folder.toLowerCase() : "root";
-                
-                const matchesSearch = file.name.toLowerCase().includes(filterText.toLowerCase()) || 
-                                      file.type.toLowerCase().includes(filterText.toLowerCase()) ||
-                                      folderSearchStr.includes(filterText.toLowerCase());
-                
-                if (matchesSearch) {
-                    // Group root files under a clear category name like "Root Files"
-                    const groupKey = file.folder ? file.folder : "Root Files";
-                    if (!grouped[groupKey]) {
-                        grouped[groupKey] = [];
-                    }
-                    grouped[groupKey].push(file);
-                    matchCount++;
-                }
-            });
+            // Constructing target path relative to your functional rules
+            // Base setup assumes files fetched relative to root or direct repo mapping
+            const dataUrl = `https://sprk-web.github.io/files/questionbanks/${pathParam}.json`;
 
-            // Toggle "No results" message
-            noResults.style.display = matchCount === 0 ? "block" : "none";
-
-            // Generate HTML structure dynamically
-            for (const folder in grouped) {
-                const section = document.createElement("section");
-                section.className = "folder-section";
-
-                // Title of subfolder
-                const heading = document.createElement("h2");
-                heading.className = "folder-title";
-                heading.textContent = folder; 
-                section.appendChild(heading);
-
-                const list = document.createElement("div");
-                list.className = "file-list";
-
-                grouped[folder].forEach(file => {
-                    const card = document.createElement("a");
-                    card.className = "file-card";
+            fetch(dataUrl)
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP network error: Code ${res.status}`);
+                    return res.json();
+                })
+                .then(data => {
+                    if (Array.isArray(data)) questions = data;
+                    else if (data.questions && Array.isArray(data.questions)) questions = data.questions;
+                    else throw new Error("JSON structure is incompatible. List of questions not found.");
                     
-                    // Core Feature Change: If file.folder is false/none, don't inject a sub-folder directory into the URL path
-                    const folderPath = file.folder ? `${file.folder}/` : "";
-                    card.href = `${repoConfig.baseUrl}${folderPath}${file.name}.${file.type.toLowerCase()}`;
+                    if (questions.length === 0) throw new Error("The target question bank file is empty.");
                     
-                    card.target = "_blank";
-                    card.rel = "noopener noreferrer";
-
-                    card.innerHTML = `
-                        <div class="file-info">
-                            <span class="file-name">${file.name.replace(/_/g, ' ')}</span>
-                            <span class="file-type">File type: ${file.type}</span>
-                        </div>
-                        <span class="btn-action">View</span>
-                    `;
-                    list.appendChild(card);
+                    // Show mode selection dashboard
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('mode-selection').classList.remove('hidden');
+                    document.getElementById('bank-title').innerText = `Successfully parsed '${pathParam}.json'. Active inventory: ${questions.length} questions.`;
+                })
+                .catch(err => {
+                    showError(`Could not access dynamic question repository resource. (${err.message})`);
                 });
+        });
 
-                section.appendChild(list);
-                container.appendChild(section);
+        function showError(msg) {
+            document.getElementById('loading-state').classList.add('hidden');
+            const errorState = document.getElementById('error-state');
+            document.getElementById('error-message').innerText = msg;
+            errorState.classList.remove('hidden');
+        }
+
+        // -------------------------------------------------------------------
+        // 3. Quiz & Interaction Interface Runtime
+        // -------------------------------------------------------------------
+        function startApp(mode) {
+            selectedMode = mode;
+            document.getElementById('mode-selection').classList.add('hidden');
+            document.getElementById('app-interface').classList.remove('hidden');
+            
+            if (selectedMode === 'quiz') {
+                document.getElementById('score-counter').classList.remove('hidden');
+            }
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            answered = false;
+            const q = questions[currentIdx];
+            
+            // UI elements reset
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.classList.remove('hidden');
+            nextBtn.disabled = true;
+
+            // Updates calculations
+            document.getElementById('question-counter').innerText = `Question ${currentIdx + 1} of ${questions.length}`;
+            document.getElementById('progress-bar').style.width = `${((currentIdx) / questions.length) * 100}%`;
+            if (selectedMode === 'quiz') {
+                document.getElementById('score-counter').innerText = `Score: ${currentScore}`;
+            }
+
+            // Format check logic (determines if string content is text or image url string extension pattern)
+            const questionContainer = document.getElementById('question-container');
+            const isImageUrl = typeof q.question === 'string' && (q.question.match(/\.(jpeg|jpg|gif|png|webp|svg)$/i) != null || q.question.startsWith('http'));
+            
+            if (isImageUrl) {
+                questionContainer.innerHTML = `
+                    <p class="text-xs uppercase font-bold tracking-wider text-slate-400 mb-2">Question Context Image:</p>
+                    <div class="bg-slate-100 dark:bg-slate-950 p-2 rounded-xl flex justify-center border border-slate-200 dark:border-slate-800">
+                        <img src="${q.question}" alt="Question Image Source" class="max-h-64 object-contain rounded-lg">
+                    </div>
+                `;
+            } else {
+                questionContainer.innerHTML = `<h2 class="text-xl font-semibold text-slate-800 dark:text-slate-100 leading-snug">${q.question}</h2>`;
+            }
+
+            // Target Option Action rendering
+            const actionZone = document.getElementById('action-zone');
+            actionZone.innerHTML = '';
+
+            if (selectedMode === 'quiz') {
+                // Generate regular select buttons for Quiz Engine Mode
+                q.options.forEach((opt, idx) => {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full text-left p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900 font-medium transition flex items-center justify-between cursor-pointer group";
+                    btn.innerHTML = `<span>${opt}</span> <div class="w-5 h-5 rounded-full border border-slate-300 dark:border-slate-700 flex items-center justify-center text-xs text-white group-hover:border-indigo-500"></div>`;
+                    btn.onclick = () => handleQuizAnswer(idx, btn);
+                    actionZone.appendChild(btn);
+                });
+            } else {
+                // Flashcard 'Question Mode' configuration handling
+                const showBtn = document.createElement('button');
+                showBtn.className = "w-full py-4 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 font-bold tracking-wide rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-950/70 border border-indigo-200/50 dark:border-indigo-900/50 transition cursor-pointer flex justify-center items-center gap-2";
+                showBtn.innerHTML = `<i data-lucide="eye" class="w-5 h-5"></i> Show Answer Matrix`;
+                showBtn.onclick = () => {
+                    showBtn.remove();
+                    
+                    // Display alternative structure display
+                    q.options.forEach((opt, idx) => {
+                        const block = document.createElement('div');
+                        const isCorrect = idx === parseInt(q.correct);
+                        block.className = `w-full text-left p-4 rounded-xl border font-medium flex items-center justify-between ${
+                            isCorrect 
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-700 dark:text-emerald-400' 
+                            : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-400'
+                        }`;
+                        block.innerHTML = `<span>${opt}</span> ${isCorrect ? '<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-500"></i>' : ''}`;
+                        actionZone.appendChild(block);
+                    });
+                    
+                    if (window.lucide) lucide.createIcons();
+                    nextBtn.disabled = false;
+                };
+                actionZone.appendChild(showBtn);
+                if (window.lucide) lucide.createIcons();
             }
         }
 
-        // 3. SEARCH EVENT LISTENER
-        document.getElementById("searchInput").addEventListener("input", (e) => {
-            renderFiles(e.target.value);
-        });
+        function handleQuizAnswer(selectedIdx, selectedButton) {
+            if (answered) return;
+            answered = true;
 
-        // Initial launch load
-        renderFiles();
+            const q = questions[currentIdx];
+            const correctIdx = parseInt(q.correct);
+            const actionZone = document.getElementById('action-zone');
+            const buttons = actionZone.getElementsByTagName('button');
+
+            // Evaluation logic check execution block
+            if (selectedIdx === correctIdx) {
+                currentScore++;
+                selectedButton.className = "w-full text-left p-4 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-700 dark:text-emerald-400 rounded-xl font-medium transition flex items-center justify-between";
+                selectedButton.innerHTML = `<span>${q.options[selectedIdx]}</span> <div class="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-xs text-white border border-emerald-500"><i data-lucide="check" class="w-3 h-3"></i></div>`;
+            } else {
+                selectedButton.className = "w-full text-left p-4 bg-red-50 dark:bg-red-950/30 border-red-500 text-red-700 dark:text-red-400 rounded-xl font-medium transition flex items-center justify-between";
+                selectedButton.innerHTML = `<span>${q.options[selectedIdx]}</span> <div class="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-xs text-white border border-red-500"><i data-lucide="x" class="w-3 h-3"></i></div>`;
+                
+                // Highlight correct selection item
+                buttons[correctIdx].className = "w-full text-left p-4 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-700 dark:text-emerald-400 rounded-xl font-medium transition flex items-center justify-between";
+                buttons[correctIdx].innerHTML = `<span>${q.options[correctIdx]}</span> <div class="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-xs text-white border border-emerald-500"><i data-lucide="check" class="w-3 h-3"></i></div>`;
+            }
+
+            // Disable all options processing
+            for (let btn of buttons) {
+                btn.onclick = null;
+                btn.style.cursor = 'default';
+                if (!btn.className.includes('border-emerald-500') && !btn.className.includes('border-red-500')) {
+                    btn.className = "w-full text-left p-4 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-900 text-slate-400 rounded-xl font-medium transition flex items-center justify-between opacity-60";
+                    btn.querySelector('div').style.display = 'none';
+                }
+            }
+
+            if (window.lucide) lucide.createIcons();
+            document.getElementById('score-counter').innerText = `Score: ${currentScore}`;
+            document.getElementById('next-btn').disabled = false;
+        }
+
+        // Navigation Controller Event Assignment
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentIdx++;
+            if (currentIdx < questions.length) {
+                renderQuestion();
+            } else {
+                // Display final result summary viewport dashboard
+                document.getElementById('progress-bar').style.width = `100%`;
+                document.getElementById('app-interface').classList.add('hidden');
+                document.getElementById('summary-screen').classList.remove('hidden');
+                document.getElementById('final-score').innerText = `${currentScore} / ${questions.length}`;
+            }
+        });
     </script>
 </body>
 </html>
