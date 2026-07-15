@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPRK-Web</title>
+    <title>SPRK-Web Resources</title>
     <link rel="icon" href="https://sprk-web.github.io/favicon.png" type="image/x-icon">
     <link rel="apple-touch-icon" href="https://sprk-web.github.io/favicon.png">
     <link rel="shortcut icon" href="https://sprk-web.github.io/favicon.png" type="image/png">
+    
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         .brand-logo-container {
             position: relative;
@@ -61,12 +63,11 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased">
 
-    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur sticky top-0 z-50 w-full">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center w-full">
-            
-            <div class="brand-logo-container">
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur sticky top-0 z-50 w-full backdrop-saturate-150">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center w-full">
+            <div class="brand-logo-container" onclick="location.reload()">
                 <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
                     <span class="brand-main">Sprk</span>
                     <span class="brand-sub text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
@@ -74,166 +75,237 @@
                 <div class="logo-underline"></div>
             </div>
 
-            <button id="theme-toggle" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200" aria-label="Toggle theme">
-                <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+            <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800/60 shadow-sm cursor-pointer active:scale-95 transition" aria-label="Toggle theme">
+                <i id="theme-icon" data-lucide="moon" class="w-4 h-4 text-slate-600 dark:text-slate-300"></i>
             </button>
         </div>
     </header>
 
-    <main id="main-content" class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 flex flex-col justify-center items-center">
+    <main id="main-content" class="flex-1 max-w-4xl w-full mx-auto px-6 py-10 flex flex-col justify-center items-center">
         
-        <div id="loading-state" class="flex flex-col items-center gap-4">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
-            <p class="text-slate-500 dark:text-slate-400 font-medium">Setting up best experience for you...</p>
+        <div id="loading-state" class="flex flex-col items-center gap-4 py-16 transition-all duration-300">
+            <div class="relative flex items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600/20 border-t-indigo-600"></div>
+            </div>
+            <p class="text-slate-500 dark:text-slate-400 font-medium text-sm animate-pulse">Analyzing file index directory matrix...</p>
         </div>
 
-        <div id="error-state" class="hidden text-center max-w-md p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl">
-            <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
-            <h2 class="text-xl font-semibold text-red-800 dark:text-red-400 mb-2">Failed to Load Content</h2>
-            <p id="error-message" class="text-sm text-red-600 dark:text-red-400/80 mb-4">No valid path parameter found in URL.</p>
+        <div id="error-state" class="hidden text-center max-w-md p-8 bg-white dark:bg-slate-900 border border-red-200 dark:border-red-950/60 rounded-3xl shadow-xl shadow-red-500/5 transition-all">
+            <div class="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/50 text-red-500 flex items-center justify-center mx-auto mb-4">
+                <i data-lucide="alert-circle" class="w-6 h-6"></i>
+            </div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-2">Failed to Load Content</h2>
+            <p id="error-message" class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-4">Asset collection unreachable.</p>
+            <button onclick="fetchData()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 dark:hover:bg-indigo-600 hover:text-white dark:hover:text-white text-xs font-bold rounded-xl transition cursor-pointer">Retry Operations Sync</button>
         </div>
 
-        <div id="content" class="hidden w-full flex flex-col gap-4 justify-start items-center">
-            <div class="w-full flex flex-col gap-2">
-                <input type="text" id="search-filter" placeholder="Search for content..." class="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        <div id="content" class="hidden w-full flex flex-col gap-8 justify-start items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            
+            <div class="w-full relative group">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </div>
+                <input type="text" id="search-filter" placeholder="Filter through names, asset groups, designations..." class="w-full p-4 pl-12 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/80 focus:border-transparent dark:text-slate-100 transition duration-200 text-sm">
             </div>
 
-            <div id="file-links" class="w-full flex flex-col gap-4">
-                <div id="section-site" class="hidden flex flex-col gap-3 w-full">
-                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                        <i data-lucide="globe" class="w-5 h-5 text-indigo-500"></i> Sites
+            <div id="file-links" class="w-full flex flex-col gap-8">
+                
+                <div id="section-site" class="hidden flex flex-col gap-4 w-full">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                        <i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> Active Web Platforms
                     </h3>
-                    <div id="file-links-site" class="w-full gap-4"></div>
+                    <div id="file-links-site" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
                 
-                <div id="section-pdf" class="hidden flex flex-col gap-3 w-full">
-                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-5 h-5 text-red-500"></i> PDFs
+                <div id="section-pdf" class="hidden flex flex-col gap-4 w-full">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-rose-500"></i> Document Records & PDFs
                     </h3>
-                    <div id="file-links-pdf" class="w-full gap-4"></div>
+                    <div id="file-links-pdf" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
                 
-                <div id="section-images" class="hidden flex flex-col gap-3 w-full">
-                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                        <i data-lucide="image" class="w-5 h-5 text-emerald-500"></i> Images
+                <div id="section-images" class="hidden flex flex-col gap-4 w-full">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                        <i data-lucide="image" class="w-4 h-4 text-emerald-500"></i> Graphic Media Assets
                     </h3>
-                    <div id="file-links-images" class="w-full gap-4"></div>
+                    <div id="file-links-images" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
             </div>
             
-            <div id="no-results" class="hidden text-center py-8 text-slate-400 w-full">
-                <i data-lucide="folder-open" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
-                <p>No matching resources found.</p>
+            <div id="no-results" class="hidden text-center py-16 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-md shadow-sm animate-in zoom-in-95 duration-200">
+                <div class="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-950 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="folder-open" class="w-5 h-5 opacity-70"></i>
+                </div>
+                <h4 class="text-base font-bold text-slate-800 dark:text-slate-200">No resources found</h4>
+                <p class="text-xs text-slate-400 mt-1 max-w-xs mx-auto px-4">Adjust your search term parameters or look for alternative items terms queries.</p>
             </div>
         </div>
 
     </main>
 
     <script>
-        let resourceData = [];
+        // -------------------------------------------------------------------
+        // 1. Light / Dark Theme Environment Management Node
+        // -------------------------------------------------------------------
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
 
-        function random(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        };
-
-        function fetchData() {
-            const url = 'https://sprk-web.github.io/resources/resources.json';
-            fetch(url).then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            }).then(data => {
-                resourceData = data;
-                renderResources();
-            }).catch(error => {
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('main-content').classList.add('hidden');
-                document.getElementById('error-state').classList.remove('hidden');
-                document.getElementById('error-message').textContent = 'Failed to fetch resources. Please try again later.';
-            });
-        };
-
-        function renderResources(filter = '') {
-        const types = [...new Set(resourceData.map(r => r.type.toLowerCase()))];
-    types.forEach(type => {
-        const el = document.getElementById(`file-links-${type}`);
-        if (el) el.innerHTML = '';
-    });
-        const sections = ["site", "pdf", "images"];
-        for (const section of sections) {
-            const sectionEl = document.getElementById(`section-${section}`);
-            if (sectionEl) sectionEl.classList.add('hidden');
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            updateThemeIcon(true);
+        } else {
+            document.documentElement.classList.remove('dark');
+            updateThemeIcon(false);
         }
 
-        for (let i = 0; i < resourceData.length; i++) {
-        const resource = resourceData[i];
-        
-        if (filter && 
-            !resource.name.toLowerCase().includes(filter.toLowerCase()) && 
-            !resource.type.toLowerCase().includes(filter.toLowerCase())) {
-            continue;
-        }
-
-        const type = resource.type.toUpperCase();
-        const name = resource.name;
-        const path = resource.path;
-        
-        const container = document.createElement('div');
-        container.className = 'file-card w-full p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-row items-center justify-between gap-4 shadow-sm hover:shadow-md hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-all duration-300 mt-4 group';
-        
-        const textContainer = document.createElement('div');
-        textContainer.className = 'flex flex-col gap-1 w-full min-w-0';
-        
-        const typeTag = document.createElement('span');
-        typeTag.textContent = type;
-        typeTag.className = 'text-[10px] font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md w-fit';
-        
-        const title = document.createElement('h3');
-        title.textContent = name;
-        title.className = 'file-name text-base font-semibold text-slate-800 dark:text-slate-100 line-clamp-1';
-        
-        textContainer.appendChild(typeTag);
-        textContainer.appendChild(title);
-        
-        const button = document.createElement('a');
-        button.href = path;
-        button.className = 'btn-action px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/50 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white hover:border-transparent transition-all duration-200 shrink-0 shadow-sm';
-        button.textContent = 'View';
-        
-        container.appendChild(textContainer);
-        container.appendChild(button);
-
-        const targetList = document.getElementById(`file-links-${type.toLowerCase()}`);
-        if (targetList) {
-            targetList.appendChild(container);
-            targetList.classList.remove('hidden');
-        }
-        
-        const targetSection = document.getElementById(`section-${type.toLowerCase()}`);
-        if (targetSection) {
-            targetSection.classList.remove('hidden');
-        }
-    }
-}
-
-        function init() {
-        fetchData();
-
-        const searchInput = document.getElementById('search-filter');
-        searchInput.addEventListener('input', (e) => {
-            renderResources(e.target.value);
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon(isDark);
         });
 
-        document.getElementById('loading-state').classList.add('hidden');
-        document.getElementById('main-content').classList.remove('justify-center');
-        document.getElementById('main-content').classList.add('justify-start');
-        document.getElementById('content').classList.remove('hidden');
-};
+        function updateThemeIcon(isDark) {
+            themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+            if (window.lucide) lucide.createIcons();
+        }
 
+        // -------------------------------------------------------------------
+        // 2. Data Pipeline Sync Operations Controller Engine Routine
+        // -------------------------------------------------------------------
+        let resourceData = [];
+        const targetedSections = ["site", "pdf", "images"];
+
+        function fetchData() {
+            // Reset state layout systems views configuration variables fields indicators
+            document.getElementById('error-state').classList.add('hidden');
+            document.getElementById('content').classList.add('hidden');
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('main-content').className = "flex-1 max-w-4xl w-full mx-auto px-6 py-10 flex flex-col justify-center items-center";
+
+            const url = 'https://sprk-web.github.io/resources/resources.json';
+            
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Status error metrics code: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    resourceData = data;
+                    
+                    // Transition View States only after success confirmation validation
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('main-content').className = "flex-1 max-w-4xl w-full mx-auto px-6 py-10 flex flex-col justify-start items-center";
+                    document.getElementById('content').classList.remove('hidden');
+                    
+                    renderResources();
+                })
+                .catch(error => {
+                    console.error("Data tracking failure run logs:", error);
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('error-state').classList.remove('hidden');
+                    document.getElementById('error-message').textContent = 'Could not download internal assets directory profile layout mapping index lists records matrix modules.';
+                });
+        }
+
+        function renderResources(filter = '') {
+            // Clean active card layout viewports fields items targets nodes arrays
+            targetedSections.forEach(section => {
+                const innerContainer = document.getElementById(`file-links-${section}`);
+                if (innerContainer) innerContainer.innerHTML = '';
+                
+                const frameWrapper = document.getElementById(`section-${section}`);
+                if (frameWrapper) frameWrapper.classList.add('hidden');
+            });
+
+            let matchCounter = 0;
+            const cleanFilter = filter.trim().toLowerCase();
+
+            // Setup dedicated unique operational parameters theme configuration color palette indices maps logic tags metrics array items layout context properties
+            const badgeStylingMap = {
+                site: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/30',
+                pdf: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/30',
+                images: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/30'
+            };
+
+            const actionBtnIconMap = {
+                site: 'external-link',
+                pdf: 'download',
+                images: 'maximize-2'
+            };
+
+            for (let i = 0; i < resourceData.length; i++) {
+                const asset = resourceData[i];
+                const normalizedType = asset.type.toLowerCase();
+
+                // Advanced tracking parameter query conditions check routing pipeline evaluation block runs sequence
+                if (cleanFilter && 
+                    !asset.name.toLowerCase().includes(cleanFilter) && 
+                    !normalizedType.includes(cleanFilter)) {
+                    continue;
+                }
+
+                matchCounter++;
+
+                // Build modern grid items profiles interface elements dynamically
+                const card = document.createElement('div');
+                card.className = 'w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-indigo-500/50 dark:hover:border-indigo-500/30 rounded-2xl flex flex-row items-center justify-between gap-4 shadow-2xs hover:shadow-md transition-all duration-300 group scale-100 active:scale-[0.99]';
+                
+                const metaBlock = document.createElement('div');
+                metaBlock.className = 'flex flex-col gap-1.5 min-w-0';
+                
+                const tag = document.createElement('span');
+                tag.textContent = asset.type.toUpperCase();
+                tag.className = `text-[9px] font-extrabold tracking-widest px-2 py-0.5 rounded-md w-fit uppercase select-none ${badgeStylingMap[normalizedType] || 'text-slate-600 bg-slate-100'}`;
+                
+                const titleText = document.createElement('h4');
+                titleText.textContent = asset.name;
+                titleText.className = 'text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200';
+                
+                metaBlock.appendChild(tag);
+                metaBlock.appendChild(titleText);
+                
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = asset.path;
+                linkAnchor.target = "_blank";
+                linkAnchor.rel = "noopener noreferrer";
+                linkAnchor.className = 'inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/60 hover:bg-indigo-600 dark:hover:bg-indigo-600 hover:text-white dark:hover:text-white hover:border-transparent transition-all duration-200 shrink-0 shadow-3xs cursor-pointer';
+                
+                const actionIconStr = actionBtnIconMap[normalizedType] || 'arrow-up-right';
+                linkAnchor.innerHTML = `<span>Open</span> <i data-lucide="${actionIconStr}" class="w-3.5 h-3.5"></i>`;
+                
+                card.appendChild(metaBlock);
+                card.appendChild(linkAnchor);
+
+                const targetGridList = document.getElementById(`file-links-${normalizedType}`);
+                if (targetGridList) {
+                    targetGridList.appendChild(card);
+                    
+                    const parentSectionWrapper = document.getElementById(`section-${normalizedType}`);
+                    if (parentSectionWrapper) parentSectionWrapper.classList.remove('hidden');
+                }
+            }
+
+            // Interface Toggling based on exact matching evaluations
+            const noResultsFallback = document.getElementById('no-results');
+            if (matchCounter === 0) {
+                noResultsFallback.classList.remove('hidden');
+            } else {
+                noResultsFallback.classList.add('hidden');
+            }
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // -------------------------------------------------------------------
+        // 3. Operational Setup Pipeline Lifecycle Core Bootloader Initializer
+        // -------------------------------------------------------------------
         window.addEventListener('DOMContentLoaded', () => {
-            init();
-            lucide.createIcons();
+            fetchData();
+
+            const liveSearchFilterInput = document.getElementById('search-filter');
+            liveSearchFilterInput.addEventListener('input', (event) => {
+                renderResources(event.target.value);
+            });
         }, { once: true });
     </script>
 </body>
