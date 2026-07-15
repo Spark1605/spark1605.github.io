@@ -336,6 +336,7 @@
                     });
                     
                     if (window.lucide) lucide.createIcons();
+                    renderMathInElement(questionContainer);
                     nextBtn.disabled = false;
                 };
                 actionZone.appendChild(showBtn);
@@ -376,28 +377,7 @@
                 }
             }
 
-            if (window.lucide) lucide.createIcons();
-
-// 2. Add this right after to trigger KaTeX manually on the active containers
-            if (window.renderMathInElement) {
-              renderMathInElement(document.getElementById('question-container'), {
-        delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false},
-            {left: '\\(', right: '\\)', display: false},
-            {left: '\\[', right: '\\[', display: true}
-        ],
-        throwOnError: false
-    });
-    renderMathInElement(actionZone, {
-        delimiters: [
-            {left: '$$', right: '$$', display: true},
-            {left: '$', right: '$', display: false}
-        ],
-        throwOnError: false
-    });
-                 }
-                                                                                             
+            if (window.lucide) lucide.createIcons();                                                                     
             document.getElementById('score-counter').innerText = `Score: ${currentScore}`;
             document.getElementById('next-btn').disabled = false;
         }
