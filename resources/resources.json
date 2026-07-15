@@ -11,11 +11,11 @@
   },
   {
     "type": "site",
-    "name": "Periodic Table [PubChem]",
+    "name": "Periodic Table",
     "path": "https://pubchem.ncbi.nlm.nih.gov/periodic-table/"
   },
   {
-    "type": "image",
+    "type": "images",
     "name": "Periodic Table",
     "path": "https://imgs.search.brave.com/ulW6pXpddWl-lZariJqH0WIIfBomhpQQX44RDDgIU7Y/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly90My5m/dGNkbi5uZXQvanBn/LzA1LzU4LzY0LzA4/LzM2MF9GXzU1ODY0/MDg0MV8zWGIwanps/V2hSWjFRdndPd0dh/Q0NJNVpWZjRnTE1S/My5qcGc"
   },
