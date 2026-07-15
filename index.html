@@ -139,20 +139,17 @@
         }
 
         function init() {
-            // Fetch data and simulate loader delay before revealing the content
-            Promise.all([
-                fetchData(),
-                new Promise(resolve => setTimeout(resolve, random(500, 1500)))
-            ]).then(() => {
-                // If fetching failed completely, let catch block manage error UI
-                if (resourceData.length === 0) return; 
-
-                document.getElementById('loading-state').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('justify-center');
-                document.getElementById('main-content').classList.add('justify-start');
-                document.getElementById('content').classList.remove('hidden');
-            });
-        };
+    Promise.all([
+        fetchData(),
+        new Promise(resolve => setTimeout(resolve, random(500, 1500)))
+    ]).then(() => {
+        // Remove or modify the breaking line so the UI actually switches over
+        document.getElementById('loading-state').classList.add('hidden');
+        document.getElementById('main-content').classList.remove('justify-center');
+        document.getElementById('main-content').classList.add('justify-start');
+        document.getElementById('content').classList.remove('hidden');
+    });
+};
 
         window.addEventListener('DOMContentLoaded', () => {
             init();
