@@ -39,122 +39,141 @@
                 <input type="text" id="search-filter" placeholder="Search for content..." class="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
 
-            <div id="file-links" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+            <div id="file-links" class="w-full flex flex-col gap-4">
+                <div id="section-site" class="hidden flex flex-col gap-3 w-full">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <i data-lucide="globe" class="w-5 h-5 text-indigo-500"></i> Sites
+                    </h3>
+                    <div id="file-links-site" class="w-full"></div>
+                </div>
+                
+                <div id="section-pdf" class="hidden flex flex-col gap-3 w-full">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5 text-red-500"></i> PDFs
+                    </h3>
+                    <div id="file-links-pdf" class="w-full"></div>
+                </div>
+                
+                <div id="section-images" class="hidden flex flex-col gap-3 w-full">
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <i data-lucide="image" class="w-5 h-5 text-emerald-500"></i> Images
+                    </h3>
+                    <div id="file-links-images" class="w-full"></div>
+                </div>
+            </div>
+            
+            <div id="no-results" class="hidden text-center py-8 text-slate-400 w-full">
+                <i data-lucide="folder-open" class="w-12 h-12 mx-auto mb-2 opacity-50"></i>
+                <p>No matching resources found.</p>
             </div>
         </div>
 
     </main>
 
     <script>
-        // Global storage for data to allow filtering without refetching
         let resourceData = [];
 
         function random(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
-        function populateFileLinks(data, searchTerm = '') {
-            const fileLinksContainer = document.getElementById('file-links');
-            fileLinksContainer.innerHTML = '';
-
-            const filteredData = data.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-            if (filteredData.length === 0) {
-                fileLinksContainer.innerHTML = '<p class="text-slate-500 dark:text-slate-400 text-center col-span-full py-8">No files found matching your search.</p>';
-                return;
-            }
-
-            filteredData.forEach(item => {
-                const linkElement = document.createElement('a');
-                linkElement.href = item.url;
-                linkElement.target = '_blank';
-                linkElement.rel = 'noopener noreferrer';
-                linkElement.className = 'block p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-200';
-
-                const nameElement = document.createElement('h3');
-                nameElement.textContent = item.name;
-                nameElement.className = 'font-semibold text-slate-900 dark:text-slate-50 mb-1';
-
-                const descElement = document.createElement('p');
-                descElement.textContent = item.description || 'No description available.';
-                descElement.className = 'text-sm text-slate-500 dark:text-slate-400';
-
-                linkElement.appendChild(nameElement);
-                linkElement.appendChild(descElement);
-                fileLinksContainer.appendChild(linkElement);
-            });
-        };
-
         function fetchData() {
             const url = 'https://sprk-web.github.io/files/resources.json';
-            return fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    resourceData = data;
-                    populateFileLinks(resourceData);
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                    document.getElementById('loading-state').classList.add('hidden');
-                    document.getElementById('content').classList.add('hidden');
-                    document.getElementById('error-state').classList.remove('hidden');
-                    document.getElementById('error-message').textContent = 'Failed to fetch data. Please try again later.';
-                });
+            fetch(url).then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            }).then(data => {
+                resourceData = data;
+                renderResources();
+            }).catch(error => {
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('main-content').classList.add('hidden');
+                document.getElementById('error-state').classList.remove('hidden');
+                document.getElementById('error-message').textContent = 'Failed to fetch resources. Please try again later.';
+            });
         };
 
-        function setupTheme() {
-            const themeToggleBtn = document.getElementById('theme-toggle');
-            const htmlElement = document.documentElement;
-            
-            // Check system preference or saved storage if desired, defaulting here to light
-            themeToggleBtn.addEventListener('click', () => {
-                if (htmlElement.classList.contains('dark')) {
-                    htmlElement.classList.remove('dark');
-                    htmlElement.classList.add('light');
-                    updateThemeIcon('moon');
-                } else {
-                    htmlElement.classList.remove('light');
-                    htmlElement.classList.add('dark');
-                    updateThemeIcon('sun');
-                }
-            });
+        function renderResources(filter = '') {
+        const types = [...new Set(resourceData.map(r => r.type.toLowerCase()))];
+    types.forEach(type => {
+        const el = document.getElementById(`file-links-${type}`);
+        if (el) el.innerHTML = '';
+    });
+        const sections = ["site", "pdf", "images"];
+        for (const section of sections) {
+            const sectionEl = document.getElementById(`section-${section}`);
+            if (sectionEl) sectionEl.classList.add('hidden');
         }
 
-        function updateThemeIcon(iconName) {
-            const iconContainer = document.getElementById('theme-toggle');
-            iconContainer.innerHTML = `<i id="theme-icon" data-lucide="${iconName}" class="w-4 h-4"></i>`;
-            lucide.createIcons();
+        for (let i = 0; i < resourceData.length; i++) {
+        const resource = resourceData[i];
+        
+        if (filter && 
+            !resource.name.toLowerCase().includes(filter.toLowerCase()) && 
+            !resource.type.toLowerCase().includes(filter.toLowerCase())) {
+            continue;
         }
 
-        function setupSearch() {
-            const searchInput = document.getElementById('search-filter');
-            searchInput.addEventListener('input', (e) => {
-                populateFileLinks(resourceData, e.target.value);
-            });
+        const type = resource.type.toUpperCase();
+        const name = resource.name;
+        const path = resource.path;
+        
+        const container = document.createElement('div');
+        container.className = 'file-card w-full p-5 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/80 rounded-2xl flex flex-row items-center justify-between gap-4 shadow-sm hover:shadow-md hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-all duration-300 group';
+        
+        const textContainer = document.createElement('div');
+        textContainer.className = 'flex flex-col gap-1 w-full min-w-0';
+        
+        const typeTag = document.createElement('span');
+        typeTag.textContent = type;
+        typeTag.className = 'text-[10px] font-bold tracking-wider text-blue-600 dark:text-blue-400 uppercase bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-md w-fit';
+        
+        const title = document.createElement('h3');
+        title.textContent = name;
+        title.className = 'file-name text-base font-semibold text-slate-800 dark:text-slate-100 line-clamp-1';
+        
+        textContainer.appendChild(typeTag);
+        textContainer.appendChild(title);
+        
+        const button = document.createElement('a');
+        button.href = path;
+        button.className = 'btn-action px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/50 hover:bg-blue-600 hover:text-white dark:hover:bg-blue-600 dark:hover:text-white hover:border-transparent transition-all duration-200 shrink-0 shadow-sm';
+        button.textContent = 'View';
+        
+        container.appendChild(textContainer);
+        container.appendChild(button);
+
+        const targetList = document.getElementById(`file-links-${type.toLowerCase()}`);
+        if (targetList) {
+            targetList.appendChild(container);
+            targetList.classList.remove('hidden');
         }
+        
+        const targetSection = document.getElementById(`section-${type.toLowerCase()}`);
+        if (targetSection) {
+            targetSection.classList.remove('hidden');
+        }
+    }
+}
 
         function init() {
-    Promise.all([
-        fetchData(),
-        new Promise(resolve => setTimeout(resolve, random(500, 1500)))
-    ]).then(() => {
-        // Remove or modify the breaking line so the UI actually switches over
+        fetchData();
+
+        const searchInput = document.getElementById('search-filter');
+        searchInput.addEventListener('input', (e) => {
+            renderResources(e.target.value);
+        });
+
         document.getElementById('loading-state').classList.add('hidden');
         document.getElementById('main-content').classList.remove('justify-center');
         document.getElementById('main-content').classList.add('justify-start');
         document.getElementById('content').classList.remove('hidden');
-    });
 };
 
         window.addEventListener('DOMContentLoaded', () => {
             init();
-            setupTheme();
-            setupSearch();
             lucide.createIcons();
         }, { once: true });
     </script>
