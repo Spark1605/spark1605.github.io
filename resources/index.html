@@ -14,6 +14,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" 
         onload="renderMathInElement(document.body);"></script>
     <style>
+        #question-container {
+            white-space: pre-wrap;
+        }
+        
         .brand-logo-container {
             position: relative;
             display: inline-flex;
@@ -373,6 +377,27 @@
             }
 
             if (window.lucide) lucide.createIcons();
+
+// 2. Add this right after to trigger KaTeX manually on the active containers
+            if (window.renderMathInElement) {
+              renderMathInElement(document.getElementById('question-container'), {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false},
+            {left: '\\[', right: '\\[', display: true}
+        ],
+        throwOnError: false
+    });
+    renderMathInElement(actionZone, {
+        delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+        ],
+        throwOnError: false
+    });
+                 }
+                                                                                             
             document.getElementById('score-counter').innerText = `Score: ${currentScore}`;
             document.getElementById('next-btn').disabled = false;
         }
