@@ -1,221 +1,165 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPRK-Web</title>
-    <link rel="icon" href="https://sprk-web.github.io/favicon.png" type="image/x-icon">
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <style>
-        :root {
-            --bg: #020617;
-            --card-bg: #0f172a;
-            --accent: #38bdf8;
-            --accent-glow: rgba(56, 189, 248, 0.2);
-            --text: #f8fafc;
-            --text-dim: #94a3b8;
-            --glass: rgba(30, 41, 59, 0.5);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', 'Inter', sans-serif; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-        }
-
-        /* Subtle Animated Background */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, #1e293b 0%, #020617 100%);
-            z-index: -1;
-        }
-
-        .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
-
-        /* Compact Hero */
-        .hero {
-            padding: 120px 0 60px 0;
-            text-align: center;
-        }
-
-        h1 { font-size: clamp(2.5rem, 8vw, 4.5rem); font-weight: 800; letter-spacing: -2px; margin-bottom: 1rem; }
-        .highlight { color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); }
-        .tagline { font-size: 1.1rem; color: var(--text-dim); max-width: 600px; margin: 0 auto; }
-
-        /* Project Section - The Main Highlight */
-        .section-title { 
-            font-size: 0.8rem; 
-            text-transform: uppercase; 
-            letter-spacing: 3px; 
-            color: var(--accent); 
-            margin-bottom: 1rem;
-            display: block;
-        }
-
-        .project-container {
-            display: flex;
-            flex-direction: column;
-            gap: 60px;
-            margin-top: 40px;
-        }
-
-        .project-card {
-            background: var(--glass);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 24px;
-            padding: 40px;
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 40px;
-            backdrop-filter: blur(12px);
-            transition: border-color 0.3s ease;
-        }
-
-        .project-card:hover { border-color: var(--accent); }
-
-        .project-info h3 { font-size: 2rem; margin-bottom: 15px; }
-        .status-tag { 
-            background: var(--accent-glow); 
-            color: var(--accent); 
-            padding: 4px 12px; 
-            border-radius: 100px; 
-            font-size: 0.75rem; 
-            font-weight: 700;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-
-        /* Horizontal Scroll Gallery for Screenshots */
-        .screenshot-gallery {
-            display: flex;
-            gap: 15px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent) transparent;
-        }
-
-        .screenshot-gallery::-webkit-scrollbar { height: 6px; }
-        .screenshot-gallery::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
-
-        .app-screenshot {
-            flex: 0 0 160px; /* Vertical phone aspect ratio */
-            height: 320px;
-            background: #1e293b;
-            border-radius: 12px;
-            object-fit: cover;
-            border: 2px solid rgba(255,255,255,0.1);
-        }
-
-        /* Education & Skills */
-        .grid-footer {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-top: 80px;
-        }
-
-        .mini-card {
-            background: rgba(255,255,255,0.03);
-            padding: 30px;
-            border-radius: 20px;
-        }
-
-        footer { padding: 80px 0 40px; text-align: center; color: var(--text-dim); opacity: 0.6; }
-
-        @media (max-width: 850px) {
-            .project-card { grid-template-columns: 1fr; }
-            .hero { padding: 80px 0 40px 0; }
-            .grid-footer { grid-template-columns: 1fr; }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col">
 
-    <div class="container">
-        <header class="hero">
-            <h1 class="reveal">Shashank <span class="highlight">Pathak</span></h1>
-            <p class="tagline reveal">Architecting Logic through Data & Code. <br> Mathematics Enthusiast | App Developer | Data Science Student</p>
-        </header>
-
-        <main id="projects">
-            <span class="section-title reveal">Featured Work</span>
-            
-            <div class="project-container">
-                
-                <article class="project-card reveal">
-                    <div class="project-info">
-                        <span class="status-tag">In Progress</span>
-                        <h3>Stuco</h3>
-                        <p>A Flet-based application using advanced algorithms to analyze study patterns and eliminate distractions. Built for high-performance students who value deep work.</p>
-                        <br>
-                        <p style="color: var(--text-dim); font-size: 0.9rem;">Tech: Python, Flet, SQLite</p>
-                    </div>
-                    <div class="screenshot-gallery">
-                        <img src="https://sprk-web.github.io/images/stuco/01.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/02.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/03.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/04.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/05.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/06.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/07.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/stuco/08.jpg" alt="Screenshot" class="app-screenshot">
-                    </div>
-                </article>
-
-                <article class="project-card reveal">
-                    <div class="project-info">
-                        <span class="status-tag">Completed</span>
-                        <h3>Diary</h3>
-                        <p>A secure, MD-style journaling app built with KivyMD for cross-platform daily reflections. Features encryption and a minimalist aesthetic for focused writing.</p>
-                        <br>
-                        <p style="color: var(--text-dim); font-size: 0.9rem;">Tech: KivyMD, Python, Material Design</p>
-                    </div>
-                    <div class="screenshot-gallery">
-                        <img src="https://sprk-web.github.io/images/diary/01.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/diary/02.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/diary/03.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/diary/04.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/diary/05.jpg" alt="Screenshot" class="app-screenshot">
-                        <img src="https://sprk-web.github.io/images/diary/06.jpg" alt="Screenshot" class="app-screenshot">
-                    </div>
-                </article>
-
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur sticky top-0 z-50 w-full">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center w-full">
+            <div class="flex items-center gap-2">
+                <i data-lucide="brain-circuit" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
+                <span class="font-bold text-lg tracking-tight">SPRK-<span class="text-indigo-600 dark:text-indigo-400">Web</span></span>
             </div>
-        </main>
+            <button id="theme-toggle" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200" aria-label="Toggle theme">
+                <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
 
-        <section class="grid-footer">
-            <div class="mini-card reveal">
-                <span class="section-title">Education</span>
-                <h3 style="margin-top:10px">MK DAV Public School</h3>
-                <p style="color: var(--text-dim)">Specializing in Mathematics and Computer Science applications.</p>
-            </div>
-            <div class="mini-card reveal">
-                <span class="section-title">Core Skills</span>
-                <h3 style="margin-top:10px">Logic & Development</h3>
-                <p style="color: var(--text-dim)">Python (Flet/Kivy), Algorithm Design, and Competitive Chess.</p>
-            </div>
-        </section>
+    <main id="main-content" class="flex-1 max-w-4xl w-full mx-auto px-4 py-8 flex flex-col justify-center items-center">
+        
+        <div id="loading-state" class="flex flex-col items-center gap-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Setting up best experience for you...</p>
+        </div>
 
-        <footer>
-            &copy; 2026 Shashank Pathak. Crafted with precision and logic.
-        </footer>
-    </div>
+        <div id="error-state" class="hidden text-center max-w-md p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl">
+            <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
+            <h2 class="text-xl font-semibold text-red-800 dark:text-red-400 mb-2">Failed to Load Content</h2>
+            <p id="error-message" class="text-sm text-red-600 dark:text-red-400/80 mb-4">No valid path parameter found in URL.</p>
+        </div>
+
+        <div id="content" class="hidden w-full flex flex-col gap-4 justify-start items-center">
+            <div class="w-full flex flex-col gap-2">
+                <input type="text" id="search-filter" placeholder="Search for content..." class="w-full p-3 border border-slate-300 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div id="file-links" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 w-full">
+            </div>
+        </div>
+
+    </main>
 
     <script>
-        ScrollReveal().reveal('.reveal', {
-            delay: 150,
-            distance: '30px',
-            origin: 'bottom',
-            duration: 800,
-            interval: 100,
-            easing: 'cubic-bezier(0.5, 0, 0, 1)'
-        });
+        // Global storage for data to allow filtering without refetching
+        let resourceData = [];
+
+        function random(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+
+        function populateFileLinks(data, searchTerm = '') {
+            const fileLinksContainer = document.getElementById('file-links');
+            fileLinksContainer.innerHTML = '';
+
+            const filteredData = data.filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            if (filteredData.length === 0) {
+                fileLinksContainer.innerHTML = '<p class="text-slate-500 dark:text-slate-400 text-center col-span-full py-8">No files found matching your search.</p>';
+                return;
+            }
+
+            filteredData.forEach(item => {
+                const linkElement = document.createElement('a');
+                linkElement.href = item.url;
+                linkElement.target = '_blank';
+                linkElement.rel = 'noopener noreferrer';
+                linkElement.className = 'block p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md hover:border-indigo-500 dark:hover:border-indigo-400 transition-all duration-200';
+
+                const nameElement = document.createElement('h3');
+                nameElement.textContent = item.name;
+                nameElement.className = 'font-semibold text-slate-900 dark:text-slate-50 mb-1';
+
+                const descElement = document.createElement('p');
+                descElement.textContent = item.description || 'No description available.';
+                descElement.className = 'text-sm text-slate-500 dark:text-slate-400';
+
+                linkElement.appendChild(nameElement);
+                linkElement.appendChild(descElement);
+                fileLinksContainer.appendChild(linkElement);
+            });
+        };
+
+        function fetchData() {
+            const url = 'https://sprk-web.github.io/files/resources.json';
+            return fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resourceData = data;
+                    populateFileLinks(resourceData);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    document.getElementById('loading-state').classList.add('hidden');
+                    document.getElementById('content').classList.add('hidden');
+                    document.getElementById('error-state').classList.remove('hidden');
+                    document.getElementById('error-message').textContent = 'Failed to fetch data. Please try again later.';
+                });
+        };
+
+        function setupTheme() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const htmlElement = document.documentElement;
+            
+            // Check system preference or saved storage if desired, defaulting here to light
+            themeToggleBtn.addEventListener('click', () => {
+                if (htmlElement.classList.contains('dark')) {
+                    htmlElement.classList.remove('dark');
+                    htmlElement.classList.add('light');
+                    updateThemeIcon('moon');
+                } else {
+                    htmlElement.classList.remove('light');
+                    htmlElement.classList.add('dark');
+                    updateThemeIcon('sun');
+                }
+            });
+        }
+
+        function updateThemeIcon(iconName) {
+            const iconContainer = document.getElementById('theme-toggle');
+            iconContainer.innerHTML = `<i id="theme-icon" data-lucide="${iconName}" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('search-filter');
+            searchInput.addEventListener('input', (e) => {
+                populateFileLinks(resourceData, e.target.value);
+            });
+        }
+
+        function init() {
+            // Fetch data and simulate loader delay before revealing the content
+            Promise.all([
+                fetchData(),
+                new Promise(resolve => setTimeout(resolve, random(500, 1500)))
+            ]).then(() => {
+                // If fetching failed completely, let catch block manage error UI
+                if (resourceData.length === 0) return; 
+
+                document.getElementById('loading-state').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('justify-center');
+                document.getElementById('main-content').classList.add('justify-start');
+                document.getElementById('content').classList.remove('hidden');
+            });
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            setupTheme();
+            setupSearch();
+            lucide.createIcons();
+        }, { once: true });
     </script>
 </body>
 </html>
