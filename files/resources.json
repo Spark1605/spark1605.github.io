@@ -1,3 +1,12 @@
-{
-  {"type" : "site" , "name" : "Sample Questions" , "path" : "https://sprk-web.github.io/files/?path=sample"}
-}
+[
+  {
+    "type": "site",
+    "name": "Sample Questions",
+    "path": "https://sprk-web.github.io/files/?path=sample"
+  },
+  {
+    "type": "pdf",
+    "name": "Phy Error&Measurements PYQs",
+    "path": "https://sprk-web.github.io/files/?path=Phy_Ch1_PYQS.pdf"
+  }
+]
