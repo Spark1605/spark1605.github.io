@@ -87,7 +87,7 @@
             <p class="text-slate-500 dark:text-slate-400 font-medium">Loading question bank...</p>
         </div>
 
-        <div id="error-state" class="hidden text-center max-w-md p-6 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl">
+        <div id="error-state" class="hidden text-center max-w-md p-6 bg-red-50 dah3:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-2xl">
             <i data-lucide="alert-circle" class="w-12 h-12 text-red-500 mx-auto mb-4"></i>
             <h2 class="text-xl font-semibold text-red-800 dark:text-red-400 mb-2">Failed to Load Content</h2>
             <p id="error-message" class="text-sm text-red-600 dark:text-red-400/80 mb-4">No valid path parameter found in URL.</p>
@@ -97,7 +97,7 @@
         <div id="mode-selection" class="hidden w-full max-w-xl text-center space-y-6">
             <div class="space-y-2">
                 <h1 class="text-3xl font-extrabold tracking-tight">Select Study Mode</h1>
-                <p class="text-slate-500 dark:text-slate-400" id="bank-title">Your file is successfully loaded. Choose how you want to learn.</p>
+                <h3 class="text-slate-500 dark:text-slate-400" id="bank-title">Your file is successfully loaded. Choose how you want to learn.</h3>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
                 <button onclick="startApp('quiz')" class="group p-6 text-left bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl hover:border-indigo-500 dark:hover:border-indigo-500 shadow-sm hover:shadow transition flex flex-col justify-between cursor-pointer">
@@ -233,7 +233,7 @@
                     // Show mode selection dashboard
                     document.getElementById('loading-state').classList.add('hidden');
                     document.getElementById('mode-selection').classList.remove('hidden');
-                    document.getElementById('bank-title').innerText = `Successfully parsed '${pathParam}.json'. Active inventory: ${questions.length} questions.`;
+                    document.getElementById('bank-title').innerText = `Topic : '${pathParam}' | Total Questions: ${questions.length}`;
                 })
                 .catch(err => {
                     showError(`Could not access dynamic question repository resource. (${err.message})`);
