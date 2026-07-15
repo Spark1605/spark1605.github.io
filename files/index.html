@@ -3,20 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPRK Question Bank Runner</title>
+    <title>SPRK-Web Resources</title>
+    <link rel="icon" href="https://sprk-web.github.io/favicon.png" type="image/x-icon">
+    <link rel="apple-touch-icon" href="https://sprk-web.github.io/favicon.png">
+    <link rel="shortcut icon" href="https://sprk-web.github.io/favicon.png" type="image/png">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .brand-logo-container {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .brand-main {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            position: relative;
+        }
+
+        .brand-sub::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #00f2fe;
+            border-radius: 50%;
+            top: 25%;
+            right: -10px;
+            box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+            animation: pulse 2s infinite alternate;
+        }
+
+        .logo-underline {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(90deg, #00f2fe, #7f00ff);
+            margin-top: 2px;
+            border-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
+            transition: width 0.4s ease;
+        }
+
+        .brand-logo-container:hover .logo-underline {
+            width: 100%;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col">
 
-    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <i data-lucide="brain-circuit" class="w-6 h-6 text-indigo-600 dark:text-indigo-400"></i>
-                <span class="font-bold text-lg tracking-tight">SPRK <span class="text-indigo-600 dark:text-indigo-400">QuizHub</span></span>
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur sticky top-0 z-50 w-full">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center w-full">
+            
+            <div class="brand-logo-container">
+                <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
+                    <span class="brand-main">Sprk</span>
+                    <span class="brand-sub text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
+                </div>
+                <div class="logo-underline"></div>
             </div>
-            <button id="theme-toggle" class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition" aria-label="Toggle Theme">
-                <i id="theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+
+            <button id="theme-toggle" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200" aria-label="Toggle theme">
+                <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
             </button>
         </div>
     </header>
