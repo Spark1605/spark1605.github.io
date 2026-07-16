@@ -1,27 +1,32 @@
 [
   {
+    "name": "Chemical-Bonding1.json",
     "type": "site",
-    "name": "Sample Questions",
-    "path": "https://sprk-web.github.io/resources/?path=sample"
+    "path": "https://sprk-web.github.io/files/questionbanks/Chemical-Bonding1.json"
   },
   {
+    "name": "sample.json",
     "type": "site",
-    "name": "Chemical Bonding PYQs",
-    "path": "https://sprk-web.github.io/resources/?path=Chemical-Bonding1"
+    "path": "https://sprk-web.github.io/files/questionbanks/sample.json"
   },
   {
-    "type": "site",
-    "name": "Periodic Table",
-    "path": "https://pubchem.ncbi.nlm.nih.gov/periodic-table/"
-  },
-  {
-    "type": "images",
-    "name": "Periodic Table",
-    "path": "https://imgs.search.brave.com/AygDmbF11o1FbaughBD32b5xKncRxgnCbKdAT5NNlBw/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMudmVjdGVlenku/Y29tL3N5c3RlbS9y/ZXNvdXJjZXMvdGh1/bWJuYWlscy8wMDAv/MDk4LzE3Ny9zbWFs/bC9uZW9uLXBlcmlv/ZGljLXRhYmxlLXZl/Y3Rvci5qcGc"
-  },
-  {
+    "name": "Ch_1_PYQS.pdf",
     "type": "pdf",
-    "name": "Phy Error&Measurements PYQs",
-    "path": "https://sprk-web.github.io/files/Ch_1_PYQS.pdf"
+    "path": "https://sprk-web.github.io/files/pdf/Ch_1_PYQS.pdf"
+  },
+  {
+    "name": "index.html",
+    "type": "unknown",
+    "path": "https://sprk-web.github.io/files/pdf/index.html"
+  },
+  {
+    "name": "Chemical-Bonding1.json",
+    "type": "site",
+    "path": "https://sprk-web.github.io/files/questionbanks/Chemical-Bonding1.json"
+  },
+  {
+    "name": "sample.json",
+    "type": "site",
+    "path": "https://sprk-web.github.io/files/questionbanks/sample.json"
   }
 ]
