@@ -1,27 +1,44 @@
 [
   {
-    "name": "Chemical-Bonding1.json",
+    "name": [
+      "Chemical-Bonding1"
+    ],
     "type": "site",
     "path": "https://sprk-web.github.io/files/questionbanks/Chemical-Bonding1.json"
   },
   {
-    "name": "sample.json",
+    "name": [
+      "sample"
+    ],
     "type": "site",
     "path": "https://sprk-web.github.io/files/questionbanks/sample.json"
   },
   {
-    "name": "Resonance Test.pdf",
+    "name": [
+      "Resonance Test"
+    ],
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/pdf/Resonance Test.pdf"
   },
   {
-    "name": "Ch_1_PYQS.pdf",
+    "name": [
+      "Ch_1_PYQS"
+    ],
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/pdf/Ch_1_PYQS.pdf"
   },
   {
-    "name": "CHEMQ-[MoleConcept].png",
-    "type": "image",
-    "path": "https://sprk-web.github.io/files/images/CHEMQ-[MoleConcept].png"
+    "name": [
+      "index"
+    ],
+    "type": "unknown",
+    "path": "https://sprk-web.github.io/files/media/index.html"
+  },
+  {
+    "name": [
+      "CHEMQ-[MoleConcept]"
+    ],
+    "type": "media",
+    "path": "https://sprk-web.github.io/files/media/CHEMQ-[MoleConcept].png"
   }
 ]
