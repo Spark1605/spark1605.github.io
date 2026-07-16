@@ -20,13 +20,13 @@
     "path": "https://sprk-web.github.io/files/pdf/Ch_1_PYQS.pdf"
   },
   {
-    "name": "Chemical-Bonding1.json",
-    "type": "site",
-    "path": "https://sprk-web.github.io/files/questionbanks/Chemical-Bonding1.json"
+    "name": "CHEMQ-[MoleConcept].png",
+    "type": "image",
+    "path": "https://sprk-web.github.io/files/images/CHEMQ-[MoleConcept].png"
   },
   {
-    "name": "sample.json",
-    "type": "site",
-    "path": "https://sprk-web.github.io/files/questionbanks/sample.json"
+    "name": "index.html",
+    "type": "unknown",
+    "path": "https://sprk-web.github.io/files/images/index.html"
   }
 ]
