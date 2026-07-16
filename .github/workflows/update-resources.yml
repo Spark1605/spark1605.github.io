@@ -1,0 +1,30 @@
+name: Update Resources JSON
+
+on:
+  push:
+    paths:
+      - 'files/questionbanks/**'
+      - 'files/pdf/**'
+
+jobs:
+  update-json:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-level: '3.x'
+
+      - name: Run Update Script
+        run: python .github/scripts/update_resources.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add resources/resources.json
+          
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update resources.json" && git push)
