@@ -30,8 +30,11 @@ def scan_folder(folder_path):
         file_path = os.path.join(folder_path, filename)
         if os.path.isfile(file_path):
             file_type = get_file_type(filename)
-            
-            web_path = f"{BASE_URL}/{folder_path}/{filename}"
+
+            if file_type == 'site':
+                web_path = f"{BASE_URL}/resources/?path={filename}"
+            else:
+                web_path = f"{BASE_URL}/{folder_path}/{filename}"
             
             resources.append({
                 "name": ''.join(filename.split('.')[:-1]),
