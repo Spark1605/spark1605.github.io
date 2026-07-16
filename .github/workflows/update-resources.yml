@@ -5,6 +5,7 @@ on:
     paths:
       - 'files/questionbanks/**'
       - 'files/pdf/**'
+      - 'files/images/**'
 
 jobs:
   update-json:
