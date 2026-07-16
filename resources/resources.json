@@ -1,13 +1,23 @@
 [
   {
+    "name": "Kinematics[JEE-Adv]",
+    "type": "site",
+    "path": "https://sprk-web.github.io/resources/?path=Kinematics[JEE-Adv.].json"
+  },
+  {
     "name": "Chemical-Bonding1",
     "type": "site",
-    "path": "https://sprk-web.github.io/files/questionbanks/Chemical-Bonding1.json"
+    "path": "https://sprk-web.github.io/resources/?path=Chemical-Bonding1.json"
   },
   {
     "name": "sample",
     "type": "site",
-    "path": "https://sprk-web.github.io/files/questionbanks/sample.json"
+    "path": "https://sprk-web.github.io/resources/?path=sample.json"
+  },
+  {
+    "name": "Resonance Test",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/pdf/Resonance Test.pdf"
   },
   {
     "name": "Irodov-Problems_in_General_Physics",
@@ -23,11 +33,6 @@
     "name": "JD Lee Adapted By Sudarshan Guha",
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/pdf/JD Lee Adapted By Sudarshan Guha.pdf"
-  },
-  {
-    "name": "Resonance Test",
-    "type": "pdf",
-    "path": "https://sprk-web.github.io/files/pdf/Resonance Test.pdf"
   },
   {
     "name": "CHEMQ-[MoleConcept]",
