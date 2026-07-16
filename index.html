@@ -124,11 +124,11 @@
                     <div id="file-links-pdf" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
                 
-                <div id="section-images" class="hidden flex flex-col gap-4 w-full">
+                <div id="section-media" class="hidden flex flex-col gap-4 w-full">
                     <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
                         <i data-lucide="image" class="w-4 h-4 text-emerald-500"></i> Media Assests
                     </h3>
-                    <div id="file-links-images" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                    <div id="file-links-media" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
             </div>
             
@@ -173,7 +173,7 @@
         // 2. Data Pipeline Sync Operations Controller Engine Routine
         // -------------------------------------------------------------------
         let resourceData = [];
-        const targetedSections = ["site", "pdf", "images"];
+        const targetedSections = ["site", "pdf", "media"];
 
         function fetchData() {
             // Reset state layout systems views configuration variables fields indicators
@@ -224,13 +224,13 @@
             const badgeStylingMap = {
                 site: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/30',
                 pdf: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/30',
-                images: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/30'
+                media: 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900/30'
             };
 
             const actionBtnIconMap = {
                 site: 'external-link',
                 pdf: 'download',
-                images: 'maximize-2'
+                media: 'maximize-2'
             };
 
             for (let i = 0; i < resourceData.length; i++) {
