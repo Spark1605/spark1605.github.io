@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JEE Advanced Testing Portal</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .palette-btn { display: flex; align-items: center; justify-content: center; width: 35px; height: 35px; border-radius: 4px; font-weight: 600; font-size: 14px; position: relative; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 selection:bg-indigo-500 selection:text-white">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // Helper component to render math safely using KaTeX
+        const LateVar = ({ text, block = false }) => {
+            const containerRef = React.useRef(null);
+            React.useEffect(() => {
+                if (containerRef.current) {
+                    try {
+                        window.katex.render(text, containerRef.current, {
+                            displayMode: block,
+                            throwOnError: false
+                        });
+                    } catch (e) {
+                        containerRef.current.textContent = text;
+                    }
+                }
+            }, [text, block]);
+            return <span ref={containerRef} />;
+        };
+
+        // Lucide Icon Wrapper Component
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const [svg, setSvg] = React.useState("");
+            React.useEffect(() => {
+                if (window.lucide && window.lucide.icons[name]) {
+                    const iconSvg = window.lucide.createSvg(window.lucide.icons[name], {
+                        width: size,
+                        height: size,
+                        class: className
+                    });
+                    setSvg(iconSvg.outerHTML);
+                }
+            }, [name, size, className]);
+            return <span dangerouslySetInnerHTML={{ __html: svg }} className="inline-flex items-center justify-center" />;
+        };
+
+        // Complete Mock Dataset Matching Supabase Schema Reference
+        const MOCK_TEST_DATA = {
+            test_code: "JEE-ADV-2026-P1",
+            test_name: "JEE Advanced Mock Test - Physics & Mathematics",
+            start_date: "2026-01-01T00:00:00Z",
+            end_date: "2026-12-31T23:59:59Z",
+            max_marks: 20,
+            total_questions: 5,
+            duration: 180, // minutes
+            syllabus: "Physics: Electrostatics, Mechanics. Mathematics: Calculus, Vectors & 3D Geometry.",
+            questions: [
+                {
+                    id: 1,
+                    question: "Find the value of \\int_{0}^{\\pi} \\sin^2(x) \\, dx.",
+                    is_image: false,
+                    options: ["\\pi", "\\frac{\\pi}{2}", "\\frac{\\pi}{4}", "0"],
+                    multiple_correct: false,
+                    correct_ans: ["B"],
+                    positive_marks: 3,
+                    negative_marks: -1
+                },
+                {
+                    id: 2,
+                    question: "Which of the following functions are continuous everywhere on their domain?",
+                    is_image: false,
+                    options: ["f(x) = |x|", "f(x) = \\sin(x)", "f(x) = \\tan(x)", "f(x) = e^x"],
+                    multiple_correct: true,
+                    correct_ans: ["A", "B", "D"],
+                    positive_marks: 4,
+                    negative_marks: -2
+                },
+                {
+                    id: 3,
+                    question: "A particle moves along a straight line with velocity v(t) = 3t^2 - 2t. If it starts from origin, its position at t = 2s is:",
+                    is_image: false,
+                    options: ["4m", "6m", "8m", "12m"],
+                    multiple_correct: false,
+                    correct_ans: ["A"],
+                    positive_marks: 3,
+                    negative_marks: -1
+                },
+                {
+                    id: 4,
+                    question: "For two vectors \\vec{A} and \\vec{B}, if |\\vec{A} + \\vec{B}| = |\\vec{A} - \\vec{B}|, choose the correct statements:",
+                    is_image: false,
+                    options: ["\\vec{A} \\cdot \\vec{B} = 0", "\\vec{A} \\text{ is perpendicular to } \\vec{B}", "\\vec{A} \\times \\vec{B} = 0", "|\\vec{A}| = |\\vec{B}|"],
+                    multiple_correct: true,
+                    correct_ans: ["A", "B"],
+                    positive_marks: 4,
+                    negative_marks: -2
+                },
+                {
+                    id: 5,
+                    question: "The electric potential at a point on the axis of an electric dipole at a distance r from its center varies as:",
+                    is_image: false,
+                    options: ["r^{-1}", "r^{-2}", "r^{-3}", "r"],
+                    multiple_correct: false,
+                    correct_ans: ["B"],
+                    positive_marks: 3,
+                    negative_marks: -1
+                }
+            ]
+        };
+
+        function App() {
+            // URL Configuration State
+            const [params, setParams] = React.useState({ test_code: '', attempt_code: 'later', dummy: true });
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            
+            // Core Business Data
+            const [testData, setTestData] = React.useState(null);
+            const [appState, setAppState] = React.useState('instructions'); // instructions | testing | summary
+            
+            // Testing Infrastructure States
+            const [currentQIndex, setCurrentQIndex] = React.useState(0);
+            const [selectedAnswers, setSelectedAnswers] = React.useState({}); // { qId: ['A', 'B'] }
+            const [questionStatus, setQuestionStatus] = React.useState({}); // { qId: 'not_visited' | 'answered' | 'not_answered' | 'marked' | 'marked_answered' }
+            const [timeLeft, setTimeLeft] = React.useState(0); // For countdown
+            const [elapsedTime, setElapsedTime] = React.useState(0); // For stopwatch
+            
+            // User Auth / Security states
+            const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+            const [showLoginModal, setShowLoginModal] = React.useState(false);
+            const [authUsername, setAuthUsername] = React.useState("");
+            const [cheatWarnings, setCheatWarnings] = React.useState(0);
+            const [showCheatAlert, setShowCheatAlert] = React.useState(false);
+
+            // Per question tracking for practice checks
+            const [checkedAnswers, setCheckedAnswers] = React.useState({}); 
+
+            // Initialize App and parse URL params
+            React.useEffect(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const test_code = urlParams.get('test_code') || 'JEE-ADV-2026-P1';
+                const attempt_code = urlParams.get('attempt_code') || 'later'; // live or later
+                const dummy = urlParams.get('dummy') !== 'false'; // defaults to true unless explicitly false
+
+                setParams({ test_code, attempt_code, dummy });
+                
+                // Read local authentication token/key
+                const loggedInStatus = localStorage.getItem('is_logged_in') === 'true';
+                setIsLoggedIn(loggedInStatus);
+
+                // Load database context / Mock injection
+                if (dummy) {
+                    setTestData(MOCK_TEST_DATA);
+                    // Initialize clean question states
+                    const initStatus = {};
+                    MOCK_TEST_DATA.questions.forEach((q, idx) => {
+                        initStatus[q.id] = idx === 0 ? 'not_answered' : 'not_visited';
+                    });
+                    setQuestionStatus(initStatus);
+                    setLoading(false);
+                } else {
+                    // Placeholder logic simulating Supabase initialization
+                    console.log("Initializing Supabase Client using URL: xyz, Key: xyz");
+                    setError("Supabase backend connection failed (using placeholder credentials). Append ?dummy=true to the URL to run in robust local mock environment.");
+                    setLoading(false);
+                }
+            }, []);
+
+            // Handle Anti-Cheat Tab Switches (Only in Live Mode)
+            React.useEffect(() => {
+                if (appState !== 'testing' || params.attempt_code !== 'live') return;
+
+                const handleVisibilityChange = () => {
+                    if (document.hidden) {
+                        setCheatWarnings(prev => {
+                            const updated = prev + 1;
+                            setShowCheatAlert(true);
+                            return updated;
+                        });
+                    }
+                };
+
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+                return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+            }, [appState, params.attempt_code]);
+
+            // Timer Engine Setup
+            React.useEffect(() => {
+                if (appState !== 'testing') return;
+
+                let timerId;
+                if (params.attempt_code === 'live') {
+                    // Check if existing timer duration exists in current session storage
+                    const storedStartTime = localStorage.getItem(`test_start_${params.test_code}`);
+                    let initialTimeLeft = testData.duration * 60;
+                    
+                    if (storedStartTime) {
+                        const elapsed = Math.floor((Date.now() - parseInt(storedStartTime, 10)) / 1000);
+                        initialTimeLeft = Math.max(0, (testData.duration * 60) - elapsed);
+                    } else {
+                        localStorage.setItem(`test_start_${params.test_code}`, Date.now().toString());
+                    }
+                    
+                    setTimeLeft(initialTimeLeft);
+
+                    timerId = setInterval(() => {
+                        setTimeLeft(prev => {
+                            if (prev <= 1) {
+                                clearInterval(timerId);
+                                handleFinalSubmission();
+                                return 0;
+                            }
+                            return prev - 1;
+                        });
+                    }, 1000);
+                } else {
+                    // Practice stopwatch mode
+                    timerId = setInterval(() => {
+                        setElapsedTime(prev => prev + 1);
+                    }, 1000);
+                }
+
+                return () => clearInterval(timerId);
+            }, [appState, params.attempt_code]);
+
+            // Formatter for display timer durations
+            const formatTime = (totalSeconds) => {
+                const hrs = Math.floor(totalSeconds / 3600);
+                const mins = Math.floor((totalSeconds % 3600) / 60);
+                const secs = totalSeconds % 60;
+                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            // Business Rule Validation Engine
+            const startTestVerification = () => {
+                const now = new Date();
+                const start = new Date(testData.start_date);
+                const end = new Date(testData.end_date);
+
+                if (params.attempt_code === 'live') {
+                    if (!isLoggedIn) {
+                        setShowLoginModal(true);
+                        return;
+                    }
+                    if (now < start || now > end) {
+                        alert(`Access Denied: Live window is strictly active between ${start.toLocaleString()} and ${end.toLocaleString()}`);
+                        return;
+                    }
+                } else {
+                    // Later Mode Verification rules
+                    if (now >= start && now <= end) {
+                        alert("This test is currently LIVE. You must take this test in Live Mode instead of Practice Mode.");
+                        return;
+                    }
+                }
+                setAppState('testing');
+            };
+
+            const handleMockLogin = (e) => {
+                e.preventDefault();
+                if (authUsername.trim()) {
+                    localStorage.setItem('is_logged_in', 'true');
+                    setIsLoggedIn(true);
+                    setShowLoginModal(false);
+                    // Automatically trigger check after entering login details
+                    setAppState('testing');
+                }
+            };
+
+            // Scoring Mechanism Engine
+            const computeAdvancedScore = () => {
+                let finalScore = 0;
+                let summaryData = [];
+
+                testData.questions.forEach(q => {
+                    const chosen = selectedAnswers[q.id] || [];
+                    const correct = q.correct_ans;
+                    
+                    let isPerfect = chosen.length === correct.length && chosen.every(val => correct.includes(val));
+                    let isWrong = chosen.some(val => !correct.includes(val));
+
+                    let pointsObtained = 0;
+
+                    if (chosen.length === 0) {
+                        pointsObtained = 0; // Unattempted
+                    } else if (q.multiple_correct) {
+                        if (isWrong) {
+                            pointsObtained = q.negative_marks;
+                        } else if (isPerfect) {
+                            pointsObtained = q.positive_marks;
+                        } else {
+                            // Partial Marking Logic: +1 for each correct option selected, provided no wrong choice is taken
+                            pointsObtained = chosen.length; 
+                        }
+                    } else {
+                        pointsObtained = isPerfect ? q.positive_marks : q.negative_marks;
+                    }
+
+                    finalScore += pointsObtained;
+                    summaryData.push({
+                        id: q.id,
+                        isPerfect,
+                        isWrong,
+                        pointsObtained,
+                        chosen,
+                        correct
+                    });
+                });
+
+                return { finalScore, summaryData };
+            };
+
+            const handleFinalSubmission = () => {
+                localStorage.removeItem(`test_start_${params.test_code}`);
+                setAppState('summary');
+            };
+
+            // Option selection modifications
+            const handleSelectOption = (optionChar, isMultiple) => {
+                const currentQId = testData.questions[currentQIndex].id;
+                let currentSelections = [...(selectedAnswers[currentQId] || [])];
+
+                if (isMultiple) {
+                    if (currentSelections.includes(optionChar)) {
+                        currentSelections = currentSelections.filter(x => x !== optionChar);
+                    } else {
+                        currentSelections.push(optionChar);
+                    }
+                } else {
+                    currentSelections = [optionChar];
+                }
+
+                setSelectedAnswers({ ...selectedAnswers, [currentQId]: currentSelections });
+            };
+
+            // Navigation State Machine Controllers
+            const handleSaveAndNext = () => {
+                const currentQId = testData.questions[currentQIndex].id;
+                const answered = selectedAnswers[currentQId] && selectedAnswers[currentQId].length > 0;
+                
+                setQuestionStatus({
+                    ...questionStatus,
+                    [currentQId]: answered ? 'answered' : 'not_answered'
+                });
+
+                advanceToNextQuestion();
+            };
+
+            const handleClearResponse = () => {
+                const currentQId = testData.questions[currentQIndex].id;
+                setSelectedAnswers({ ...selectedAnswers, [currentQId]: [] });
+                setQuestionStatus({ ...questionStatus, [currentQId]: 'not_answered' });
+            };
+
+            const handleMarkForReview = () => {
+                const currentQId = testData.questions[currentQIndex].id;
+                const answered = selectedAnswers[currentQId] && selectedAnswers[currentQId].length > 0;
+                
+                setQuestionStatus({
+                    ...questionStatus,
+                    [currentQId]: answered ? 'marked_answered' : 'marked'
+                });
+
+                advanceToNextQuestion();
+            };
+
+            const advanceToNextQuestion = () => {
+                if (currentQIndex < testData.questions.length - 1) {
+                    const nextIndex = currentQIndex + 1;
+                    setCurrentQIndex(nextIndex);
+                    const nextQId = testData.questions[nextIndex].id;
+                    if (questionStatus[nextQId] === 'not_visited') {
+                        setQuestionStatus(prev => ({ ...prev, [nextQId]: 'not_answered' }));
+                    }
+                }
+            };
+
+            const selectPaletteQuestion = (idx) => {
+                setCurrentQIndex(idx);
+                const qId = testData.questions[idx].id;
+                if (questionStatus[qId] === 'not_visited') {
+                    setQuestionStatus(prev => ({ ...prev, [qId]: 'not_answered' }));
+                }
+            };
+
+            // Practice Mode Immediate Check
+            const checkPracticeAnswer = (qId) => {
+                setCheckedAnswers({ ...checkedAnswers, [qId]: true });
+            };
+
+            // Loading / Error Screen Rendering
+            if (loading) return <div class="flex items-center justify-center h-screen bg-slate-900 text-white font-medium text-lg tracking-wider">LOADING SECURE TESTING ENVIRONMENT...</div>;
+            if (error) return <div class="max-w-2xl mx-auto my-12 p-8 bg-red-50 border border-red-200 text-red-900 rounded-xl shadow-lg"><h2 class="text-xl font-bold mb-4 flex items-center gap-2"><Icon name="AlertTriangle" className="text-red-600"/> Environment Initialization Error</h2><p class="mb-4">{error}</p></div>;
+
+            // 1. PRE-TEST INSTRUCTIONS DASHBOARD SCREEN
+            if (appState === 'instructions') {
+                return (
+                    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100">
+                        <div class="max-w-4xl mx-auto bg-slate-900/60 backdrop-blur-md border border-slate-800 rounded-2xl shadow-2xl p-6 md:p-10">
+                            
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-6 mb-8">
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 mb-3">
+                                        {params.attempt_code.toUpperCase()} MODE
+                                    </span>
+                                        <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{testData.test_name}</h1>
+                                </div>
+                                <Icon name="BookOpen" size={40} className="text-indigo-400 hidden sm:block" />
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                                <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                                    <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg"><Icon name="Clock" /></div>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Duration</div>
+                                        <div class="text-lg font-bold text-white">{testData.duration} Minutes</div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                                    <div class="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg"><Icon name="CheckCircle" /></div>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Maximum Marks</div>
+                                        <div class="text-lg font-bold text-white">{testData.max_marks} Marks</div>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-800/40 border border-slate-800 p-4 rounded-xl flex items-center gap-4">
+                                    <div class="p-3 bg-amber-500/10 text-amber-400 rounded-lg"><Icon name="BookOpen" /></div>
+                                    <div>
+                                        <div class="text-xs text-slate-400 font-medium uppercase tracking-wider">Total Questions</div>
+                                        <div class="text-lg font-bold text-white">{testData.total_questions} Questions</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6 mb-8 text-sm text-slate-300 leading-relaxed">
+                                <div class="bg-slate-800/20 border border-slate-800 rounded-xl p-5">
+                                    <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-2">Syllabus Overview</h3>
+                                    <p class="text-slate-400 font-mono text-xs">{testData.syllabus}</p>
+                                </div>
+
+                                <h2 class="text-lg font-bold text-white border-l-4 border-indigo-500 pl-2">Examination Rules & Instructions</h2>
+                                <ul class="list-disc list-inside space-y-2.5 text-slate-300">
+                                    <li>This test consists of both **Single Correct Option** and **Multiple Correct Options** question formatting.</li>
+                                    <li>Ensure stable internet connectivity throughout the examination session.</li>
+                                    {params.attempt_code === 'live' ? (
+                                        <li class="text-amber-400 font-semibold">Security Protocol: Tab switching or losing page focus triggers strict browser cheat warnings. Repeated adjustments auto-submit the trial.</li>
+                                    ) : (
+                                        <li class="text-emerald-400">Practice Mode Enabled: Instant feedback option accessible at every stage. Complete stopwatch tracking is operational.</li>
+                                    )}
+                                </ul>
+                            </div>
+
+                            <div class="flex items-center justify-end border-t border-slate-800 pt-6">
+                                <button onClick={startTestVerification} class="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold rounded-xl tracking-wide shadow-lg shadow-indigo-600/20 transform active:scale-95 transition flex items-center justify-center gap-2">
+                                    Acknowledge & Start Test <Icon name="ChevronRight" size={16}/>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Login Verification Modal */}
+                        {showLoginModal && (
+                            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                                <div class="bg-slate-900 border border-slate-800 max-w-md w-full rounded-2xl p-6 shadow-2xl">
+                                    <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2"><Icon name="User" className="text-indigo-400"/> Authentication Required</h3>
+                                    <p class="text-slate-400 text-xs mb-6 leading-relaxed">Live test configurations require active candidate matching profile tokens. Simulate candidate entry profile context credentials down below to authenticate.</p>
+                                    <form onSubmit={handleMockLogin} class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Registration ID / Candidate Name</label>
+                                            <input type="text" required value={authUsername} onChange={e => setAuthUsername(e.target.value)} class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm" placeholder="Enter alphanumeric code" />
+                                        </div>
+                                        <div class="flex gap-3 justify-end pt-2">
+                                            <button type="button" onClick={() => setShowLoginModal(false)} class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white transition">Cancel</button>
+                                            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-xl transition">Authenticate Profile</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            // 2. LIVE TESTING MODE / SIMULATION VIEWPORT
+            if (appState === 'testing') {
+                const currentQuestion = testData.questions[currentQIndex];
+                const selectedForCurrent = selectedAnswers[currentQuestion.id] || [];
+                const totalAnsweredCount = Object.values(questionStatus).filter(s => s === 'answered' || s === 'marked_answered').length;
+
+                return (
+                    <div class="min-h-screen flex flex-col bg-slate-100">
+                        {/* Anti-cheat Alert Modal Overlay */}
+                        {showCheatAlert && (
+                            <div class="fixed inset-0 bg-red-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+                                <div class="bg-white max-w-md w-full rounded-2xl p-6 shadow-2xl border-4 border-red-500 text-center">
+                                    <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4"><Icon name="AlertTriangle" size={32}/></div>
+                                    <h3 class="text-xl font-bold text-slate-900 mb-2">Proctored System Warning!</h3>
+                                    <p class="text-slate-600 text-sm mb-6">Security protocols detected tab activity loss. Focus movements are tracked for auditing. Continued violations force automated exam execution.</p>
+                                    <button onClick={() => setShowCheatAlert(false)} class="w-full py-3 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl transition uppercase tracking-wider shadow-lg shadow-red-600/20">Return to Portal</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Portal Header */}
+                        <header class="bg-slate-900 text-white px-4 md:px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 shadow-md shrink-0">
+                            <div>
+                                <h1 class="text-lg font-bold text-white tracking-tight">{testData.test_name}</h1>
+                                <div class="text-xs text-slate-400 mt-0.5 flex items-center gap-3">
+                                    <span>Code: <span class="font-mono text-slate-300 font-semibold">{testData.test_code}</span></span>
+                                    <span>•</span>
+                                    <span class="capitalize flex items-center gap-1"><Icon name="BookOpen" size={12}/> {params.attempt_code} Mode</span>
+                                </div>
+                            </div>
+                            
+                            {/* Proctored Security / Tracking clocks */}
+                            <div class="flex items-center gap-4 self-end sm:self-auto">
+                                {params.attempt_code === 'live' ? (
+                                    <div class="bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-xl flex items-center gap-3">
+                                        <Icon name="Clock" className="text-red-400 animate-pulse" />
+                                        <div>
+                                            <div class="text-[10px] text-red-400 font-bold uppercase tracking-wider">Time Remaining</div>
+                                            <div class="text-lg font-mono font-bold text-red-200 tabular-nums">{formatTime(timeLeft)}</div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-xl flex items-center gap-3">
+                                        <Icon name="Clock" className="text-emerald-400" />
+                                        <div>
+                                            <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Elapsed Stopwatch</div>
+                                            <div class="text-lg font-mono font-bold text-emerald-400 tabular-nums">{formatTime(elapsedTime)}</div>
+                                        </div>
+                                    </div>
+                                )}
+                                <button onClick={handleFinalSubmission} class="px-5 py-2.5 bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-rose-600/20 tracking-wide">
+                                    Submit Exam
+                                </button>
+                            </div>
+                        </header>
+
+                        {/* Split Workstation Layout Container */}
+                        <div class="flex-1 flex flex-col md:flex-row overflow-hidden">
+                            
+                            {/* Left/Center Panel - Current Active Question Viewport */}
+                            <main class="flex-1 overflow-y-auto bg-white p-6 md:p-8 flex flex-col justify-between border-r border-slate-200">
+                                <div>
+                                    {/* Question Header Metric Meta tags */}
+                                    <div class="flex flex-wrap items-center justify-between border-b border-slate-100 pb-4 mb-6 gap-3">
+                                        <div class="flex items-center gap-3">
+                                            <span class="inline-flex items-center justify-center w-9 h-9 bg-slate-900 text-white font-bold rounded-lg text-sm">Q{currentQIndex + 1}</span>
+                                            <span class={`inline-block text-xs font-bold uppercase px-2.5 py-1 rounded-md border ${
+                                                currentQuestion.multiple_correct 
+                                                ? 'bg-purple-50 border-purple-200 text-purple-700' 
+                                                : 'bg-indigo-50 border-indigo-200 text-indigo-700'
+                                            }`}>
+                                                {currentQuestion.multiple_correct ? "Multiple Correct (Checkboxes)" : "Single Correct (Radio)"}
+                                            </span>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 font-mono text-xs text-slate-500">
+                                            <span class="text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">+{currentQuestion.positive_marks} Marks</span>
+                                            <span class="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded">{currentQuestion.negative_marks} Marks</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Core Question Content Body Frame */}
+                                    <div class="text-base text-slate-800 leading-relaxed mb-8 font-medium">
+                                        {currentQuestion.is_image ? (
+                                            <img src={currentQuestion.question} alt="Question Diagram Content" class="max-w-full h-auto border border-slate-200 rounded-lg shadow-sm" />
+                                        ) : (
+                                            <div class="bg-slate-50 border border-slate-200/60 p-5 rounded-xl text-slate-900 shadow-inner font-mono">
+                                                <LateVar text={currentQuestion.question} block={true} />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Evaluation Response Inputs Selector Blocks */}
+                                    <div class="space-y-3.5 max-w-3xl">
+                                        {currentQuestion.options.map((optionText, optIdx) => {
+                                            const optionChar = String.fromCharCode(65 + optIdx); // A, B, C, D
+                                            const isChecked = selectedForCurrent.includes(optionChar);
+
+                                            return (
+                                                <div 
+                                                    key={optIdx} 
+                                                    onClick={() => handleSelectOption(optionChar, currentQuestion.multiple_correct)}
+                                                    class={`group border-2 rounded-xl p-4 flex items-center gap-4 cursor-pointer transition select-none ${
+                                                        isChecked 
+                                                        ? 'border-indigo-600 bg-indigo-50/40 text-indigo-900' 
+                                                        : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                                                    }`}
+                                                >
+                                                    <div class={`w-6 h-6 shrink-0 flex items-center justify-center font-bold text-xs border-2 transition ${
+                                                        currentQuestion.multiple_correct ? 'rounded-md' : 'rounded-full'
+                                                    } ${
+                                                        isChecked 
+                                                        ? 'bg-indigo-600 border-indigo-600 text-white' 
+                                                        : 'border-slate-300 text-slate-500 group-hover:border-slate-400'
+                                                    }`}>
+                                                        {optionChar}
+                                                    </div>
+                                                    <div class="text-sm font-medium leading-none flex-1 font-mono">
+                                                        <LateVar text={optionText} />
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Practice Mode Quiz Feedback Overlay Engine */}
+                                    {params.attempt_code === 'later' && checkedAnswers[currentQuestion.id] && (
+                                        <div class="mt-6 p-4 rounded-xl border font-medium text-sm transition animate-fade-in bg-slate-50 border-slate-200">
+                                            <div class="flex items-center gap-2 text-slate-900 mb-1 font-bold">
+                                                <Icon name="BookOpen" size={16} className="text-indigo-600"/> Correction Metric Evaluation:
+                                            </div>
+                                            <div class="font-mono text-xs text-slate-600 mt-2 space-y-1">
+                                                <p>Chosen Response: <span class="font-bold text-slate-900">{selectedForCurrent.join(', ') || 'None'}</span></p>
+                                                <p>Correct Target Key: <span class="font-bold text-emerald-600">{currentQuestion.correct_ans.join(', ')}</span></p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Bottom Control Workflow Buttons Bar */}
+                                <div class="flex flex-wrap items-center justify-between border-t border-slate-100 pt-6 mt-8 gap-3">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <button onClick={handleSaveAndNext} class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-md shadow-indigo-600/10">
+                                            Save & Next
+                                        </button>
+                                        <button onClick={handleClearResponse} class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider rounded-lg transition">
+                                            Clear Response
+                                        </button>
+                                        <button onClick={handleMarkForReview} class="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-md shadow-amber-500/10">
+                                            Mark For Review & Next
+                                        </button>
+                                    </div>
+
+                                    {params.attempt_code === 'later' && (
+                                        <button 
+                                            onClick={() => checkPracticeAnswer(currentQuestion.id)} 
+                                                             disabled={selectedForCurrent.length === 0}
+                                            class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold text-xs uppercase tracking-wider rounded-lg transition shadow-md shadow-emerald-600/10"
+                                        >
+                                            Check Answer
+                                        </button>
+                                    )}
+                                </div>
+                            </main>
+
+                            {/* Right Sidebar - Authentic JEE Question Palette Grid */}
+                            <aside class="w-full md:w-80 bg-slate-50 border-t md:border-t-0 border-slate-200 p-6 flex flex-col justify-between overflow-y-auto shrink-0">
+                                <div>
+                                    {/* Candidate Panel Profile */}
+                                    <div class="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-3.5 mb-6 shadow-sm">
+                                        <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-bold"><Icon name="User" /></div>
+                                        <div>
+                                            <div class="text-xs text-slate-400 font-medium">Candidate Profile</div>
+                                            <div class="text-sm font-bold text-slate-800">{authUsername || "Practice Guest"}</div>
+                                        </div>
+                                    </div>
+
+                                    {/* Question Palette Status Indicators Legend Grid */}
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Question Navigator Status</h3>
+                                    <div class="grid grid-cols-2 gap-2 text-[11px] font-semibold text-slate-600 mb-6">
+                                        <div class="flex items-center gap-2"><span class="palette-btn bg-slate-200 border border-slate-300 text-slate-700">0</span> Not Visited</div>
+                                        <div class="flex items-center gap-2"><span class="palette-btn bg-emerald-600 text-white">0</span> Answered</div>
+                                        <div class="flex items-center gap-2"><span class="palette-btn bg-rose-600 text-white">0</span> Not Answered</div>
+                                        <div class="flex items-center gap-2"><span class="palette-btn bg-purple-600 text-white">0</span> Marked Review</div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="palette-btn bg-purple-600 text-white">0<span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white"></span></span>
+                                            Answered & Review
+                                        </div>
+                                    </div>
+
+                                    <hr class="border-slate-200 my-4" />
+
+                                    {/* Interactive Numbered Grid Blocks Palette */}
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Select Question Palette</h3>
+                                    <div class="flex flex-wrap gap-2.5">
+                                        {testData.questions.map((q, idx) => {
+                                            const status = questionStatus[q.id] || 'not_visited';
+                                            const isCurrent = currentQIndex === idx;
+                                            
+                                            let btnClasses = "bg-slate-200 border border-slate-300 text-slate-700"; // not_visited
+                                            let hasGreenDot = false;
+
+                                            if (status === 'answered') btnClasses = "bg-emerald-600 text-white";
+                                            if (status === 'not_answered') btnClasses = "bg-rose-600 text-white";
+                                            if (status === 'marked') btnClasses = "bg-purple-600 text-white";
+                                            if (status === 'marked_answered') {
+                                                btnClasses = "bg-purple-600 text-white";
+                                                hasGreenDot = true;
+                                            }
+
+                                            return (
+                                                <button 
+                                                    key={q.id} 
+                                                    onClick={() => selectPaletteQuestion(idx)}
+                                                    className={`palette-btn transform active:scale-90 transition ${btnClasses} ${isCurrent ? 'ring-2 ring-offset-2 ring-slate-900' : ''}`}
+                                                >
+                                                    {idx + 1}
+                                                    {hasGreenDot && <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-purple-600"></span>}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                <div class="mt-8 pt-4 border-t border-slate-200/60 text-[11px] font-medium text-slate-400 flex justify-between items-center">
+                                    <span>Progress Metric: {totalAnsweredCount} / {testData.total_questions}</span>
+                                    <span>Security Proctored: Active</span>
+                                </div>
+                            </aside>
+                        </div>
+                    </div>
+                );
+            }
+
+            // 3. SECURE PERFORMANCE REPORTING SUMMARY SCREEN
+            if (appState === 'summary') {
+                const { finalScore, summaryData } = computeAdvancedScore();
+
+                return (
+                    <div class="min-h-screen py-12 px-4 sm:px-6 bg-slate-900 text-white flex flex-col justify-center">
+                        <div class="max-w-3xl mx-auto w-full bg-slate-800/50 backdrop-blur border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl">
+                            
+                            <div class="text-center mb-8">
+                                <div class="w-14 h-14 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <Icon name="CheckCircle" size={28}/>
+                                </div>
+                                <h2 class="text-2xl font-black text-white tracking-tight">Examination Session Terminated</h2>
+                                <p class="text-xs text-slate-400 mt-1">Metrics accurately calibrated utilizing partial scoring logic metrics.</p>
+                            </div>
+
+                            {/* Total Marks Metric Card Badge */}
+                            <div class="bg-gradient-to-r from-indigo-900 to-slate-800 rounded-xl p-6 text-center border border-indigo-500/20 shadow-md mb-8">
+                                <div class="text-xs font-semibold text-indigo-300 uppercase tracking-widest mb-1">Calculated Total Score</div>
+                                <div class="text-4xl font-extrabold text-white font-mono tracking-tight">{finalScore} <span class="text-lg font-normal text-slate-400">/ {testData.max_marks}</span></div>
+                            </div>
+
+                            {/* Itemized Question Metric Table */}
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3 pl-1">Itemized Response Audit</h3>
+                            <div class="space-y-3">
+                                {summaryData.map((data, index) => (
+                                    <div key={data.id} class="bg-slate-800/30 border border-slate-700/60 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-xs">
+                                        <div class="flex items-center gap-3">
+                                            <span class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center font-bold text-white text-xs">Q{index + 1}</span>
+                                            <div>
+                                                <div class="text-slate-400">Response Selected: <span class="text-white font-bold">{data.chosen.join(', ') || 'Unattempted'}</span></div>
+                                                <div class="text-slate-400 mt-0.5">Target Key Solution: <span class="text-emerald-400 font-bold">{data.correct.join(', ')}</span></div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <span class={`inline-block px-2.5 py-1 rounded font-bold ${
+                                                data.pointsObtained > 0 
+                                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                                : data.pointsObtained < 0 
+                                                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                                                : 'bg-slate-700 text-slate-300'
+                                            }`}>
+                                                {data.pointsObtained > 0 ? `+${data.pointsObtained}` : data.pointsObtained} Marks
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div class="mt-8 border-t border-slate-700 pt-6 flex justify-center">
+                                <button onClick={() => window.location.reload()} class="px-6 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 text-xs font-bold uppercase tracking-wider rounded-lg transition">
+                                    Re-initialize Testing Portal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+        }
+
+        const container = document.getElementById('root');
+        const root = ReactRoot = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
+</body>
+</html>
