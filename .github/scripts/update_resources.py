@@ -34,7 +34,7 @@ def scan_folder(folder_path):
             web_path = f"{BASE_URL}/{folder_path}/{filename}"
             
             resources.append({
-                "name": filename.split('.')[:-1],
+                "name": ''.join(filename.split('.')[:-1]),
                 "type": file_type,
                 "path": web_path
             })
