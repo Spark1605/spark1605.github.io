@@ -1,23 +1,8 @@
 [
   {
-    "name": "Chemical-Bonding1.json",
-    "type": "site",
-    "path": "https://sprk-web.github.io/files/questionbanks/Chemical-Bonding1.json"
-  },
-  {
-    "name": "sample.json",
-    "type": "site",
-    "path": "https://sprk-web.github.io/files/questionbanks/sample.json"
-  },
-  {
     "name": "Ch_1_PYQS.pdf",
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/pdf/Ch_1_PYQS.pdf"
-  },
-  {
-    "name": "index.html",
-    "type": "unknown",
-    "path": "https://sprk-web.github.io/files/pdf/index.html"
   },
   {
     "name": "Chemical-Bonding1.json",
