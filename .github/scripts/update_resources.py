@@ -3,7 +3,7 @@ import json
 
 QUESTIONBANKS_DIR = 'files/questionbanks'
 PDF_DIR = 'files/pdf'
-IMAGES_DIR = 'files/images'
+MEDIA_DIR = 'files/media'
 JSON_OUTPUT_PATH = 'resources/resources.json'
 BASE_URL = 'https://sprk-web.github.io'
 
@@ -14,7 +14,7 @@ def get_file_type(filename):
     elif ext == '.pdf':
         return 'pdf'
     elif ext in ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.webp']:
-        return 'image'
+        return 'media'
     else:
         return 'unknown'
 
@@ -34,7 +34,7 @@ def scan_folder(folder_path):
             web_path = f"{BASE_URL}/{folder_path}/{filename}"
             
             resources.append({
-                "name": filename,
+                "name": filename.split('.')[:-1],
                 "type": file_type,
                 "path": web_path
             })
@@ -44,7 +44,7 @@ def main():
     all_resources = []
     all_resources.extend(scan_folder(QUESTIONBANKS_DIR))
     all_resources.extend(scan_folder(PDF_DIR))
-    all_resources.extend(scan_folder(IMAGES_DIR))
+    all_resources.extend(scan_folder(MEDIA_DIR))
     
     # Ensure the output directory exists
     os.makedirs(os.path.dirname(JSON_OUTPUT_PATH), exist_ok=True)
