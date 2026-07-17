@@ -1,23 +1,18 @@
 [
   {
-    "name": "Kinematics[JEE-Adv]",
-    "type": "site",
-    "path": "https://sprk-web.github.io/resources/?path=Kinematics[JEE-Adv.]"
-  },
-  {
     "name": "Chemical-Bonding1[JEE-Adv]",
     "type": "site",
-    "path": "https://sprk-web.github.io/resources/?path=Chemical-Bonding1[JEE-Adv.]"
+    "path": "https://sprk-web.github.io/resources/?path=Chemical-Bonding1[JEE-Adv]"
   },
   {
     "name": "sample",
     "type": "site",
-    "path": "https://sprk-web.github.io/resources/?path=sample.json"
+    "path": "https://sprk-web.github.io/resources/?path=sample"
   },
   {
-    "name": "Resonance Test",
-    "type": "pdf",
-    "path": "https://sprk-web.github.io/files/pdf/Resonance Test.pdf"
+    "name": "Kinematics[JEE-Adv]",
+    "type": "site",
+    "path": "https://sprk-web.github.io/resources/?path=Kinematics[JEE-Adv]"
   },
   {
     "name": "Irodov-Problems_in_General_Physics",
@@ -30,13 +25,43 @@
     "path": "https://sprk-web.github.io/files/pdf/[JEE-PHY] Error & Measurements PYQs.pdf"
   },
   {
+    "name": "Phy-Ch2 Step2",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/pdf/Phy-Ch2 Step2.pdf"
+  },
+  {
+    "name": "Phy-Ch2 Step1",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/pdf/Phy-Ch2 Step1.pdf"
+  },
+  {
     "name": "JD Lee Adapted By Sudarshan Guha",
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/pdf/JD Lee Adapted By Sudarshan Guha.pdf"
   },
   {
+    "name": "Resonance Test",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/pdf/Resonance Test.pdf"
+  },
+  {
+    "name": "Phy-Ch2 Step3",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/pdf/Phy-Ch2 Step3.pdf"
+  },
+  {
+    "name": "CHEMQ-[AtmStructure]",
+    "type": "media",
+    "path": "https://sprk-web.github.io/files/media/CHEMQ-[Atm.Structure].png"
+  },
+  {
     "name": "CHEMQ-[MoleConcept]",
     "type": "media",
     "path": "https://sprk-web.github.io/files/media/CHEMQ-[MoleConcept].png"
+  },
+  {
+    "name": "CHEMQ-[AtmStructure1]",
+    "type": "media",
+    "path": "https://sprk-web.github.io/files/media/CHEMQ-[Atm.Structure1].png"
   }
 ]
