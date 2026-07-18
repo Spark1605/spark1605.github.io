@@ -1,6 +1,6 @@
 [
   {
-    "name": "Chemical Bonding1[JEE-Adv]",
+    "name": "Chemical-Bonding1[JEE-Adv]",
     "type": "site",
     "path": "https://sprk-web.github.io/resources/?path=Chemical-Bonding1[JEE-Adv]"
   },
@@ -48,6 +48,11 @@
     "name": "Phy-Ch2 Step3",
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/pdf/Phy-Ch2 Step3.pdf"
+  },
+  {
+    "name": "CHEMICAL BONDING [Vibrant-C11]",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/pdf/CHEMICAL BONDING [Vibrant-C11].pdf"
   },
   {
     "name": "CHEMQ-[AtmStructure]",
