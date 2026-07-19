@@ -2,7 +2,7 @@ import os
 import json
 
 QUESTIONBANKS_DIR = 'files/questionbanks'
-PDF_DIR = 'files/view/pdf'
+PDF_DIR = 'files/pdf'
 MEDIA_DIR = 'files/media'
 JSON_OUTPUT_PATH = 'resources/resources.json'
 BASE_URL = 'https://sprk-web.github.io'
@@ -34,6 +34,8 @@ def scan_folder(folder_path):
 
             if file_type == 'site':
                 web_path = f"{BASE_URL}/resources/?path={name_of_file}"
+            elif file_type == 'pdf':
+                web_path = f"{BASE_URL}/files/view/pdf/?path={filename}"
             else:
                 web_path = f"{BASE_URL}/{folder_path}/{filename}"
             
