@@ -3,37 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coaching PDF Hub & Whiteboard</title>
+    <title>SPRK-Web | PDF Viewer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        .brand-logo-container {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .brand-main {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub {
+            position: relative;
+        }
+
+        .brand-sub::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #00f2fe;
+            border-radius: 50%;
+            top: 25%;
+            right: -10px;
+            box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+            animation: pulse 2s infinite alternate;
+        }
+
+        .logo-underline {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(90deg, #00f2fe, #7f00ff);
+            margin-top: 2px;
+            border-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
+            transition: width 0.4s ease;
+        }
+
+        .brand-logo-container:hover .logo-underline {
+            width: 100%;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* Custom scrollbar behaviors for the whiteboard panel */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+    </style>
 </head>
 <body class="bg-slate-900 h-screen w-screen overflow-hidden flex flex-col font-sans antialiased text-slate-200">
 
-    <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex items-center justify-between shadow-md z-10">
-        <div class="flex items-center space-x-3">
-            <div class="p-2 bg-indigo-600 rounded-lg">
-                <i data-lucide="book-open" class="w-5 h-5 text-white"></i>
+    <header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-50 w-full backdrop-saturate-150">
+        <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center w-full">
+            <div class="brand-logo-container" onclick="location.reload()">
+                <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
+                    <span class="brand-main">Sprk</span>
+                    <span class="brand-sub text-white font-light ml-0.5">-Web</span>
+                </div>
+                <div class="logo-underline"></div>
             </div>
-            <div>
-                <h1 class="font-bold text-lg text-white tracking-wide">Study Workspace</h1>
-                <p id="pdf-name" class="text-xs text-slate-400 truncate max-w-xs">Loading PDF...</p>
-            </div>
+
+            <button id="toggle-board-btn" class="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium shadow transition-all duration-200 active:scale-95">
+                <i data-lucide="presentation" class="w-4 h-4"></i>
+                <span>Whiteboard</span>
+            </button>
         </div>
-        
-        <button id="toggle-board-btn" class="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-medium shadow transition-all duration-200 active:scale-95">
-            <i data-lucide="presentation" class="w-4 h-4"></i>
-            <span>Toggle Whiteboard</span>
-        </button>
     </header>
 
     <main class="flex-1 flex overflow-hidden relative w-full h-full bg-slate-950">
         
         <section id="pdf-container" class="h-full w-full transition-all duration-300 ease-in-out p-4">
-            <div class="w-full h-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-inner">
-                <iframe id="pdf-viewer" class="w-full h-full border-none hidden" src=""></iframe>
-                <div id="pdf-loading" class="w-full h-full flex flex-col items-center justify-center space-y-3 text-slate-400">
-                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-indigo-500"></i>
-                    <p class="text-sm">Loading your document...</p>
+            <div class="w-full h-full rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-inner flex flex-col">
+                <div class="bg-slate-800/40 border-b border-slate-800 px-4 py-2 flex items-center justify-between text-xs text-slate-400">
+                    <span class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 text-indigo-400"></i> <span id="pdf-name">No Document Loaded</span></span>
+                </div>
+                <div class="flex-1 relative">
+                    <iframe id="pdf-viewer" class="w-full h-full border-none hidden" src=""></iframe>
+                    <div id="pdf-loading" class="absolute inset-0 w-full h-full flex flex-col items-center justify-center space-y-3 text-slate-400">
+                        <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-indigo-500"></i>
+                        <p class="text-sm">Loading your document...</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -43,26 +116,65 @@
         </div>
 
         <section id="whiteboard-container" class="h-full w-0 hidden bg-slate-900 border-l border-slate-800 flex flex-col transition-all duration-300 ease-in-out select-none">
-            <div class="p-3 border-b border-slate-800 bg-slate-800/50 flex items-center justify-between">
-                <span class="text-sm font-semibold tracking-wide text-slate-300 flex items-center gap-2">
-                    <i data-lucide="pen-tool" class="w-4 h-4 text-indigo-400"></i> Scratchpad
-                </span>
-                <span class="text-xs text-slate-500 italic">Smartboard writing enabled</span>
+            <div class="p-3 border-b border-slate-800 bg-slate-800/80 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-semibold tracking-wide text-slate-300 flex items-center gap-2">
+                        <i data-lucide="pen-tool" class="w-4 h-4 text-indigo-400"></i> Scratchpad
+                    </span>
+                    <div class="flex gap-2">
+                        <button id="save-board-btn" class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded font-medium transition active:scale-95 shadow">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Save Drawing
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex-1 bg-white relative">
-                <div class="absolute inset-0 w-full h-full bg-grid-pattern opacity-5 pointer-events-none"></div>
+
+            <div class="flex flex-wrap items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-700/60">
+                    <div class="flex items-center gap-1 border-r border-slate-700 pr-2">
+                        <button id="tool-pen" class="p-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition" title="Pen">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </button>
+                        <button id="tool-eraser" class="p-1.5 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Eraser">
+                            <i data-lucide="eraser" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 border-r border-slate-700 pr-2">
+                        <input type="color" id="wb-color" value="#000000" class="w-6 h-6 rounded cursor-pointer bg-transparent border-none">
+                        <div class="flex gap-1">
+                            <button class="w-4 h-4 rounded-full bg-black border border-slate-600 color-preset" data-color="#000000"></button>
+                            <button class="w-4 h-4 rounded-full bg-red-600 color-preset" data-color="#dc2626"></button>
+                            <button class="w-4 h-4 rounded-full bg-blue-600 color-preset" data-color="#2563eb"></button>
+                            <button class="w-4 h-4 rounded-full bg-emerald-600 color-preset" data-color="#16a34a"></button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="move-horizontal" class="w-3.5 h-3.5 text-slate-400"></i>
+                        <input type="range" id="wb-size" min="1" max="20" value="3" class="w-16 accent-indigo-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                        <span id="size-preview" class="text-[10px] text-slate-400 min-w-[12px]">3px</span>
+                    </div>
+
+                    <button id="clear-board-btn" class="ml-auto p-1.5 rounded text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition" title="Clear Canvas">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-auto bg-slate-950 p-4 custom-scrollbar" id="canvas-scroll-wrapper">
+                <div class="bg-white rounded-lg shadow-2xl relative border border-slate-700 mx-auto" style="width: 800px; height: 1000px;">
+                    <canvas id="whiteboard" width="800" height="10000" class="absolute top-0 left-0 cursor-crosshair rounded-lg"></canvas>
+                </div>
             </div>
         </section>
+        </div>
     </main>
 
     <script>
-        // Initialize Lucide Icons
         lucide.createIcons();
 
-        // Base URL configuration
         const BASE_PDF_URL = "https://sprk-web.github.io/files/pdf/";
 
-        // DOM Elements
         const pdfViewer = document.getElementById('pdf-viewer');
         const pdfLoading = document.getElementById('pdf-loading');
         const pdfNameText = document.getElementById('pdf-name');
@@ -71,44 +183,61 @@
         const whiteboardContainer = document.getElementById('whiteboard-container');
         const resizeDivider = document.getElementById('resize-divider');
 
-        // State Management
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        const toolPen = document.getElementById('tool-pen');
+        const toolEraser = document.getElementById('tool-eraser');
+        const colorPicker = document.getElementById('wb-color');
+        const sizePicker = document.getElementById('wb-size');
+        const sizePreview = document.getElementById('size-preview');
+        const clearBtn = document.getElementById('clear-board-btn');
+        const saveBtn = document.getElementById('save-board-btn');
+        const colorPresets = document.querySelectorAll('.color-preset');
+
         let isBoardOpen = false;
         let isResizing = false;
-        let defaultWidthPercent = 40; // Whiteboard takes 40% width initially
+        let defaultWidthPercent = 40; 
 
-        // 1. URL Parameter Parsing & PDF Injection
+        let isDrawing = false;
+        let activeTool = 'pen';
+        let strokeColor = '#000000';
+        let strokeWidth = 3;
+
+        function initCanvasBackground() {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        initCanvasBackground();
+
         function loadPdfFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pdfPath = urlParams.get('path');
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfPath = urlParams.get('path');
 
-    if (pdfPath) {
-        const fullPdfUrl = `${BASE_PDF_URL}${pdfPath}`;
-        
-        // Wrap the PDF URL inside Google's embedded viewer
-        const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullPdfUrl)}&embedded=true`;
-        
-        pdfViewer.src = googleViewerUrl;
-        pdfViewer.onload = () => {
-            pdfLoading.classList.add('hidden');
-            pdfViewer.classList.remove('hidden');
-        };
-        
-        pdfNameText.textContent = pdfPath;
-    } else {
-        pdfLoading.innerHTML = `
-            <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500"></i>
-            <p class="text-sm text-amber-400">No PDF specified. Append <code class="bg-slate-800 px-1 rounded text-white">?path=filename.pdf</code> to the URL.</p>
-        `;
-        lucide.createIcons();
-    }
-}
+            if (pdfPath) {
+                const fullPdfUrl = `${BASE_PDF_URL}${pdfPath}`;
+                const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullPdfUrl)}&embedded=true`;
+                
+                pdfViewer.src = googleViewerUrl;
+                pdfViewer.onload = () => {
+                    pdfLoading.classList.add('hidden');
+                    pdfViewer.classList.remove('hidden');
+                };
+                
+                pdfNameText.textContent = pdfPath;
+            } else {
+                pdfLoading.innerHTML = `
+                    <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500"></i>
+                    <p class="text-sm text-amber-400">No PDF specified. Append <code class="bg-slate-800 px-1 rounded text-white text-xs">?path=filename.pdf</code> to the URL.</p>
+                `;
+                lucide.createIcons();
+                pdfNameText.textContent = "Error Loading Path";
+            }
+        }
 
-        // 2. Whiteboard Toggle Feature
         toggleBoardBtn.addEventListener('click', () => {
             isBoardOpen = !isBoardOpen;
             
             if (isBoardOpen) {
-                // Open Whiteboard
                 pdfContainer.style.width = `${100 - defaultWidthPercent}%`;
                 whiteboardContainer.style.width = `${defaultWidthPercent}%`;
                 
@@ -116,35 +245,29 @@
                 resizeDivider.classList.remove('hidden');
                 resizeDivider.classList.add('flex');
                 
-                // Disable css animations during drag sizing to prevent lag
                 setTimeout(() => {
                     pdfContainer.classList.remove('transition-all', 'duration-300');
                     whiteboardContainer.classList.remove('transition-all', 'duration-300');
                 }, 300);
             } else {
-                // Re-enable transitions for smooth closing
                 pdfContainer.classList.add('transition-all', 'duration-300');
                 whiteboardContainer.classList.add('transition-all', 'duration-300');
                 
-                // Close Whiteboard
                 pdfContainer.style.width = '100%';
                 whiteboardContainer.style.width = '0%';
                 
                 setTimeout(() => {
-                    whiteboardContainer.addClass = 'hidden';
+                    whiteboardContainer.classList.add('hidden');
                     resizeDivider.classList.add('hidden');
                     resizeDivider.classList.remove('flex');
                 }, 300);
             }
         });
 
-        // 3. Resizable Logic (Draggable Divider)
         resizeDivider.addEventListener('mousedown', (e) => {
             isResizing = true;
             document.body.style.cursor = 'col-resize';
-            // Prevent text selection while dragging
             document.body.classList.add('select-none');
-            // Hide pointer events on iframe to prevent drag lockups
             pdfViewer.style.pointerEvents = 'none';
         });
 
@@ -152,11 +275,9 @@
             if (!isResizing) return;
 
             const containerWidth = document.body.clientWidth;
-            // Calculate percentage based on mouse position from right side
             let whiteboardWidthPx = containerWidth - e.clientX;
             let whiteboardWidthPercent = (whiteboardWidthPx / containerWidth) * 100;
 
-            // Enforce boundary limits (min 20%, max 70% of screen)
             if (whiteboardWidthPercent > 20 && whiteboardWidthPercent < 70) {
                 defaultWidthPercent = whiteboardWidthPercent;
                 whiteboardContainer.style.width = `${whiteboardWidthPercent}%`;
@@ -173,7 +294,127 @@
             }
         });
 
-        // Initialize App
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const coords = getCanvasCoordinates(e);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+            
+            draw(e);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const coords = getCanvasCoordinates(e);
+
+            ctx.lineWidth = strokeWidth;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (activeTool === 'eraser') {
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineCap = 'square';
+                ctx.lineWidth = strokeWidth * 4;
+            } else {
+                ctx.strokeStyle = strokeColor;
+            }
+
+            ctx.lineTo(coords.x, coords.y);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            ctx.closePath();
+        }
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDrawing);
+
+        canvas.addEventListener('touchstart', (e) => {
+            if(e.touches.length === 1) {
+                startDrawing(e.touches[0]);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if(e.touches.length === 1) {
+                draw(e.touches[0]);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function updateToolUI() {
+            if(activeTool === 'pen') {
+                toolPen.classList.add('bg-indigo-600', 'text-white');
+                toolPen.classList.remove('text-slate-400', 'hover:bg-slate-800');
+                toolEraser.classList.remove('bg-indigo-600', 'text-white');
+                toolEraser.classList.add('text-slate-400', 'hover:bg-slate-800');
+            } else {
+                toolEraser.classList.add('bg-indigo-600', 'text-white');
+                toolEraser.classList.remove('text-slate-400', 'hover:bg-slate-800');
+                toolPen.classList.remove('bg-indigo-600', 'text-white');
+                toolPen.classList.add('text-slate-400', 'hover:bg-slate-800');
+            }
+        }
+
+        toolPen.addEventListener('click', () => { activeTool = 'pen'; updateToolUI(); });
+        toolEraser.addEventListener('click', () => { activeTool = 'eraser'; updateToolUI(); });
+
+        colorPicker.addEventListener('input', (e) => {
+            strokeColor = e.target.value;
+            activeTool = 'pen';
+            updateToolUI();
+        });
+
+        colorPresets.forEach(preset => {
+            preset.addEventListener('click', () => {
+                strokeColor = preset.getAttribute('data-color');
+                colorPicker.value = strokeColor;
+                activeTool = 'pen';
+                updateToolUI();
+            });
+        });
+
+        sizePicker.addEventListener('input', (e) => {
+            strokeWidth = e.target.value;
+            sizePreview.textContent = `${strokeWidth}px`;
+        });
+
+        clearBtn.addEventListener('click', () => {
+            if(confirm("Are you sure you want to clear your scratchpad notes?")) {
+                initCanvasBackground();
+            }
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const dataUrl = canvas.toDataURL('image/png');
+            const downloadLink = document.createElement('a');
+            
+            const originalPath = new URLSearchParams(window.location.search).get('path') || 'notes';
+            const cleanName = originalPath.split('.')[0];
+            
+            downloadLink.href = dataUrl;
+            downloadLink.download = `${cleanName}_scratchpad_notes.png`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+
         loadPdfFromUrl();
     </script>
 </body>
