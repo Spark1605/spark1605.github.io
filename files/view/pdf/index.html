@@ -78,28 +78,30 @@
 
         // 1. URL Parameter Parsing & PDF Injection
         function loadPdfFromUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const pdfPath = urlParams.get('path');
+    const urlParams = new URLSearchParams(window.location.search);
+    const pdfPath = urlParams.get('path');
 
-            if (pdfPath) {
-                const fullPdfUrl = `${BASE_PDF_URL}${pdfPath}`;
-                
-                // Set iframe src and display it once loaded
-                pdfViewer.src = fullPdfUrl;
-                pdfViewer.onload = () => {
-                    pdfLoading.classList.add('hidden');
-                    pdfViewer.classList.remove('hidden');
-                };
-                
-                pdfNameText.textContent = pdfPath;
-            } else {
-                pdfLoading.innerHTML = `
-                    <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500"></i>
-                    <p class="text-sm text-amber-400">No PDF specified. Append <code class="bg-slate-800 px-1 rounded text-white">?path=filename.pdf</code> to the URL.</p>
-                `;
-                lucide.createIcons();
-            }
-        }
+    if (pdfPath) {
+        const fullPdfUrl = `${BASE_PDF_URL}${pdfPath}`;
+        
+        // Wrap the PDF URL inside Google's embedded viewer
+        const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullPdfUrl)}&embedded=true`;
+        
+        pdfViewer.src = googleViewerUrl;
+        pdfViewer.onload = () => {
+            pdfLoading.classList.add('hidden');
+            pdfViewer.classList.remove('hidden');
+        };
+        
+        pdfNameText.textContent = pdfPath;
+    } else {
+        pdfLoading.innerHTML = `
+            <i data-lucide="alert-circle" class="w-8 h-8 text-amber-500"></i>
+            <p class="text-sm text-amber-400">No PDF specified. Append <code class="bg-slate-800 px-1 rounded text-white">?path=filename.pdf</code> to the URL.</p>
+        `;
+        lucide.createIcons();
+    }
+}
 
         // 2. Whiteboard Toggle Feature
         toggleBoardBtn.addEventListener('click', () => {
