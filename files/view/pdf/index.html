@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Viewer with Smart Whiteboard Space</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom styling for the resize handle drag visual */
+        .resize-ghost {
+            backdrop-filter: brightness(0.9);
+        }
+    </style>
+</head>
+<body class="h-screen w-screen m-0 p-0 bg-slate-900 flex flex-col overflow-hidden font-sans text-slate-100">
+
+    <header class="h-14 bg-slate-800 border-b border-slate-700 flex items-center justify-between px-6 shrink-0 z-10 shadow-md">
+        <div class="flex items-center gap-3">
+            <i data-lucide="file-text" class="text-blue-400 w-6 h-6"></i>
+            <h1 class="text-lg font-semibold tracking-wide">Coaching Workspace</h1>
+        </div>
+        
+        <button id="toggle-wb-btn" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all shadow-sm cursor-pointer">
+            <i data-lucide="layout-columns" class="w-4 h-4"></i>
+            <span>Toggle Whiteboard</span>
+        </button>
+    </header>
+
+    <main id="workspace" class="flex flex-1 w-full overflow-hidden relative bg-slate-950">
+        
+        <section id="pdf-container" class="h-full min-w-[20%] w-full transition-all duration-200 ease-out">
+            <iframe id="pdf-frame" class="w-full h-full border-none bg-slate-800" src="" title="PDF Viewer"></iframe>
+        </section>
+
+        <div id="resize-handle" class="hidden w-2 hover:w-3 bg-slate-700 hover:bg-blue-500 cursor-col-resize h-full transition-colors relative z-20 items-center justify-center">
+            <div class="w-1 h-8 bg-slate-500 rounded-full"></div>
+        </div>
+
+        <section id="whiteboard-container" class="hidden h-full min-w-[20%] w-[40%] bg-white transition-all duration-200 ease-out shadow-inner relative">
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-slate-400 pointer-events-none select-none">
+                <i data-lucide="edit-3" class="w-12 h-12 mb-2 opacity-30"></i>
+                <span class="text-sm font-medium opacity-40">Smartboard Writing Area</span>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Base URL config as specified
+        const BASE_PDF_URL = "https://sprk-web.github.io/files/pdf/";
+
+        // DOM Elements
+        const pdfFrame = document.getElementById('pdf-frame');
+        const toggleWbBtn = document.getElementById('toggle-wb-btn');
+        const workspace = document.getElementById('workspace');
+        const pdfContainer = document.getElementById('pdf-container');
+        const whiteboardContainer = document.getElementById('whiteboard-container');
+        const resizeHandle = document.getElementById('resize-handle');
+
+        // Parse URL Parameters
+        function loadPDFFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const pdfPath = urlParams.get('path');
+            
+            if (pdfPath) {
+                // Combines base URL + parameter (e.g., xyz.pdf)
+                pdfFrame.src = BASE_PDF_URL + pdfPath;
+            } else {
+                // Fallback placeholder if no path parameter exists
+                pdfFrame.srcdoc = `
+                    <div style="font-family:sans-serif; color:#94a3b8; text-align:center; padding-top:20vh; background:#1e293b; height:100vh; margin:0;">
+                        <h2>No PDF Specified</h2>
+                        <p>Please add <strong>?path=yourfile.pdf</strong> to the website URL.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Whiteboard Toggle Feature
+        let isWhiteboardOpen = false;
+        
+        toggleWbBtn.addEventListener('click', () => {
+            isWhiteboardOpen = !isWhiteboardOpen;
+            
+            if (isWhiteboardOpen) {
+                // Switch layout to split view
+                pdfContainer.style.width = "60%";
+                whiteboardContainer.style.width = "40%";
+                
+                whiteboardContainer.classList.remove('hidden');
+                resizeHandle.classList.remove('hidden');
+                resizeHandle.classList.add('flex');
+            } else {
+                // Return to fullscreen PDF view
+                pdfContainer.style.width = "100%";
+                
+                whiteboardContainer.classList.add('hidden');
+                resizeHandle.classList.add('hidden');
+                resizeHandle.classList.remove('flex');
+            }
+        });
+
+        // Draggable Resizing Logic
+        let isResizing = false;
+
+        resizeHandle.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            // Disable pointer events on iframe so mouse moves aren't lost inside it
+            pdfFrame.style.pointerEvents = 'none'; 
+            
+            // Remove transitions temporarily during active drag for smoothness
+            pdfContainer.classList.remove('transition-all');
+            whiteboardContainer.classList.remove('transition-all');
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const workspaceWidth = workspace.clientWidth;
+            // Calculate new percentage based on mouse position relative to window width
+            let newPdfWidthPercent = (e.clientX / workspaceWidth) * 100;
+            
+            // Boundary constraints (Keep views between 20% and 80% width)
+            if (newPdfWidthPercent < 20) newPdfWidthPercent = 20;
+            if (newPdfWidthPercent > 80) newPdfWidthPercent = 80;
+            
+            let newWbWidthPercent = 100 - newPdfWidthPercent;
+
+            pdfContainer.style.width = `${newPdfWidthPercent}%`;
+            whiteboardContainer.style.width = `${newWbWidthPercent}%`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = 'default';
+                pdfFrame.style.pointerEvents = 'auto'; // Re-enable iframe interactions
+                
+                // Re-add transitions for button clicks later
+                pdfContainer.classList.add('transition-all');
+                whiteboardContainer.classList.add('transition-all');
+            }
+        });
+
+        // Initialize application
+        window.addEventListener('DOMContentLoaded', loadPDFFromURL);
+    </script>
+</body>
+      </html>
+          
