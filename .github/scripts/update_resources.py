@@ -2,7 +2,7 @@ import os
 import json
 
 QUESTIONBANKS_DIR = 'files/questionbanks'
-PDF_DIR = 'files/pdf'
+PDF_DIR = 'files/view/pdf'
 MEDIA_DIR = 'files/media'
 JSON_OUTPUT_PATH = 'resources/resources.json'
 BASE_URL = 'https://sprk-web.github.io'
