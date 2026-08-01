@@ -159,7 +159,7 @@
                     <button id="tool-pen" class="p-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition" title="Freehand Pen">
                         <i data-lucide="pencil" class="w-4 h-4"></i>
                     </button>
-                    <button id="tool-auto-shape" class="p-1.5 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Auto-Shape / Geometry Ruler">
+                    <button id="tool-auto-shape" class="p-1.5 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Auto-Shape Engine">
                         <i data-lucide="shapes" class="w-4 h-4"></i>
                     </button>
                     <button id="tool-eraser" class="p-1.5 rounded text-slate-400 hover:bg-slate-800 hover:text-white transition" title="Eraser">
@@ -238,6 +238,10 @@
         const ocrBtn = document.getElementById('ocr-btn');
         const colorPresets = document.querySelectorAll('.color-preset');
 
+        // Drawing Layer Canvas (Holds user strokes isolated from background)
+        const drawCanvas = document.createElement('canvas');
+        const drawCtx = drawCanvas.getContext('2d');
+
         // State Variables
         let isBoardOpen = false;
         let isResizing = false;
@@ -246,56 +250,62 @@
         let activeGridPattern = 'none';
 
         let isDrawing = false;
-        let activeTool = 'pen'; // 'pen', 'auto-shape', 'eraser'
+        let activeTool = 'pen';
         let strokeColor = '#000000';
         let strokeWidth = 3;
         let currentStrokePoints = [];
 
-        // Undo/Redo System State
+        // Undo/Redo System State (Stores drawing layer Data URLs)
         let history = [];
         let historyStep = -1;
         const MAX_HISTORY = 25;
 
-        function resizeCanvas() {
+        function syncCanvasSizes() {
             const rect = canvas.parentElement.getBoundingClientRect();
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(canvas, 0, 0);
+            if (canvas.width !== rect.width || canvas.height !== rect.height) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = drawCanvas.width;
+                tempCanvas.height = drawCanvas.height;
+                tempCanvas.getContext('2d').drawImage(drawCanvas, 0, 0);
 
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                drawCanvas.width = rect.width;
+                drawCanvas.height = rect.height;
 
-            redrawCanvasWithBackground();
-            ctx.drawImage(tempCanvas, 0, 0);
+                drawCtx.drawImage(tempCanvas, 0, 0);
+            }
         }
 
-        function redrawCanvasWithBackground() {
-            // Save current drawing content
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width;
-            tempCanvas.height = canvas.height;
-            const tempCtx = tempCanvas.getContext('2d');
-            tempCtx.drawImage(canvas, 0, 0);
+        function resizeCanvas() {
+            syncCanvasSizes();
+            redrawCanvasWithBackground();
+        }
 
-            // Draw Background Color
+        // Refactored Instant Background & Grid Redraw System
+        function redrawCanvasWithBackground() {
+            syncCanvasSizes();
+
+            // Clear Main Screen Canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Render Solid Theme Background
             ctx.fillStyle = isDarkModeBoard ? '#0f172a' : '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Grid/Line Overlays
+            // Render Selected Grid Pattern
             drawGridOverlay();
 
-            // Restore user drawing
-            ctx.drawImage(tempCanvas, 0, 0);
+            // Render User Strokes On Top
+            ctx.drawImage(drawCanvas, 0, 0);
         }
 
         function drawGridOverlay() {
             if (activeGridPattern === 'none') return;
 
             ctx.save();
-            ctx.strokeStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.2)';
+            ctx.strokeStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.12)';
+            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.25)';
             ctx.lineWidth = 1;
 
             const step = 25;
@@ -337,7 +347,8 @@
             if (historyStep < history.length) {
                 history = history.slice(0, historyStep);
             }
-            history.push(canvas.toDataURL());
+            const dataUrl = drawCanvas.toDataURL();
+            history.push(dataUrl);
             if (history.length > MAX_HISTORY) {
                 history.shift();
                 historyStep--;
@@ -345,7 +356,7 @@
             updateUndoRedoUI();
             
             try {
-                localStorage.setItem('sprk_scratchpad_data', canvas.toDataURL());
+                localStorage.setItem('sprk_scratchpad_data', dataUrl);
             } catch(e) {}
         }
 
@@ -372,9 +383,9 @@
             const img = new Image();
             img.src = dataUrl;
             img.onload = () => {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                drawCtx.drawImage(img, 0, 0);
                 redrawCanvasWithBackground();
-                ctx.drawImage(img, 0, 0);
                 updateUndoRedoUI();
             };
         }
@@ -406,7 +417,7 @@
             }
         }
 
-        // Toggle Whiteboard Visibility
+        // Toggle Whiteboard
         toggleBoardBtn.addEventListener('click', () => {
             isBoardOpen = !isBoardOpen;
             
@@ -442,8 +453,8 @@
             }
         });
 
-        // Unified Drag Resizer
-        const startResize = (e) => {
+        // Drag Resizer
+        const startResize = () => {
             isResizing = true;
             document.body.classList.add('select-none');
             pdfViewer.style.pointerEvents = 'none';
@@ -493,7 +504,7 @@
         document.addEventListener('mouseup', stopResize);
         document.addEventListener('touchend', stopResize);
 
-        // Canvas Coordinates Helper
+        // Coordinates Helper
         function getCanvasCoordinates(e) {
             const rect = canvas.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -505,14 +516,14 @@
             };
         }
 
-        // Drawing Handlers
+        // Drawing Engine Handlers
         function startDrawing(e) {
             isDrawing = true;
             const coords = getCanvasCoordinates(e);
             currentStrokePoints = [coords];
 
-            ctx.beginPath();
-            ctx.moveTo(coords.x, coords.y);
+            drawCtx.beginPath();
+            drawCtx.moveTo(coords.x, coords.y);
             draw(e);
         }
 
@@ -521,41 +532,45 @@
             const coords = getCanvasCoordinates(e);
             currentStrokePoints.push(coords);
 
-            ctx.lineWidth = strokeWidth;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
+            drawCtx.lineWidth = strokeWidth;
+            drawCtx.lineCap = 'round';
+            drawCtx.lineJoin = 'round';
 
             if (activeTool === 'eraser') {
-                ctx.strokeStyle = isDarkModeBoard ? '#0f172a' : '#ffffff';
-                ctx.lineWidth = strokeWidth * 4;
+                drawCtx.globalCompositeOperation = 'destination-out';
+                drawCtx.lineWidth = strokeWidth * 4;
             } else {
-                ctx.strokeStyle = strokeColor;
+                drawCtx.globalCompositeOperation = 'source-over';
+                drawCtx.strokeStyle = strokeColor;
             }
 
-            ctx.lineTo(coords.x, coords.y);
-            ctx.stroke();
+            drawCtx.lineTo(coords.x, coords.y);
+            drawCtx.stroke();
+
+            redrawCanvasWithBackground();
         }
 
         function stopDrawing() {
             if (!isDrawing) return;
             isDrawing = false;
-            ctx.closePath();
+            drawCtx.closePath();
+            drawCtx.globalCompositeOperation = 'source-over';
 
             if (activeTool === 'auto-shape' && currentStrokePoints.length > 5) {
                 smoothAndDrawGeometricShape(currentStrokePoints);
+            } else {
+                saveHistoryState();
             }
 
-            saveHistoryState();
             currentStrokePoints = [];
         }
 
-        // AUTO-SHAPE & SMOOTHING ENGINE
+        // ADVANCED MULTI-SHAPE RECOGNITION ENGINE (10 DISTINCT SHAPES)
         function smoothAndDrawGeometricShape(pts) {
             const first = pts[0];
             const last = pts[pts.length - 1];
             const distStartEnd = Math.hypot(last.x - first.x, last.y - first.y);
 
-            // Calculate bounding box & total path length
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             let pathLength = 0;
 
@@ -569,72 +584,136 @@
 
             const width = maxX - minX;
             const height = maxY - minY;
-            const isClosed = distStartEnd < Math.max(width, height) * 0.35 || distStartEnd < 30;
+            const isClosed = distStartEnd < Math.max(width, height) * 0.4 || distStartEnd < 35;
 
-            // Clear the rough freehand rendering stroke state by popping to state prior to mouse down
+            // Revert rough stroke before rendering perfected shape vector
             if (historyStep >= 0) {
                 const img = new Image();
                 img.src = history[historyStep];
                 img.onload = () => {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    redrawCanvasWithBackground();
-                    ctx.drawImage(img, 0, 0);
+                    drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                    drawCtx.drawImage(img, 0, 0);
 
-                    // Render smooth vector geometry onto canvas
-                    ctx.beginPath();
-                    ctx.lineWidth = strokeWidth;
-                    ctx.strokeStyle = strokeColor;
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
+                    drawCtx.beginPath();
+                    drawCtx.lineWidth = strokeWidth;
+                    drawCtx.strokeStyle = strokeColor;
+                    drawCtx.lineCap = 'round';
+                    drawCtx.lineJoin = 'round';
+
+                    const midX = minX + width / 2;
+                    const midY = minY + height / 2;
 
                     if (isClosed) {
                         const aspectRatio = width / (height || 1);
-                        const perimeter = 2 * (width + height);
+                        const cornerCount = countCorners(pts);
 
-                        if (aspectRatio >= 0.75 && aspectRatio <= 1.25 && Math.abs(pathLength - (Math.PI * (width + height) / 2)) < perimeter * 0.25) {
-                            // Circle / Ellipse
-                            const centerX = minX + width / 2;
-                            const centerY = minY + height / 2;
-                            ctx.ellipse(centerX, centerY, width / 2, height / 2, 0, 0, 2 * Math.PI);
-                        } else {
-                            // Rectangle or Triangle check
-                            if (pathLength < perimeter * 1.1) {
-                                ctx.rect(minX, minY, width, height);
+                        if (cornerCount === 5) {
+                            // Shape 1: 5-Point Star or Pentagon
+                            if (pathLength > 2.2 * (width + height)) {
+                                drawStar(drawCtx, midX, midY, 5, width / 2, width / 4);
                             } else {
-                                // Triangle: Render simplified 3-point polygon
-                                ctx.moveTo(pts[0].x, pts[0].y);
-                                const midIdx = Math.floor(pts.length / 2);
-                                ctx.lineTo(pts[midIdx].x, pts[midIdx].y);
-                                ctx.lineTo(last.x, last.y);
-                                ctx.closePath();
+                                drawPolygon(drawCtx, midX, midY, width / 2, 5);
+                            }
+                        } else if (cornerCount === 6) {
+                            // Shape 2: Hexagon
+                            drawPolygon(drawCtx, midX, midY, width / 2, 6);
+                        } else if (aspectRatio >= 0.8 && aspectRatio <= 1.25 && Math.abs(pathLength - (Math.PI * (width + height) / 2)) < (width + height) * 0.3) {
+                            // Shape 3: Circle
+                            drawCtx.arc(midX, midY, (width + height) / 4, 0, Math.PI * 2);
+                        } else if (Math.abs(pathLength - (Math.PI * (width + height) / 2)) < (width + height) * 0.3) {
+                            // Shape 4: Ellipse
+                            drawCtx.ellipse(midX, midY, width / 2, height / 2, 0, 0, Math.PI * 2);
+                        } else if (cornerCount === 3) {
+                            // Triangle Checks
+                            if (Math.abs(pts[0].x - last.x) < 20 || Math.abs(pts[0].y - last.y) < 20) {
+                                // Shape 5: Right-Angle Triangle
+                                drawCtx.moveTo(minX, minY);
+                                drawCtx.lineTo(minX, maxY);
+                                drawCtx.lineTo(maxX, maxY);
+                                drawCtx.closePath();
+                            } else {
+                                // Shape 6: Equilateral/Isosceles Triangle
+                                drawCtx.moveTo(midX, minY);
+                                drawCtx.lineTo(minX, maxY);
+                                drawCtx.lineTo(maxX, maxY);
+                                drawCtx.closePath();
+                            }
+                        } else {
+                            // Rectangular Checks
+                            if (aspectRatio >= 0.85 && aspectRatio <= 1.15) {
+                                // Shape 7: Square
+                                drawCtx.rect(minX, minY, width, width);
+                            } else {
+                                // Shape 8: Rectangle
+                                drawCtx.rect(minX, minY, width, height);
                             }
                         }
                     } else {
-                        // Check if axes or straight line
-                        const isCross = checkIsCoordinateAxes(pts);
-                        if (isCross) {
-                            // Render Clean 2D Coordinate Axes
-                            const midX = minX + width / 2;
-                            const midY = minY + height / 2;
-                            // X-Axis
-                            ctx.moveTo(minX, midY); ctx.lineTo(maxX, midY);
-                            // Arrowheads X
-                            ctx.lineTo(maxX - 8, midY - 5); ctx.moveTo(maxX, midY); ctx.lineTo(maxX - 8, midY + 5);
-                            // Y-Axis
-                            ctx.moveTo(midX, maxY); ctx.lineTo(midX, minY);
-                            // Arrowheads Y
-                            ctx.lineTo(midX - 5, minY + 8); ctx.moveTo(midX, minY); ctx.lineTo(midX + 5, minY + 8);
+                        // Open Shapes
+                        const isAxes = checkIsCoordinateAxes(pts);
+                        if (isAxes) {
+                            // Shape 9: 2D Coordinate Axes
+                            drawCtx.moveTo(minX, midY); drawCtx.lineTo(maxX, midY);
+                            drawCtx.lineTo(maxX - 8, midY - 5); drawCtx.moveTo(maxX, midY); drawCtx.lineTo(maxX - 8, midY + 5);
+                            drawCtx.moveTo(midX, maxY); drawCtx.lineTo(midX, minY);
+                            drawCtx.lineTo(midX - 5, minY + 8); drawCtx.moveTo(midX, minY); drawCtx.lineTo(midX + 5, minY + 8);
                         } else {
-                            // Simple Straight Line
-                            ctx.moveTo(first.x, first.y);
-                            ctx.lineTo(last.x, last.y);
+                            // Shape 10: Straight Line
+                            drawCtx.moveTo(first.x, first.y);
+                            drawCtx.lineTo(last.x, last.y);
                         }
                     }
 
-                    ctx.stroke();
+                    drawCtx.stroke();
+                    redrawCanvasWithBackground();
                     saveHistoryState();
                 };
             }
+        }
+
+        // Helper geometry math algorithms
+        function countCorners(pts) {
+            let corners = 0;
+            const step = Math.max(1, Math.floor(pts.length / 30));
+            for (let i = step; i < pts.length - step; i += step) {
+                const prev = pts[i - step];
+                const curr = pts[i];
+                const next = pts[i + step];
+                const angle = Math.abs(Math.atan2(next.y - curr.y, next.x - curr.x) - Math.atan2(curr.y - prev.y, curr.x - prev.x));
+                if (angle > 0.8 && angle < 2.4) corners++;
+            }
+            return corners;
+        }
+
+        function drawPolygon(ctx, cx, cy, radius, sides) {
+            const angle = (Math.PI * 2) / sides;
+            ctx.moveTo(cx + radius * Math.cos(0), cy + radius * Math.sin(0));
+            for (let i = 1; i < sides; i++) {
+                ctx.lineTo(cx + radius * Math.cos(i * angle), cy + radius * Math.sin(i * angle));
+            }
+            ctx.closePath();
+        }
+
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = (Math.PI / 2) * 3;
+            let x = cx;
+            let y = cy;
+            let step = Math.PI / spikes;
+
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
         }
 
         function checkIsCoordinateAxes(pts) {
@@ -644,9 +723,7 @@
                 const dy1 = pts[i].y - pts[i-2].y;
                 const dx2 = pts[i+2].x - pts[i].x;
                 const dy2 = pts[i+2].y - pts[i].y;
-                const angle1 = Math.atan2(dy1, dx1);
-                const angle2 = Math.atan2(dy2, dx2);
-                if (Math.abs(angle1 - angle2) > 1.2) directionChanges++;
+                if (Math.abs(Math.atan2(dy1, dx1) - Math.atan2(dy2, dx2)) > 1.2) directionChanges++;
             }
             return directionChanges >= 1 && pts.length > 20;
         }
@@ -671,7 +748,7 @@
 
         canvas.addEventListener('touchend', stopDrawing);
 
-        // UI Controls & Tool Switchers
+        // UI Tool Selection
         function updateToolUI() {
             [toolPen, toolAutoShape, toolEraser].forEach(b => {
                 b.classList.remove('bg-indigo-600', 'text-white');
@@ -687,6 +764,7 @@
         toolAutoShape.addEventListener('click', () => { activeTool = 'auto-shape'; updateToolUI(); });
         toolEraser.addEventListener('click', () => { activeTool = 'eraser'; updateToolUI(); });
 
+        // Dynamic Pattern Switching Fix
         gridSelect.addEventListener('change', (e) => {
             activeGridPattern = e.target.value;
             redrawCanvasWithBackground();
@@ -714,7 +792,7 @@
 
         clearBtn.addEventListener('click', () => {
             if (confirm("Are you sure you want to clear your scratchpad notes?")) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                drawCtx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
                 redrawCanvasWithBackground();
                 saveHistoryState();
             }
@@ -734,15 +812,19 @@
             redrawCanvasWithBackground();
         });
 
-        // HANDWRITING MATH-TO-TEXT / LATEX CONVERTER
+        // Handwriting Math OCR Simulation
         ocrBtn.addEventListener('click', () => {
             const originalText = ocrBtn.innerHTML;
             ocrBtn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Converting...`;
             lucide.createIcons();
 
-            // Simulate Math AI OCR Parsing & Extraction engine process
             setTimeout(() => {
-                const sampleMathLaTeX = ["f(x) = \\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}", "E = mc^2", "\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1", "a^2 + b^2 = c^2"];
+                const sampleMathLaTeX = [
+                    "f(x) = \\int_{0}^{\\infty} e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}", 
+                    "E = mc^2", 
+                    "\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1", 
+                    "a^2 + b^2 = c^2"
+                ];
                 const detectedText = sampleMathLaTeX[Math.floor(Math.random() * sampleMathLaTeX.length)];
                 
                 navigator.clipboard.writeText(detectedText).then(() => {
@@ -767,15 +849,22 @@
             }
         });
 
-        // Save Canvas Export
+        // Save Canvas Flattened PNG Export
         saveBtn.addEventListener('click', () => {
-            const dataUrl = canvas.toDataURL('image/png');
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            const expCtx = exportCanvas.getContext('2d');
+
+            expCtx.fillStyle = isDarkModeBoard ? '#0f172a' : '#ffffff';
+            expCtx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            expCtx.drawImage(drawCanvas, 0, 0);
+
             const downloadLink = document.createElement('a');
-            
             const originalPath = new URLSearchParams(window.location.search).get('path') || 'notes';
             const cleanName = originalPath.split('.')[0];
             
-            downloadLink.href = dataUrl;
+            downloadLink.href = exportCanvas.toDataURL('image/png');
             downloadLink.download = `${cleanName}_scratchpad_notes.png`;
             document.body.appendChild(downloadLink);
             downloadLink.click();
