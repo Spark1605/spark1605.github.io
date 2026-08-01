@@ -26,10 +26,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        .brand-sub {
-            position: relative;
-        }
-
         .brand-sub::after {
             content: '';
             position: absolute;
@@ -70,7 +66,7 @@
             <div class="brand-logo-container" onclick="location.reload()">
                 <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
                     <span class="brand-main">Sprk</span>
-                    <span class="brand-sub text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
+                    <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
                 </div>
                 <div class="logo-underline"></div>
             </div>
@@ -99,34 +95,68 @@
             <button onclick="fetchData()" class="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 dark:hover:bg-indigo-600 hover:text-white dark:hover:text-white text-xs font-bold rounded-xl transition cursor-pointer">Retry Operations Sync</button>
         </div>
 
-        <div id="content" class="hidden w-full flex flex-col gap-8 justify-start items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div id="content" class="hidden w-full flex flex-col gap-6 justify-start items-center animate-in fade-in slide-in-from-bottom-4 duration-500">
             
-            <div class="w-full relative group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                    <i data-lucide="search" class="w-5 h-5"></i>
+            <div class="w-full flex flex-col gap-3">
+                <div class="w-full relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                        <i data-lucide="search" class="w-5 h-5"></i>
+                    </div>
+                    <input type="text" id="search-filter" placeholder="Filter through names, asset groups, designations..." class="w-full p-4 pl-12 pr-10 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/80 focus:border-transparent dark:text-slate-100 transition duration-200 text-sm">
+                    <button id="clear-search" class="hidden absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
                 </div>
-                <input type="text" id="search-filter" placeholder="Filter through names, asset groups, designations..." class="w-full p-4 pl-12 border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/80 focus:border-transparent dark:text-slate-100 transition duration-200 text-sm">
+
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 max-w-full no-scrollbar">
+                    <button data-type="all" class="type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition">All</button>
+                    <button data-type="pinned" class="type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1">
+                        <i data-lucide="pin" class="w-3 h-3 text-amber-500"></i> Pinned
+                    </button>
+                    <button data-type="site" class="type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Sites</button>
+                    <button data-type="pdf" class="type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Documents</button>
+                    <button data-type="media" class="type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Media</button>
+                </div>
             </div>
 
             <div id="file-links" class="w-full flex flex-col gap-8">
                 
+                <div id="section-pinned" class="hidden flex flex-col gap-4 w-full">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="pin" class="w-4 h-4 text-amber-500"></i> Pinned Resources
+                        </span>
+                        <span id="count-pinned" class="text-xs bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full font-mono">0</span>
+                    </h3>
+                    <div id="file-links-pinned" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+
                 <div id="section-site" class="hidden flex flex-col gap-4 w-full">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                        <i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> Sites & QuestionBanks
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="globe" class="w-4 h-4 text-indigo-500"></i> Sites & QuestionBanks
+                        </span>
+                        <span id="count-site" class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full font-mono">0</span>
                     </h3>
                     <div id="file-links-site" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
                 
                 <div id="section-pdf" class="hidden flex flex-col gap-4 w-full">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-4 h-4 text-rose-500"></i> Documents & PDFs
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="file-text" class="w-4 h-4 text-rose-500"></i> Documents & PDFs
+                        </span>
+                        <span id="count-pdf" class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full font-mono">0</span>
                     </h3>
                     <div id="file-links-pdf" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
                 
                 <div id="section-media" class="hidden flex flex-col gap-4 w-full">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                        <i data-lucide="image" class="w-4 h-4 text-emerald-500"></i> Media Assests
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="image" class="w-4 h-4 text-emerald-500"></i> Media Assets
+                        </span>
+                        <span id="count-media" class="text-xs bg-slate-200 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-full font-mono">0</span>
                     </h3>
                     <div id="file-links-media" class="w-full grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                 </div>
@@ -145,7 +175,7 @@
 
     <script>
         // -------------------------------------------------------------------
-        // 1. Light / Dark Theme Environment Management Node
+        // 1. Theme Engine & Store Management
         // -------------------------------------------------------------------
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
@@ -170,13 +200,40 @@
         }
 
         // -------------------------------------------------------------------
-        // 2. Data Pipeline Sync Operations Controller Engine Routine
+        // 2. Data Pipeline & Favorites Engine
         // -------------------------------------------------------------------
         let resourceData = [];
-        const targetedSections = ["site", "pdf", "media"];
+        let activeCategoryFilter = 'all';
+        const targetedSections = ["pinned", "site", "pdf", "media"];
+
+        function getPinnedItems() {
+            return JSON.parse(localStorage.getItem('pinned_resources') || '[]');
+        }
+
+        function togglePin(path) {
+            let pins = getPinnedItems();
+            if (pins.includes(path)) {
+                pins = pins.filter(itemPath => itemPath !== path);
+            } else {
+                pins.push(path);
+            }
+            localStorage.setItem('pinned_resources', JSON.stringify(pins));
+            renderResources(document.getElementById('search-filter').value);
+        }
+
+        function copyLinkToClipboard(url, buttonElement) {
+            navigator.clipboard.writeText(url).then(() => {
+                const originalHtml = buttonElement.innerHTML;
+                buttonElement.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-emerald-500"></i>`;
+                if (window.lucide) lucide.createIcons();
+                setTimeout(() => {
+                    buttonElement.innerHTML = originalHtml;
+                    if (window.lucide) lucide.createIcons();
+                }, 1500);
+            });
+        }
 
         function fetchData() {
-            // Reset state layout systems views configuration variables fields indicators
             document.getElementById('error-state').classList.add('hidden');
             document.getElementById('content').classList.add('hidden');
             document.getElementById('loading-state').classList.remove('hidden');
@@ -191,12 +248,9 @@
                 })
                 .then(data => {
                     resourceData = data;
-                    
-                    // Transition View States only after success confirmation validation
                     document.getElementById('loading-state').classList.add('hidden');
                     document.getElementById('main-content').className = "flex-1 max-w-4xl w-full mx-auto px-6 py-10 flex flex-col justify-start items-center";
                     document.getElementById('content').classList.remove('hidden');
-                    
                     renderResources();
                 })
                 .catch(error => {
@@ -208,7 +262,9 @@
         }
 
         function renderResources(filter = '') {
-            // Clean active card layout viewports fields items targets nodes arrays
+            const pinnedPaths = getPinnedItems();
+            const sectionCounts = { pinned: 0, site: 0, pdf: 0, media: 0 };
+
             targetedSections.forEach(section => {
                 const innerContainer = document.getElementById(`file-links-${section}`);
                 if (innerContainer) innerContainer.innerHTML = '';
@@ -220,7 +276,6 @@
             let matchCounter = 0;
             const cleanFilter = filter.trim().toLowerCase();
 
-            // Setup dedicated unique operational parameters theme configuration color palette indices maps logic tags metrics array items layout context properties
             const badgeStylingMap = {
                 site: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/30',
                 pdf: 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/30',
@@ -236,22 +291,26 @@
             for (let i = 0; i < resourceData.length; i++) {
                 const asset = resourceData[i];
                 const normalizedType = asset.type.toLowerCase();
+                const isPinned = pinnedPaths.includes(asset.path);
 
-                // Advanced tracking parameter query conditions check routing pipeline evaluation block runs sequence
-                if (cleanFilter && 
-                    !asset.name.toLowerCase().includes(cleanFilter) && 
-                    !normalizedType.includes(cleanFilter)) {
+                // Quick Filters check
+                if (activeCategoryFilter === 'pinned' && !isPinned) continue;
+                if (activeCategoryFilter !== 'all' && activeCategoryFilter !== 'pinned' && normalizedType !== activeCategoryFilter) continue;
+
+                // Search Filter check
+                if (cleanFilter && !asset.name.toLowerCase().includes(cleanFilter) && !normalizedType.includes(cleanFilter)) {
                     continue;
                 }
 
                 matchCounter++;
 
-                // Build modern grid items profiles interface elements dynamically
+                // Build Card Container
                 const card = document.createElement('div');
-                card.className = 'w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-indigo-500/50 dark:hover:border-indigo-500/30 rounded-2xl flex flex-row items-center justify-between gap-4 shadow-2xs hover:shadow-md transition-all duration-300 group scale-100 active:scale-[0.99]';
+                card.className = 'w-full p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 hover:border-indigo-500/50 dark:hover:border-indigo-500/30 rounded-2xl flex flex-row items-center justify-between gap-3 shadow-2xs hover:shadow-md transition-all duration-300 group scale-100 active:scale-[0.99]';
                 
+                // Meta Content Block
                 const metaBlock = document.createElement('div');
-                metaBlock.className = 'flex flex-col gap-1.5 min-w-0';
+                metaBlock.className = 'flex flex-col gap-1.5 min-w-0 flex-1';
                 
                 const tag = document.createElement('span');
                 tag.textContent = asset.type.toUpperCase();
@@ -263,49 +322,108 @@
                 
                 metaBlock.appendChild(tag);
                 metaBlock.appendChild(titleText);
-                
+
+                // Right Side Controls Wrapper
+                const controlsBlock = document.createElement('div');
+                controlsBlock.className = 'flex items-center gap-1.5 shrink-0';
+
+                // Pin Button (QoL)
+                const pinBtn = document.createElement('button');
+                pinBtn.type = 'button';
+                pinBtn.ariaLabel = 'Pin resource';
+                pinBtn.className = `p-2 rounded-xl border transition ${isPinned ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800 text-amber-500' : 'border-slate-200 dark:border-slate-800 text-slate-400 hover:text-amber-500 hover:bg-slate-50 dark:hover:bg-slate-800'}`;
+                pinBtn.innerHTML = `<i data-lucide="pin" class="w-3.5 h-3.5 ${isPinned ? 'fill-amber-500' : ''}"></i>`;
+                pinBtn.onclick = (e) => {
+                    e.preventDefault();
+                    togglePin(asset.path);
+                };
+
+                // Copy Link Button (QoL)
+                const copyBtn = document.createElement('button');
+                copyBtn.type = 'button';
+                copyBtn.ariaLabel = 'Copy resource URL';
+                copyBtn.className = 'p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-400 hover:text-indigo-500 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition';
+                copyBtn.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i>`;
+                copyBtn.onclick = (e) => {
+                    e.preventDefault();
+                    copyLinkToClipboard(asset.path, copyBtn);
+                };
+
+                // Open Link Button
                 const linkAnchor = document.createElement('a');
                 linkAnchor.href = asset.path;
                 linkAnchor.target = "_blank";
                 linkAnchor.rel = "noopener noreferrer";
-                linkAnchor.className = 'inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/60 hover:bg-indigo-600 dark:hover:bg-indigo-600 hover:text-white dark:hover:text-white hover:border-transparent transition-all duration-200 shrink-0 shadow-3xs cursor-pointer';
-                
+                linkAnchor.className = 'inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700/60 hover:bg-indigo-600 dark:hover:bg-indigo-600 hover:text-white dark:hover:text-white hover:border-transparent transition-all duration-200 shrink-0 shadow-3xs cursor-pointer';
                 const actionIconStr = actionBtnIconMap[normalizedType] || 'arrow-up-right';
                 linkAnchor.innerHTML = `<span>Open</span> <i data-lucide="${actionIconStr}" class="w-3.5 h-3.5"></i>`;
-                
-                card.appendChild(metaBlock);
-                card.appendChild(linkAnchor);
 
-                const targetGridList = document.getElementById(`file-links-${normalizedType}`);
+                controlsBlock.appendChild(pinBtn);
+                controlsBlock.appendChild(copyBtn);
+                controlsBlock.appendChild(linkAnchor);
+
+                card.appendChild(metaBlock);
+                card.appendChild(controlsBlock);
+
+                // Dispatch to sections
+                const targetType = isPinned && activeCategoryFilter === 'all' ? 'pinned' : normalizedType;
+                const targetGridList = document.getElementById(`file-links-${targetType}`);
                 if (targetGridList) {
                     targetGridList.appendChild(card);
-                    
-                    const parentSectionWrapper = document.getElementById(`section-${normalizedType}`);
+                    sectionCounts[targetType]++;
+                    const parentSectionWrapper = document.getElementById(`section-${targetType}`);
                     if (parentSectionWrapper) parentSectionWrapper.classList.remove('hidden');
                 }
             }
 
-            // Interface Toggling based on exact matching evaluations
+            // Update Counts Metrics
+            targetedSections.forEach(sec => {
+                const countBadge = document.getElementById(`count-${sec}`);
+                if (countBadge) countBadge.textContent = sectionCounts[sec];
+            });
+
+            // Toggling No Results State
             const noResultsFallback = document.getElementById('no-results');
-            if (matchCounter === 0) {
-                noResultsFallback.classList.remove('hidden');
-            } else {
-                noResultsFallback.classList.add('hidden');
-            }
+            noResultsFallback.classList.toggle('hidden', matchCounter > 0);
 
             if (window.lucide) lucide.createIcons();
         }
 
         // -------------------------------------------------------------------
-        // 3. Operational Setup Pipeline Lifecycle Core Bootloader Initializer
+        // 3. UI Interactions & Initialization
         // -------------------------------------------------------------------
         window.addEventListener('DOMContentLoaded', () => {
             fetchData();
 
             const liveSearchFilterInput = document.getElementById('search-filter');
+            const clearSearchBtn = document.getElementById('clear-search');
+
             liveSearchFilterInput.addEventListener('input', (event) => {
-                renderResources(event.target.value);
+                const val = event.target.value;
+                clearSearchBtn.classList.toggle('hidden', !val);
+                renderResources(val);
             });
+
+            clearSearchBtn.addEventListener('click', () => {
+                liveSearchFilterInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                renderResources('');
+                liveSearchFilterInput.focus();
+            });
+
+            // Category Filter Buttons Handler
+            document.querySelectorAll('.type-filter-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.type-filter-btn').forEach(btn => {
+                        btn.className = 'type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1';
+                    });
+                    
+                    button.className = 'type-filter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 text-white shadow-sm transition flex items-center gap-1';
+                    activeCategoryFilter = button.getAttribute('data-type');
+                    renderResources(liveSearchFilterInput.value);
+                });
+            });
+
         }, { once: true });
     </script>
 </body>
