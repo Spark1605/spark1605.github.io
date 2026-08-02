@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPRK | Studio Whiteboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+        
+        canvas { touch-action: none; }
+        
+        .active-tool {
+            background-color: #4f46e5 !important;
+            color: #ffffff !important;
+        }
+
+        .tool-btn {
+            transition: all 0.15s ease;
+        }
+
+        .tool-btn:hover:not(.active-tool) {
+            background-color: #334155;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 h-screen w-screen overflow-hidden flex flex-col font-sans text-slate-200 select-none">
+
+    <header class="h-12 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-3 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center text-base font-black uppercase tracking-wider">
+                <span class="bg-gradient-to-r from-cyan-400 via-sky-400 to-purple-500 bg-clip-text text-transparent">Sprk</span>
+                <span class="text-white font-light ml-0.5">-Board</span>
+            </div>
+            <span class="text-xs px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30">Embed Edition</span>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+            <button id="undo-btn" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30" title="Undo (Ctrl+Z)">
+                <i data-lucide="undo-2" class="w-4 h-4"></i>
+            </button>
+            <button id="redo-btn" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30" title="Redo (Ctrl+Y)">
+                <i data-lucide="redo-2" class="w-4 h-4"></i>
+            </button>
+            <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
+            <button id="ocr-btn" class="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95 shadow">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Math AI</span>
+            </button>
+            <button id="clear-btn" class="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition" title="Clear Canvas">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+            <button id="export-btn" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95 shadow">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Export</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden relative">
+
+        <aside class="absolute left-3 top-3 bottom-3 z-10 w-12 sm:w-14 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-xl p-1.5 flex flex-col items-center justify-between shadow-2xl">
+            <div class="flex flex-col gap-1.5 w-full">
+                <button id="tool-pan" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Pan / Move Canvas">
+                    <i data-lucide="hand" class="w-4 h-4"></i>
+                </button>
+                
+                <div class="h-[1px] bg-slate-800 my-0.5"></div>
+
+                <button id="tool-pen" class="tool-btn active-tool p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Pen Tool">
+                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                </button>
+                <button id="tool-highlighter" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Highlighter">
+                    <i data-lucide="highlighter" class="w-4 h-4"></i>
+                </button>
+                <button id="tool-auto-shape" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Smart Auto-Shape">
+                    <i data-lucide="sparkle" class="w-4 h-4"></i>
+                </button>
+                <button id="tool-eraser" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Eraser">
+                    <i data-lucide="eraser" class="w-4 h-4"></i>
+                </button>
+
+                <div class="h-[1px] bg-slate-800 my-0.5"></div>
+
+                <button id="tool-line" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Line / Arrow">
+                    <i data-lucide="minus" class="w-4 h-4"></i>
+                </button>
+                <button id="tool-rect" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Rectangle">
+                    <i data-lucide="square" class="w-4 h-4"></i>
+                </button>
+                <button id="tool-circle" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Circle">
+                    <i data-lucide="circle" class="w-4 h-4"></i>
+                </button>
+
+                <div class="h-[1px] bg-slate-800 my-0.5"></div>
+
+                <button id="tool-text" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Text Note">
+                    <i data-lucide="type" class="w-4 h-4"></i>
+                </button>
+                <button id="tool-sticky" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Sticky Note">
+                    <i data-lucide="sticky-note" class="w-4 h-4"></i>
+                </button>
+                <button id="upload-image-btn" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Upload Image">
+                    <i data-lucide="image" class="w-4 h-4"></i>
+                </button>
+                <input type="file" id="image-loader" accept="image/*" class="hidden">
+            </div>
+
+            <div class="flex flex-col gap-1.5 w-full">
+                <button id="theme-btn" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Toggle Board Theme">
+                    <i data-lucide="sun" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-1 h-full w-full relative bg-slate-950 overflow-hidden" id="canvas-container">
+            <canvas id="whiteboard" class="absolute inset-0 cursor-crosshair"></canvas>
+            
+            <div id="text-overlay-container" class="absolute hidden z-30">
+                <textarea id="text-input" class="bg-transparent border border-indigo-500 outline-none p-1 text-slate-900 resize-none font-sans" placeholder="Type text..."></textarea>
+            </div>
+        </main>
+
+        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-xl px-4 py-2 flex items-center gap-4 shadow-2xl text-xs">
+            <div class="flex items-center gap-1.5">
+                <input type="color" id="wb-color" value="#000000" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
+                <div class="flex gap-1">
+                    <button class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600 color-preset" data-color="#000000"></button>
+                    <button class="w-5 h-5 rounded-full bg-red-500 color-preset" data-color="#ef4444"></button>
+                    <button class="w-5 h-5 rounded-full bg-blue-500 color-preset" data-color="#3b82f6"></button>
+                    <button class="w-5 h-5 rounded-full bg-emerald-500 color-preset" data-color="#10b981"></button>
+                    <button class="w-5 h-5 rounded-full bg-amber-400 color-preset" data-color="#f59e0b"></button>
+                </div>
+            </div>
+
+            <div class="h-4 w-[1px] bg-slate-800"></div>
+
+            <div class="flex items-center gap-2">
+                <i data-lucide="circle-dot" class="w-3.5 h-3.5 text-slate-400"></i>
+                <input type="range" id="wb-size" min="1" max="40" value="3" class="w-20 accent-indigo-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                <span id="size-preview" class="text-[11px] text-slate-400 min-w-[20px]">3px</span>
+            </div>
+
+            <div class="h-4 w-[1px] bg-slate-800"></div>
+
+            <div class="flex items-center gap-1.5">
+                <i data-lucide="grid" class="w-3.5 h-3.5 text-slate-400"></i>
+                <select id="grid-pattern-select" class="bg-slate-800 text-slate-200 text-xs px-2 py-1 rounded border border-slate-700 focus:outline-none">
+                    <option value="none">Blank</option>
+                    <option value="grid">Grid</option>
+                    <option value="dots">Dots</option>
+                    <option value="lined">Lined</option>
+                </select>
+            </div>
+            
+            <div class="h-4 w-[1px] bg-slate-800"></div>
+
+            <div class="flex items-center gap-1">
+                <button id="zoom-out-btn" class="p-1 rounded text-slate-400 hover:text-white" title="Zoom Out"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
+                <span id="zoom-level" class="text-[11px] text-slate-400 min-w-[32px] text-center">100%</span>
+                <button id="zoom-in-btn" class="p-1 rounded text-slate-400 hover:text-white" title="Zoom In"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
+                <button id="zoom-reset-btn" class="p-1 rounded text-slate-400 hover:text-white text-[10px] font-semibold" title="Reset Zoom">1:1</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // Elements
+        const canvasContainer = document.getElementById('canvas-container');
+        const canvas = document.getElementById('whiteboard');
+        const ctx = canvas.getContext('2d');
+        const colorPicker = document.getElementById('wb-color');
+        const sizePicker = document.getElementById('wb-size');
+        const sizePreview = document.getElementById('size-preview');
+        const gridSelect = document.getElementById('grid-pattern-select');
+        const undoBtn = document.getElementById('undo-btn');
+        const redoBtn = document.getElementById('redo-btn');
+        const themeBtn = document.getElementById('theme-btn');
+        const imageLoader = document.getElementById('image-loader');
+
+        // State Variables
+        let activeTool = 'pen';
+        let strokeColor = '#000000';
+        let strokeWidth = 3;
+        let activeGridPattern = 'none';
+        let isDarkModeBoard = false;
+        let isDrawing = false;
+        let strokePoints = [];
+
+        // Pan/Zoom Viewport Transform System
+        let scale = 1;
+        let panX = 0;
+        let panY = 0;
+        let isPanning = false;
+        let startPanX = 0, startPanY = 0;
+
+        // Shape Preview Buffer
+        let shapeStartX = 0, shapeStartY = 0;
+
+        // Undo System
+        let history = [];
+        let historyStep = -1;
+        const MAX_HISTORY = 30;
+
+        function initCanvas() {
+            canvas.width = canvasContainer.clientWidth;
+            canvas.height = canvasContainer.clientHeight;
+            redraw();
+        }
+
+        function redraw() {
+            ctx.save();
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.fillStyle = isDarkModeBoard ? '#0f172a' : '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(scale, scale);
+
+            drawGridOverlay();
+
+            if (historyStep >= 0) {
+                const img = new Image();
+                img.src = history[historyStep];
+                ctx.drawImage(img, 0, 0);
+            }
+            ctx.restore();
+        }
+
+        function drawGridOverlay() {
+            if (activeGridPattern === 'none') return;
+
+            ctx.save();
+            ctx.strokeStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.15)';
+            ctx.lineWidth = 1 / scale;
+
+            const step = 30;
+            const width = canvas.width / scale;
+            const height = canvas.height / scale;
+
+            if (activeGridPattern === 'grid') {
+                for (let x = 0; x < width; x += step) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                }
+                for (let y = 0; y < height; y += step) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+            } else if (activeGridPattern === 'lined') {
+                for (let y = step; y < height; y += step) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+            } else if (activeGridPattern === 'dots') {
+                for (let x = step/2; x < width; x += step) {
+                    for (let y = step/2; y < height; y += step) {
+                        ctx.beginPath(); ctx.arc(x, y, 1 / scale, 0, Math.PI * 2); ctx.fill();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function saveHistoryState() {
+            historyStep++;
+            if (historyStep < history.length) {
+                history = history.slice(0, historyStep);
+            }
+            history.push(canvas.toDataURL());
+            if (history.length > MAX_HISTORY) {
+                history.shift();
+                historyStep--;
+            }
+            updateUndoRedoUI();
+        }
+
+        function updateUndoRedoUI() {
+            undoBtn.disabled = historyStep <= 0;
+            redoBtn.disabled = historyStep >= history.length - 1;
+        }
+
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left - panX) / scale,
+                y: (clientY - rect.top - panY) / scale
+            };
+        }
+
+        // Pointer Events
+        function handleStart(e) {
+            const coords = getCanvasCoordinates(e);
+            
+            if (activeTool === 'pan' || e.button === 1 || e.spaceKey) {
+                isPanning = true;
+                startPanX = (e.touches ? e.touches[0].clientX : e.clientX) - panX;
+                startPanY = (e.touches ? e.touches[0].clientY : e.clientY) - panY;
+                return;
+            }
+
+            isDrawing = true;
+            shapeStartX = coords.x;
+            shapeStartY = coords.y;
+            strokePoints = [coords];
+
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(scale, scale);
+            ctx.beginPath();
+            ctx.moveTo(coords.x, coords.y);
+        }
+
+        function handleMove(e) {
+            if (isPanning) {
+                panX = (e.touches ? e.touches[0].clientX : e.clientX) - startPanX;
+                panY = (e.touches ? e.touches[0].clientY : e.clientY) - startPanY;
+                redraw();
+                return;
+            }
+
+            if (!isDrawing) return;
+            const coords = getCanvasCoordinates(e);
+
+            if (['pen', 'highlighter', 'eraser'].includes(activeTool)) {
+                strokePoints.push(coords);
+                ctx.lineWidth = activeTool === 'eraser' ? strokeWidth * 4 : strokeWidth;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                if (activeTool === 'highlighter') {
+                    ctx.strokeStyle = strokeColor + '40'; // Semi transparent
+                } else if (activeTool === 'eraser') {
+                    ctx.strokeStyle = isDarkModeBoard ? '#0f172a' : '#ffffff';
+                } else {
+                    ctx.strokeStyle = strokeColor;
+                }
+
+                ctx.lineTo(coords.x, coords.y);
+                ctx.stroke();
+            } else if (['rect', 'circle', 'line'].includes(activeTool)) {
+                redraw();
+                ctx.save();
+                ctx.translate(panX, panY);
+                ctx.scale(scale, scale);
+                ctx.lineWidth = strokeWidth;
+                ctx.strokeStyle = strokeColor;
+                ctx.beginPath();
+
+                if (activeTool === 'rect') {
+                    ctx.rect(shapeStartX, shapeStartY, coords.x - shapeStartX, coords.y - shapeStartY);
+                } else if (activeTool === 'circle') {
+                    const r = Math.hypot(coords.x - shapeStartX, coords.y - shapeStartY);
+                    ctx.arc(shapeStartX, shapeStartY, r, 0, Math.PI * 2);
+                } else if (activeTool === 'line') {
+                    ctx.moveTo(shapeStartX, shapeStartY);
+                    ctx.lineTo(coords.x, coords.y);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        function handleEnd() {
+            if (isPanning) { isPanning = false; return; }
+            if (!isDrawing) return;
+            isDrawing = false;
+            ctx.restore();
+
+            if (activeTool === 'auto-shape') {
+                smoothAutoShape(strokePoints);
+            }
+
+            saveHistoryState();
+        }
+
+        // Geometric shape Recognition
+        function smoothAutoShape(pts) {
+            if (pts.length < 5) return;
+            const first = pts[0], last = pts[pts.length - 1];
+            const isClosed = Math.hypot(last.x - first.x, last.y - first.y) < 40;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            pts.forEach(p => {
+                minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+                minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+            });
+
+            const w = maxX - minX, h = maxY - minY;
+
+            redraw();
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(scale, scale);
+            ctx.lineWidth = strokeWidth;
+            ctx.strokeStyle = strokeColor;
+            ctx.beginPath();
+
+            if (isClosed) {
+                if (Math.abs(w - h) < 20) {
+                    ctx.arc(minX + w/2, minY + h/2, (w + h)/4, 0, Math.PI * 2);
+                } else {
+                    ctx.rect(minX, minY, w, h);
+                }
+            } else {
+                ctx.moveTo(first.x, first.y);
+                ctx.lineTo(last.x, last.y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Listeners
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        canvas.addEventListener('touchstart', (e) => { handleStart(e); e.preventDefault(); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { handleMove(e); e.preventDefault(); }, {passive: false});
+        window.addEventListener('touchend', handleEnd);
+
+        // Tool Switching system
+        const tools = ['pen', 'highlighter', 'auto-shape', 'eraser', 'line', 'rect', 'circle', 'text', 'sticky', 'pan'];
+        tools.forEach(t => {
+            const btn = document.getElementById(`tool-${t}`);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    tools.forEach(other => {
+                        const b = document.getElementById(`tool-${other}`);
+                        if (b) b.classList.remove('active-tool');
+                    });
+                    btn.classList.add('active-tool');
+                    activeTool = t;
+                });
+            }
+        });
+
+        // Sticky Notes & Image Upload
+        document.getElementById('upload-image-btn').addEventListener('click', () => imageLoader.click());
+        imageLoader.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    ctx.save();
+                    ctx.translate(panX, panY);
+                    ctx.scale(scale, scale);
+                    ctx.drawImage(img, 50, 50, 200, 200 * (img.height / img.width));
+                    ctx.restore();
+                    saveHistoryState();
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Theme Toggle
+        themeBtn.addEventListener('click', () => {
+            isDarkModeBoard = !isDarkModeBoard;
+            themeBtn.innerHTML = isDarkModeBoard ? `<i data-lucide="moon" class="w-4 h-4"></i>` : `<i data-lucide="sun" class="w-4 h-4"></i>`;
+            lucide.createIcons();
+            redraw();
+        });
+
+        // Zoom Controls
+        document.getElementById('zoom-in-btn').addEventListener('click', () => setZoom(scale * 1.15));
+        document.getElementById('zoom-out-btn').addEventListener('click', () => setZoom(scale / 1.15));
+        document.getElementById('zoom-reset-btn').addEventListener('click', () => setZoom(1, 0, 0));
+
+        function setZoom(newScale, px = panX, py = panY) {
+            scale = Math.min(Math.max(0.2, newScale), 5);
+            panX = px; panY = py;
+            document.getElementById('zoom-level').textContent = `${Math.round(scale * 100)}%`;
+            redraw();
+        }
+
+        // Color & Sizes
+        colorPicker.addEventListener('input', (e) => strokeColor = e.target.value);
+        document.querySelectorAll('.color-preset').forEach(p => {
+            p.addEventListener('click', () => {
+                strokeColor = p.getAttribute('data-color');
+                colorPicker.value = strokeColor;
+            });
+        });
+        sizePicker.addEventListener('input', (e) => {
+            strokeWidth = e.target.value;
+            sizePreview.textContent = `${strokeWidth}px`;
+        });
+        gridSelect.addEventListener('change', (e) => {
+            activeGridPattern = e.target.value;
+            redraw();
+        });
+
+        // Undo/Redo/Clear
+        undoBtn.addEventListener('click', () => {
+            if (historyStep > 0) { historyStep--; redraw(); updateUndoRedoUI(); }
+        });
+        redoBtn.addEventListener('click', () => {
+            if (historyStep < history.length - 1) { historyStep++; redraw(); updateUndoRedoUI(); }
+        });
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            if (confirm("Clear canvas?")) { history = []; historyStep = -1; saveHistoryState(); redraw(); }
+        });
+
+        // Export PNG
+        document.getElementById('export-btn').addEventListener('click', () => {
+            const a = document.createElement('a');
+            a.download = `whiteboard-${Date.now()}.png`;
+            a.href = canvas.toDataURL();
+            a.click();
+        });
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        saveHistoryState();
+    </script>
+</body>
+</html>
