@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="h-full w-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,25 +7,25 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         
         canvas { touch-action: none; }
         
         .active-tool {
             background-color: #6366f1 !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.4);
         }
 
         .tool-btn {
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tool-btn:hover:not(.active-tool) {
-            background-color: rgba(51, 65, 85, 0.6);
-            color: #ffffff;
+            background-color: #334155;
+            color: #f8fafc;
         }
 
         .sticky-note-input {
@@ -34,40 +34,42 @@
             outline: none;
             resize: none;
             font-family: inherit;
-            font-weight: 500;
             width: 100%;
             height: 100%;
             color: #0f172a;
         }
     </style>
 </head>
-<body class="bg-slate-950 h-screen w-screen overflow-hidden flex flex-col font-sans text-slate-200 select-none">
+<body class="bg-slate-950 h-full w-full overflow-hidden flex flex-col font-sans text-slate-200 select-none">
 
-    <header class="h-14 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 shadow-lg">
+    <header class="h-14 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 shadow-lg">
         <div class="flex items-center gap-3">
             <div class="flex items-center text-lg font-black uppercase tracking-wider">
                 <span class="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">Sprk</span>
                 <span class="text-white font-light ml-1">Board</span>
             </div>
-            <span class="text-[10px] font-semibold px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 hidden sm:inline-block">v2.5 Pro Engine</span>
+            <span class="text-[10px] px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 hidden sm:inline-block font-semibold">Pro v2.5</span>
         </div>
 
-        <div class="flex items-center gap-1.5 sm:gap-2">
-            <button id="undo-btn" class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none" title="Undo (Ctrl+Z)">
+        <div class="flex items-center gap-1 sm:gap-2">
+            <button id="undo-btn" class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30 disabled:hover:bg-transparent" title="Undo (Ctrl+Z)">
                 <i data-lucide="undo-2" class="w-4 h-4"></i>
             </button>
-            <button id="redo-btn" class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none" title="Redo (Ctrl+Y)">
+            <button id="redo-btn" class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30 disabled:hover:bg-transparent" title="Redo (Ctrl+Y)">
                 <i data-lucide="redo-2" class="w-4 h-4"></i>
             </button>
             <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
-            <button id="delete-selected-btn" class="p-2 rounded-lg text-amber-400 hover:bg-amber-950/40 transition disabled:opacity-30 disabled:pointer-events-none" title="Delete Selection (Del)">
-                <i data-lucide="trash" class="w-4 h-4"></i>
+            <button id="duplicate-btn" class="p-2 rounded-lg text-indigo-400 hover:bg-indigo-950/40 transition disabled:opacity-30" title="Duplicate Selected (Ctrl+D)">
+                <i data-lucide="copy" class="w-4 h-4"></i>
+            </button>
+            <button id="delete-selected-btn" class="p-2 rounded-lg text-amber-400 hover:bg-amber-950/40 transition disabled:opacity-30" title="Delete Selected (Del)">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
             </button>
             <button id="clear-btn" class="p-2 rounded-lg text-rose-400 hover:bg-rose-950/40 transition" title="Clear Canvas">
-                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <i data-lucide="eraser" class="w-4 h-4"></i>
             </button>
             <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
-            <button id="export-btn" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition active:scale-95 shadow-md">
+            <button id="export-btn" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition active:scale-95 shadow-md shadow-indigo-600/20">
                 <i data-lucide="download" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Export PNG</span>
             </button>
@@ -76,58 +78,60 @@
 
     <div class="flex-1 flex overflow-hidden relative">
 
-        <aside id="desktop-sidebar" class="hidden md:flex absolute left-4 top-4 bottom-4 z-30 w-14 bg-slate-900/90 backdrop-blur-md border border-slate-800/80 rounded-2xl p-2 flex-col items-center justify-between shadow-2xl">
+        <aside id="desktop-sidebar" class="hidden md:flex absolute left-4 top-4 bottom-4 z-30 w-14 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl p-2 flex-col items-center justify-between shadow-2xl">
             <div class="flex flex-col gap-1.5 w-full">
                 <button id="tool-select" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Select & Move (V)">
-                    <i data-lucide="mouse-pointer" class="w-4 h-4"></i>
+                    <i data-lucide="mouse-pointer" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-pan" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Pan Canvas (Space+Drag)">
-                    <i data-lucide="hand" class="w-4 h-4"></i>
+                    <i data-lucide="hand" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-laser" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Laser Pointer (L)">
-                    <i data-lucide="pointer" class="w-4 h-4"></i>
+                    <i data-lucide="pointer" class="w-5 h-5"></i>
                 </button>
                 
                 <div class="h-[1px] bg-slate-800 my-1"></div>
 
-                <button id="tool-pen" class="tool-btn active-tool p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Pen Tool (P)">
-                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                <button id="tool-pen" class="tool-btn active-tool p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Pen (P)">
+                    <i data-lucide="pencil" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-highlighter" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Highlighter (H)">
-                    <i data-lucide="highlighter" class="w-4 h-4"></i>
+                    <i data-lucide="highlighter" class="w-5 h-5"></i>
                 </button>
-                <button id="tool-eraser" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Eraser Tool (E)">
-                    <i data-lucide="eraser" class="w-4 h-4"></i>
+                <button id="tool-auto-shape" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Smart Shape Detection">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
                 </button>
 
                 <div class="h-[1px] bg-slate-800 my-1"></div>
 
-                <button id="tool-text" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Text Note (T)">
-                    <i data-lucide="type" class="w-4 h-4"></i>
+                <button id="tool-text" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Text (T)">
+                    <i data-lucide="type" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-sticky" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Sticky Note (S)">
-                    <i data-lucide="sticky-note" class="w-4 h-4"></i>
+                    <i data-lucide="sticky-note" class="w-5 h-5"></i>
                 </button>
 
                 <div class="h-[1px] bg-slate-800 my-1"></div>
 
-                <button id="tool-line" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Straight Line">
-                    <i data-lucide="minus" class="w-4 h-4"></i>
+                <button id="tool-line" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Line">
+                    <i data-lucide="minus" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-arrow" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Arrow">
-                    <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                    <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-rect" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Rectangle">
-                    <i data-lucide="square" class="w-4 h-4"></i>
+                    <i data-lucide="square" class="w-5 h-5"></i>
                 </button>
                 <button id="tool-circle" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Circle">
-                    <i data-lucide="circle" class="w-4 h-4"></i>
+                    <i data-lucide="circle" class="w-5 h-5"></i>
                 </button>
             </div>
 
-            <button id="theme-btn" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Toggle Board Theme">
-                <i data-lucide="sun" class="w-4 h-4"></i>
-            </button>
+            <div class="flex flex-col gap-1.5 w-full">
+                <button id="theme-btn" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Toggle Theme">
+                    <i data-lucide="sun" class="w-5 h-5"></i>
+                </button>
+            </div>
         </aside>
 
         <main class="flex-1 h-full w-full relative bg-slate-950 overflow-hidden" id="canvas-container">
@@ -135,40 +139,54 @@
             <div id="html-overlay" class="absolute inset-0 pointer-events-none z-20"></div>
         </main>
 
-        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800/80 rounded-2xl px-4 py-2 flex items-center gap-4 shadow-2xl text-xs max-w-[95vw] overflow-x-auto custom-scrollbar">
-            
-            <div class="flex md:hidden items-center gap-1 shrink-0 border-r border-slate-800 pr-3">
-                <button class="m-tool-btn active-tool p-2 rounded-lg" data-tool="pen"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                <button class="m-tool-btn p-2 rounded-lg text-slate-400" data-tool="eraser"><i data-lucide="eraser" class="w-4 h-4"></i></button>
-                <button class="m-tool-btn p-2 rounded-lg text-slate-400" data-tool="select"><i data-lucide="mouse-pointer" class="w-4 h-4"></i></button>
-                <button class="m-tool-btn p-2 rounded-lg text-slate-400" data-tool="sticky"><i data-lucide="sticky-note" class="w-4 h-4"></i></button>
-            </div>
+        <button id="mobile-menu-btn" class="md:hidden fixed bottom-20 right-4 z-40 w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-lg active:scale-90 transition">
+            <i data-lucide="layout-grid" class="w-6 h-6"></i>
+        </button>
 
+        <div id="mobile-sheet" class="md:hidden fixed inset-x-0 bottom-0 z-50 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 rounded-t-3xl p-5 shadow-2xl transition-transform duration-300 translate-y-full">
+            <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto mb-4"></div>
+            <div class="grid grid-cols-4 gap-2 mb-4">
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="select"><i data-lucide="mouse-pointer" class="w-5 h-5"></i>Select</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="pan"><i data-lucide="hand" class="w-5 h-5"></i>Pan</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-indigo-600 text-white flex flex-col items-center gap-1 text-xs" data-tool="pen"><i data-lucide="pencil" class="w-5 h-5"></i>Pen</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="highlighter"><i data-lucide="highlighter" class="w-5 h-5"></i>Highlight</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="text"><i data-lucide="type" class="w-5 h-5"></i>Text</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="sticky"><i data-lucide="sticky-note" class="w-5 h-5"></i>Sticky</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="rect"><i data-lucide="square" class="w-5 h-5"></i>Rect</button>
+                <button class="m-tool-btn p-3 rounded-xl bg-slate-800 text-slate-300 flex flex-col items-center gap-1 text-xs" data-tool="circle"><i data-lucide="circle" class="w-5 h-5"></i>Circle</button>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t border-slate-800">
+                <span class="text-xs text-slate-400">Board Theme</span>
+                <button id="m-theme-btn" class="p-2 rounded-xl bg-slate-800 text-slate-300"><i data-lucide="sun" class="w-5 h-5"></i></button>
+            </div>
+        </div>
+
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800 rounded-2xl px-4 py-2.5 flex items-center gap-3 sm:gap-5 shadow-2xl text-xs max-w-[95vw] overflow-x-auto custom-scrollbar">
             <div class="flex items-center gap-2 shrink-0">
                 <input type="color" id="wb-color" value="#ffffff" class="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0">
                 <div class="flex gap-1.5">
-                    <button class="w-5 h-5 rounded-full bg-white border border-slate-600 color-preset" data-color="#ffffff"></button>
-                    <button class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600 color-preset" data-color="#0f172a"></button>
-                    <button class="w-5 h-5 rounded-full bg-rose-500 color-preset" data-color="#f43f5e"></button>
-                    <button class="w-5 h-5 rounded-full bg-sky-500 color-preset" data-color="#0284c7"></button>
-                    <button class="w-5 h-5 rounded-full bg-emerald-500 color-preset" data-color="#10b981"></button>
-                    <button class="w-5 h-5 rounded-full bg-amber-400 color-preset" data-color="#fbbf24"></button>
+                    <button class="w-6 h-6 rounded-full bg-white border border-slate-600 color-preset" data-color="#ffffff"></button>
+                    <button class="w-6 h-6 rounded-full bg-slate-950 border border-slate-600 color-preset" data-color="#020617"></button>
+                    <button class="w-6 h-6 rounded-full bg-red-500 color-preset" data-color="#ef4444"></button>
+                    <button class="w-6 h-6 rounded-full bg-blue-500 color-preset" data-color="#3b82f6"></button>
+                    <button class="w-6 h-6 rounded-full bg-emerald-500 color-preset" data-color="#10b981"></button>
+                    <button class="w-6 h-6 rounded-full bg-amber-400 color-preset" data-color="#f59e0b"></button>
                 </div>
             </div>
 
             <div class="h-4 w-[1px] bg-slate-800 shrink-0"></div>
 
             <div class="flex items-center gap-2 shrink-0">
-                <i data-lucide="circle-dot" class="w-3.5 h-3.5 text-slate-400"></i>
-                <input type="range" id="wb-size" min="1" max="30" value="3" class="w-16 sm:w-24 accent-indigo-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                <span id="size-preview" class="text-[11px] font-mono text-slate-400 w-6">3px</span>
+                <i data-lucide="circle-dot" class="w-4 h-4 text-slate-400"></i>
+                <input type="range" id="wb-size" min="1" max="40" value="3" class="w-16 sm:w-24 accent-indigo-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                <span id="size-preview" class="text-[11px] text-slate-400 min-w-[24px]">3px</span>
             </div>
 
             <div class="h-4 w-[1px] bg-slate-800 shrink-0"></div>
 
             <div class="flex items-center gap-1.5 shrink-0">
-                <i data-lucide="grid" class="w-3.5 h-3.5 text-slate-400"></i>
-                <select id="grid-pattern-select" class="bg-slate-800 text-slate-200 text-xs px-2 py-1 rounded-lg border border-slate-700 focus:outline-none cursor-pointer">
+                <i data-lucide="grid" class="w-4 h-4 text-slate-400"></i>
+                <select id="grid-pattern-select" class="bg-slate-800 text-slate-200 text-xs px-2.5 py-1 rounded-lg border border-slate-700 focus:outline-none cursor-pointer">
                     <option value="none">Blank</option>
                     <option value="grid" selected>Grid</option>
                     <option value="dots">Dots</option>
@@ -179,10 +197,10 @@
             <div class="h-4 w-[1px] bg-slate-800 shrink-0"></div>
 
             <div class="flex items-center gap-1 shrink-0">
-                <button id="zoom-out-btn" class="p-1 rounded text-slate-400 hover:text-white" title="Zoom Out"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
+                <button id="zoom-out-btn" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
                 <span id="zoom-level" class="text-[11px] font-mono text-slate-400 min-w-[36px] text-center">100%</span>
-                <button id="zoom-in-btn" class="p-1 rounded text-slate-400 hover:text-white" title="Zoom In"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
-                <button id="zoom-reset-btn" class="p-1 px-1.5 rounded bg-slate-800 text-slate-400 hover:text-white text-[10px] font-mono font-semibold" title="Reset View">1:1</button>
+                <button id="zoom-in-btn" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                <button id="zoom-reset-btn" class="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-[10px] font-bold">1:1</button>
             </div>
         </div>
     </div>
@@ -190,13 +208,13 @@
     <script>
         lucide.createIcons();
 
-        // Canvas & DOM Container Initialization
-        const canvasContainer = document.getElementById('canvas-container');
+        // Canvas & Context Setup
+        const container = document.getElementById('canvas-container');
         const canvas = document.getElementById('whiteboard');
         const ctx = canvas.getContext('2d');
         const htmlOverlay = document.getElementById('html-overlay');
 
-        // UI Controls
+        // Inputs & Controls
         const colorPicker = document.getElementById('wb-color');
         const sizePicker = document.getElementById('wb-size');
         const sizePreview = document.getElementById('size-preview');
@@ -204,16 +222,20 @@
         const undoBtn = document.getElementById('undo-btn');
         const redoBtn = document.getElementById('redo-btn');
         const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+        const duplicateBtn = document.getElementById('duplicate-btn');
         const themeBtn = document.getElementById('theme-btn');
+        const mobileThemeBtn = document.getElementById('m-theme-btn');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileSheet = document.getElementById('mobile-sheet');
 
-        // Engine State
+        // State Machine Variables
         let activeTool = 'pen';
         let strokeColor = '#ffffff';
         let strokeWidth = 3;
         let activeGridPattern = 'grid';
         let isDarkModeBoard = true;
-        
-        // Canvas Transformation Engine
+
+        // Viewport Coordinates & Camera Transforms
         let scale = 1;
         let panX = 0;
         let panY = 0;
@@ -221,7 +243,7 @@
         let isSpacePressed = false;
         let startPanX = 0, startPanY = 0;
 
-        // Interactive States
+        // Interaction Management
         let isDrawing = false;
         let currentPath = [];
         let selectedElementIndex = -1;
@@ -236,12 +258,32 @@
         let undoStack = [];
         let redoStack = [];
 
-        // Touch Interaction State
-        let initialPinchDist = null;
+        // Touch Gestures
+        let touchStartDist = 0;
+        let touchStartScale = 1;
+
+        // Persistent Local Storage Key
+        const STORAGE_KEY = 'SPRK_WHITEBOARD_DATA_V1';
+
+        // Load saved state
+        function initStorage() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    elements = JSON.parse(saved);
+                } catch (e) {
+                    elements = [];
+                }
+            }
+        }
+
+        function saveStorage() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(elements));
+        }
 
         function resizeCanvas() {
-            canvas.width = canvasContainer.clientWidth;
-            canvas.height = canvasContainer.clientHeight;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
             requestRender();
         }
 
@@ -249,22 +291,30 @@
             undoStack.push(JSON.stringify(elements));
             if (undoStack.length > 50) undoStack.shift();
             redoStack = [];
-            updateUndoRedoUI();
+            updateUIState();
+            saveStorage();
         }
 
-        function updateUndoRedoUI() {
+        function updateUIState() {
             undoBtn.disabled = undoStack.length === 0;
             redoBtn.disabled = redoStack.length === 0;
             deleteSelectedBtn.disabled = selectedElementIndex === -1;
+            duplicateBtn.disabled = selectedElementIndex === -1;
         }
 
-        // World to Screen Coordinate Translators
+        // World/Screen Coordinate Transformers
         function screenToWorld(sx, sy) {
-            return { x: (sx - panX) / scale, y: (sy - panY) / scale };
+            return {
+                x: (sx - panX) / scale,
+                y: (sy - panY) / scale
+            };
         }
 
         function worldToScreen(wx, wy) {
-            return { x: wx * scale + panX, y: wy * scale + panY };
+            return {
+                x: wx * scale + panX,
+                y: wy * scale + panY
+            };
         }
 
         function getEventCoords(e) {
@@ -277,13 +327,17 @@
                 clientY = e.touches[0].clientY;
             }
 
+            const screenX = clientX - rect.left;
+            const screenY = clientY - rect.top;
+
             return {
-                screenX: clientX - rect.left,
-                screenY: clientY - rect.top,
-                world: screenToWorld(clientX - rect.left, clientY - rect.top)
+                screenX,
+                screenY,
+                world: screenToWorld(screenX, screenY)
             };
         }
 
+        // Smooth Rendering Engine
         let renderRequested = false;
         function requestRender() {
             if (!renderRequested) {
@@ -293,17 +347,17 @@
         }
 
         function renderGrid() {
-            ctx.fillStyle = isDarkModeBoard ? '#090d16' : '#f8fafc';
+            ctx.fillStyle = isDarkModeBoard ? '#020617' : '#f8fafc';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (activeGridPattern === 'none') return;
 
             ctx.save();
             ctx.strokeStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
-            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
             ctx.lineWidth = 1;
 
-            const step = 32 * scale;
+            const step = 30 * scale;
             const offsetX = panX % step;
             const offsetY = panY % step;
 
@@ -326,7 +380,7 @@
                 for (let x = offsetX; x < canvas.width; x += step) {
                     for (let y = offsetY; y < canvas.height; y += step) {
                         ctx.beginPath();
-                        ctx.arc(x, y, 1.2 * Math.min(scale, 1.2), 0, Math.PI * 2);
+                        ctx.arc(x, y, 1.2 * Math.min(scale, 1.5), 0, Math.PI * 2);
                         ctx.fill();
                     }
                 }
@@ -342,15 +396,18 @@
             ctx.translate(panX, panY);
             ctx.scale(scale, scale);
 
+            // Draw vector scene
             elements.forEach((el, index) => {
                 drawElement(el, index === selectedElementIndex);
             });
 
+            // Active path shape preview
             if (isDrawing && currentPath.length > 0) {
                 const previewEl = createActiveElement();
                 if (previewEl) drawElement(previewEl, false);
             }
 
+            // Laser Pointer Engine Trail
             if (laserTrail.length > 0) {
                 ctx.save();
                 ctx.lineCap = 'round';
@@ -358,8 +415,8 @@
                 for (let i = 1; i < laserTrail.length; i++) {
                     const pt1 = laserTrail[i - 1];
                     const pt2 = laserTrail[i];
-                    ctx.strokeStyle = `rgba(244, 63, 94, ${pt2.alpha})`;
-                    ctx.lineWidth = 4 / scale;
+                    ctx.strokeStyle = `rgba(239, 68, 68, ${pt2.alpha})`;
+                    ctx.lineWidth = 6 / scale;
                     ctx.beginPath();
                     ctx.moveTo(pt1.x, pt1.y);
                     ctx.lineTo(pt2.x, pt2.y);
@@ -382,17 +439,13 @@
 
             if (el.type === 'highlighter') {
                 ctx.globalAlpha = 0.35;
-                ctx.lineWidth = el.size * 3.5;
+                ctx.lineWidth = el.size * 3;
             }
 
             ctx.beginPath();
 
-            if (['pen', 'highlighter', 'eraser'].includes(el.type)) {
-                if (el.type === 'eraser') {
-                    ctx.strokeStyle = isDarkModeBoard ? '#090d16' : '#f8fafc';
-                    ctx.lineWidth = el.size * 4;
-                }
-                if (el.points.length > 0) {
+            if (['pen', 'highlighter'].includes(el.type)) {
+                if (el.points && el.points.length > 0) {
                     ctx.moveTo(el.points[0].x, el.points[0].y);
                     for (let i = 1; i < el.points.length; i++) {
                         ctx.lineTo(el.points[i].x, el.points[i].y);
@@ -402,7 +455,7 @@
             } else if (el.type === 'line') {
                 ctx.moveTo(el.x1, el.y1); ctx.lineTo(el.x2, el.y2); ctx.stroke();
             } else if (el.type === 'arrow') {
-                const headlen = 12;
+                const headlen = 14;
                 const angle = Math.atan2(el.y2 - el.y1, el.x2 - el.x1);
                 ctx.moveTo(el.x1, el.y1); ctx.lineTo(el.x2, el.y2); ctx.stroke();
                 ctx.beginPath();
@@ -414,21 +467,22 @@
             } else if (el.type === 'rect') {
                 ctx.strokeRect(el.x, el.y, el.w, el.h);
             } else if (el.type === 'circle') {
-                ctx.beginPath();
-                ctx.arc(el.x + el.w / 2, el.y + el.h / 2, Math.abs(Math.max(el.w, el.h)) / 2, 0, Math.PI * 2);
+                const r = Math.hypot(el.w, el.h);
+                ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
                 ctx.stroke();
             } else if (el.type === 'text') {
-                ctx.font = `${Math.max(16, el.size * 3)}px sans-serif`;
+                ctx.font = `${Math.max(16, el.size * 4)}px sans-serif`;
                 ctx.fillText(el.text || 'Text', el.x, el.y);
             }
 
+            // Selection Boundary Highlight
             if (isSelected) {
                 const b = getElementBounds(el);
                 ctx.save();
                 ctx.strokeStyle = '#6366f1';
-                ctx.lineWidth = 1.5 / scale;
-                ctx.setLineDash([4 / scale, 4 / scale]);
-                ctx.strokeRect(b.x - 4, b.y - 4, b.w + 8, b.h + 8);
+                ctx.lineWidth = 2 / scale;
+                ctx.setLineDash([6 / scale, 6 / scale]);
+                ctx.strokeRect(b.x - 6, b.y - 6, b.w + 12, b.h + 12);
                 ctx.restore();
             }
 
@@ -436,22 +490,29 @@
         }
 
         function getElementBounds(el) {
-            if (['pen', 'highlighter', 'eraser'].includes(el.type)) {
+            if (['pen', 'highlighter'].includes(el.type)) {
                 let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-                el.points.forEach(p => {
+                (el.points || []).forEach(p => {
                     minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
                     minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
                 });
-                return { x: minX, y: minY, w: maxX - minX || 10, h: maxY - minY || 10 };
+                return { x: minX, y: minY, w: (maxX - minX) || 10, h: (maxY - minY) || 10 };
             } else if (['line', 'arrow'].includes(el.type)) {
                 return {
-                    x: Math.min(el.x1, el.x2), y: Math.min(el.y1, el.y2),
-                    w: Math.abs(el.x2 - el.x1) || 10, h: Math.abs(el.y2 - el.y1) || 10
+                    x: Math.min(el.x1, el.x2),
+                    y: Math.min(el.y1, el.y2),
+                    w: Math.abs(el.x2 - el.x1) || 10,
+                    h: Math.abs(el.y2 - el.y1) || 10
                 };
-            } else if (['rect', 'circle', 'sticky'].includes(el.type)) {
+            } else if (el.type === 'rect') {
                 return { x: el.x, y: el.y, w: el.w, h: el.h };
+            } else if (el.type === 'circle') {
+                const r = Math.hypot(el.w, el.h);
+                return { x: el.x - r, y: el.y - r, w: r * 2, h: r * 2 };
             } else if (el.type === 'text') {
-                return { x: el.x, y: el.y - 18, w: (el.text.length || 4) * 10, h: 22 };
+                return { x: el.x, y: el.y - 20, w: (el.text.length || 4) * 12, h: 24 };
+            } else if (el.type === 'sticky') {
+                return { x: el.x, y: el.y, w: el.w, h: el.h };
             }
             return { x: 0, y: 0, w: 0, h: 0 };
         }
@@ -462,22 +523,29 @@
                 if (el.type === 'sticky') {
                     const screenPos = worldToScreen(el.x, el.y);
                     const card = document.createElement('div');
-                    card.className = 'absolute rounded-xl p-2.5 shadow-xl border flex flex-col pointer-events-auto transition-transform';
+                    card.className = 'absolute rounded-2xl p-3 shadow-2xl border flex flex-col pointer-events-auto transition-shadow';
                     card.style.left = `${screenPos.x}px`;
                     card.style.top = `${screenPos.y}px`;
                     card.style.width = `${el.w * scale}px`;
                     card.style.height = `${el.h * scale}px`;
                     card.style.backgroundColor = el.color;
-                    card.style.borderColor = 'rgba(0,0,0,0.08)';
+                    card.style.borderColor = 'rgba(0,0,0,0.1)';
 
                     const textarea = document.createElement('textarea');
-                    textarea.className = 'sticky-note-input custom-scrollbar';
+                    textarea.className = 'sticky-note-input custom-scrollbar font-medium';
                     textarea.style.fontSize = `${Math.max(12, 14 * scale)}px`;
                     textarea.value = el.text || '';
                     textarea.placeholder = 'Type note...';
                     
-                    textarea.addEventListener('input', (e) => { el.text = e.target.value; });
-                    textarea.addEventListener('focus', () => { selectedElementIndex = index; requestRender(); });
+                    textarea.addEventListener('input', (e) => {
+                        el.text = e.target.value;
+                        saveStorage();
+                    });
+                    textarea.addEventListener('focus', () => {
+                        selectedElementIndex = index;
+                        updateUIState();
+                        requestRender();
+                    });
 
                     card.appendChild(textarea);
                     htmlOverlay.appendChild(card);
@@ -490,22 +558,16 @@
             const p1 = currentPath[0];
             const p2 = currentPath[currentPath.length - 1];
 
-            if (['pen', 'highlighter', 'eraser'].includes(activeTool)) {
+            if (['pen', 'highlighter'].includes(activeTool)) {
                 return { type: activeTool, points: [...currentPath], color: strokeColor, size: strokeWidth };
             } else if (activeTool === 'line') {
                 return { type: 'line', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, color: strokeColor, size: strokeWidth };
             } else if (activeTool === 'arrow') {
                 return { type: 'arrow', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, color: strokeColor, size: strokeWidth };
-            } else if (['rect', 'circle'].includes(activeTool)) {
-                return { 
-                    type: activeTool, 
-                    x: Math.min(p1.x, p2.x), 
-                    y: Math.min(p1.y, p2.y), 
-                    w: Math.abs(p2.x - p1.x), 
-                    h: Math.abs(p2.y - p1.y), 
-                    color: strokeColor, 
-                    size: strokeWidth 
-                };
+            } else if (activeTool === 'rect') {
+                return { type: 'rect', x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y), w: Math.abs(p2.x - p1.x), h: Math.abs(p2.y - p1.y), color: strokeColor, size: strokeWidth };
+            } else if (activeTool === 'circle') {
+                return { type: 'circle', x: p1.x, y: p1.y, w: p2.x - p1.x, h: p2.y - p1.y, color: strokeColor, size: strokeWidth };
             }
             return null;
         }
@@ -520,11 +582,16 @@
             return -1;
         }
 
+        // Event Handling Logic
         function handlePointerStart(e) {
             if (e.touches && e.touches.length === 2) {
                 isDrawing = false;
                 isPanning = true;
-                initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                touchStartDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                touchStartScale = scale;
                 return;
             }
 
@@ -545,7 +612,7 @@
                     const b = getElementBounds(elements[hitIndex]);
                     dragOffset = { x: world.x - b.x, y: world.y - b.y };
                 }
-                updateUndoRedoUI();
+                updateUIState();
                 requestRender();
                 return;
             }
@@ -559,7 +626,7 @@
 
             if (activeTool === 'text') {
                 pushState();
-                const textVal = prompt('Enter Text Note:', 'Text');
+                const textVal = prompt('Enter text note:', 'Sample Note');
                 if (textVal) {
                     elements.push({ type: 'text', x: world.x, y: world.y, text: textVal, color: strokeColor, size: strokeWidth });
                 }
@@ -569,7 +636,7 @@
 
             if (activeTool === 'sticky') {
                 pushState();
-                elements.push({ type: 'sticky', x: world.x, y: world.y, w: 160, h: 140, text: '', color: '#fef08a' });
+                elements.push({ type: 'sticky', x: world.x, y: world.y, w: 180, h: 160, text: '', color: '#fef08a' });
                 requestRender();
                 return;
             }
@@ -580,10 +647,13 @@
 
         function handlePointerMove(e) {
             if (e.touches && e.touches.length === 2 && isPanning) {
-                const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                if (initialPinchDist) {
-                    zoomAtPoint(scale * (dist / initialPinchDist), canvas.width / 2, canvas.height / 2);
-                    initialPinchDist = dist;
+                const dist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                if (touchStartDist) {
+                    const factor = dist / touchStartDist;
+                    zoomAtPoint(touchStartScale * factor, canvas.width / 2, canvas.height / 2);
                 }
                 return;
             }
@@ -602,11 +672,18 @@
                 const dx = world.x - dragOffset.x;
                 const dy = world.y - dragOffset.y;
 
-                if (['rect', 'circle', 'text', 'sticky'].includes(el.type)) {
+                if (['rect', 'text', 'sticky'].includes(el.type)) {
                     el.x = dx; el.y = dy;
                 } else if (['line', 'arrow'].includes(el.type)) {
                     const w = el.x2 - el.x1; const h = el.y2 - el.y1;
                     el.x1 = dx; el.y1 = dy; el.x2 = dx + w; el.y2 = dy + h;
+                } else if (el.type === 'circle') {
+                    el.x = dx; el.y = dy;
+                } else if (['pen', 'highlighter'].includes(el.type)) {
+                    const b = getElementBounds(el);
+                    const shiftX = dx - b.x;
+                    const shiftY = dy - b.y;
+                    el.points.forEach(p => { p.x += shiftX; p.y += shiftY; });
                 }
                 requestRender();
                 return;
@@ -616,7 +693,7 @@
 
             if (activeTool === 'laser') {
                 laserTrail.push({ x: world.x, y: world.y, alpha: 1 });
-                if (laserTrail.length > 20) laserTrail.shift();
+                if (laserTrail.length > 30) laserTrail.shift();
                 requestRender();
                 return;
             }
@@ -628,7 +705,7 @@
         function handlePointerEnd() {
             if (isPanning) {
                 isPanning = false;
-                initialPinchDist = null;
+                touchStartDist = 0;
                 return;
             }
 
@@ -643,11 +720,17 @@
 
             if (activeTool === 'laser') {
                 const fadeInterval = setInterval(() => {
-                    laserTrail.forEach(pt => pt.alpha -= 0.15);
+                    laserTrail.forEach(pt => pt.alpha -= 0.08);
                     laserTrail = laserTrail.filter(pt => pt.alpha > 0);
                     requestRender();
                     if (laserTrail.length === 0) clearInterval(fadeInterval);
                 }, 30);
+                return;
+            }
+
+            if (activeTool === 'auto-shape') {
+                processSmartAutoShape(currentPath);
+                currentPath = [];
                 return;
             }
 
@@ -661,8 +744,49 @@
             requestRender();
         }
 
+        function processSmartAutoShape(pts) {
+            if (pts.length < 5) return;
+            pushState();
+
+            const first = pts[0];
+            const last = pts[pts.length - 1];
+            const isClosed = Math.hypot(last.x - first.x, last.y - first.y) < 60;
+
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            pts.forEach(p => {
+                minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+                minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+            });
+
+            const w = maxX - minX;
+            const h = maxY - minY;
+
+            if (isClosed) {
+                elements.push({
+                    type: 'circle',
+                    x: minX + w / 2,
+                    y: minY + h / 2,
+                    w: w / 2,
+                    h: h / 2,
+                    color: strokeColor,
+                    size: strokeWidth
+                });
+            } else {
+                elements.push({
+                    type: 'line',
+                    x1: first.x,
+                    y1: first.y,
+                    x2: last.x,
+                    y2: last.y,
+                    color: strokeColor,
+                    size: strokeWidth
+                });
+            }
+            requestRender();
+        }
+
         function zoomAtPoint(newScale, sx, sy) {
-            const clampedScale = Math.min(Math.max(0.2, newScale), 5);
+            const clampedScale = Math.min(Math.max(0.15, newScale), 6);
             const world = screenToWorld(sx, sy);
             scale = clampedScale;
             panX = sx - world.x * scale;
@@ -672,7 +796,7 @@
             requestRender();
         }
 
-        // Attach Canvas Interaction Events
+        // Attach Listeners
         canvas.addEventListener('mousedown', handlePointerStart);
         canvas.addEventListener('mousemove', handlePointerMove);
         window.addEventListener('mouseup', handlePointerEnd);
@@ -693,8 +817,8 @@
             }
         }, { passive: false });
 
-        // Tool Switching
-        const toolsList = ['select', 'pan', 'laser', 'pen', 'highlighter', 'eraser', 'text', 'sticky', 'line', 'arrow', 'rect', 'circle'];
+        // Tool Selection
+        const toolsList = ['select', 'pan', 'laser', 'pen', 'highlighter', 'auto-shape', 'text', 'sticky', 'line', 'arrow', 'rect', 'circle'];
         
         function setTool(toolName) {
             activeTool = toolName;
@@ -710,13 +834,16 @@
 
             document.querySelectorAll('.m-tool-btn').forEach(btn => {
                 if (btn.getAttribute('data-tool') === toolName) {
-                    btn.classList.add('active-tool');
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                    btn.classList.add('bg-indigo-600', 'text-white');
                 } else {
-                    btn.classList.remove('active-tool');
+                    btn.classList.remove('bg-indigo-600', 'text-white');
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
                 }
             });
 
             canvas.style.cursor = toolName === 'pan' ? 'grab' : toolName === 'select' ? 'default' : 'crosshair';
+            updateUIState();
             requestRender();
         }
 
@@ -726,18 +853,33 @@
         });
 
         document.querySelectorAll('.m-tool-btn').forEach(btn => {
-            btn.addEventListener('click', () => setTool(btn.getAttribute('data-tool')));
+            btn.addEventListener('click', () => {
+                setTool(btn.getAttribute('data-tool'));
+                toggleMobileSheet(false);
+            });
         });
 
-        // Theme Switch
+        function toggleMobileSheet(force) {
+            const isHidden = mobileSheet.classList.contains('translate-y-full');
+            const show = force !== undefined ? force : isHidden;
+            if (show) {
+                mobileSheet.classList.remove('translate-y-full');
+            } else {
+                mobileSheet.classList.add('translate-y-full');
+            }
+        }
+        mobileMenuBtn.addEventListener('click', () => toggleMobileSheet());
+
         function toggleTheme() {
             isDarkModeBoard = !isDarkModeBoard;
-            themeBtn.innerHTML = `<i data-lucide="${isDarkModeBoard ? 'sun' : 'moon'}" class="w-4 h-4"></i>`;
+            const icon = isDarkModeBoard ? 'sun' : 'moon';
+            themeBtn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
+            mobileThemeBtn.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
 
             if (!isDarkModeBoard && strokeColor === '#ffffff') {
-                strokeColor = '#0f172a';
-                colorPicker.value = '#0f172a';
-            } else if (isDarkModeBoard && strokeColor === '#0f172a') {
+                strokeColor = '#020617';
+                colorPicker.value = '#020617';
+            } else if (isDarkModeBoard && strokeColor === '#020617') {
                 strokeColor = '#ffffff';
                 colorPicker.value = '#ffffff';
             }
@@ -746,13 +888,14 @@
             requestRender();
         }
         themeBtn.addEventListener('click', toggleTheme);
+        mobileThemeBtn.addEventListener('click', toggleTheme);
 
-        // Zoom Toolbar
+        // Zoom Buttons
         document.getElementById('zoom-in-btn').addEventListener('click', () => zoomAtPoint(scale * 1.2, canvas.width / 2, canvas.height / 2));
         document.getElementById('zoom-out-btn').addEventListener('click', () => zoomAtPoint(scale / 1.2, canvas.width / 2, canvas.height / 2));
         document.getElementById('zoom-reset-btn').addEventListener('click', () => { panX = 0; panY = 0; zoomAtPoint(1, 0, 0); });
 
-        // Color & Stroke Adjusters
+        // Property Pickers
         colorPicker.addEventListener('input', (e) => strokeColor = e.target.value);
         document.querySelectorAll('.color-preset').forEach(p => {
             p.addEventListener('click', () => {
@@ -771,13 +914,14 @@
             requestRender();
         });
 
-        // Stack History Options
+        // History Actions
         undoBtn.addEventListener('click', () => {
             if (undoStack.length > 0) {
                 redoStack.push(JSON.stringify(elements));
                 elements = JSON.parse(undoStack.pop());
                 selectedElementIndex = -1;
-                updateUndoRedoUI();
+                updateUIState();
+                saveStorage();
                 requestRender();
             }
         });
@@ -787,7 +931,22 @@
                 undoStack.push(JSON.stringify(elements));
                 elements = JSON.parse(redoStack.pop());
                 selectedElementIndex = -1;
-                updateUndoRedoUI();
+                updateUIState();
+                saveStorage();
+                requestRender();
+            }
+        });
+
+        duplicateBtn.addEventListener('click', () => {
+            if (selectedElementIndex !== -1) {
+                pushState();
+                const dup = JSON.parse(JSON.stringify(elements[selectedElementIndex]));
+                if (dup.x !== undefined) dup.x += 20;
+                if (dup.y !== undefined) dup.y += 20;
+                if (dup.x1 !== undefined) { dup.x1 += 20; dup.x2 += 20; dup.y1 += 20; dup.y2 += 20; }
+                elements.push(dup);
+                selectedElementIndex = elements.length - 1;
+                updateUIState();
                 requestRender();
             }
         });
@@ -797,38 +956,39 @@
                 pushState();
                 elements.splice(selectedElementIndex, 1);
                 selectedElementIndex = -1;
-                updateUndoRedoUI();
+                updateUIState();
                 requestRender();
             }
         });
 
         document.getElementById('clear-btn').addEventListener('click', () => {
-            if (confirm('Clear entire canvas?')) {
+            if (confirm('Clear the canvas?')) {
                 pushState();
                 elements = [];
                 selectedElementIndex = -1;
+                updateUIState();
                 requestRender();
             }
         });
 
-        // Clean Image Exporter
+        // Export Function
         document.getElementById('export-btn').addEventListener('click', () => {
             const expCanvas = document.createElement('canvas');
             expCanvas.width = canvas.width;
             expCanvas.height = canvas.height;
             const expCtx = expCanvas.getContext('2d');
 
-            expCtx.fillStyle = isDarkModeBoard ? '#090d16' : '#f8fafc';
+            expCtx.fillStyle = isDarkModeBoard ? '#020617' : '#f8fafc';
             expCtx.fillRect(0, 0, expCanvas.width, expCanvas.height);
             expCtx.drawImage(canvas, 0, 0);
 
             const a = document.createElement('a');
-            a.download = `sprk-whiteboard-${Date.now()}.png`;
+            a.download = `whiteboard-${Date.now()}.png`;
             a.href = expCanvas.toDataURL('image/png');
             a.click();
         });
 
-        // Keyboard Shortcut Mapping
+        // Shortcuts Listener
         window.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
@@ -839,12 +999,12 @@
             if (e.ctrlKey || e.metaKey) {
                 if (e.key === 'z' || e.key === 'Z') { e.preventDefault(); undoBtn.click(); }
                 if (e.key === 'y' || e.key === 'Y') { e.preventDefault(); redoBtn.click(); }
+                if (e.key === 'd' || e.key === 'D') { e.preventDefault(); duplicateBtn.click(); }
             } else {
                 if (e.key === 'v' || e.key === 'V') setTool('select');
                 if (e.key === 'p' || e.key === 'P') setTool('pen');
                 if (e.key === 'h' || e.key === 'H') setTool('highlighter');
                 if (e.key === 'l' || e.key === 'L') setTool('laser');
-                if (e.key === 'e' || e.key === 'E') setTool('eraser');
                 if (e.key === 't' || e.key === 'T') setTool('text');
                 if (e.key === 's' || e.key === 'S') setTool('sticky');
                 if (e.key === 'Delete' || e.key === 'Backspace') deleteSelectedBtn.click();
@@ -859,7 +1019,11 @@
         });
 
         window.addEventListener('resize', resizeCanvas);
+
+        // App Initializer
+        initStorage();
         resizeCanvas();
+        updateUIState();
     </script>
 </body>
 </html>
