@@ -1,90 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SPRK | Studio Whiteboard</title>
+    <title>SPRK | Studio Whiteboard Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
         
         canvas { touch-action: none; }
         
         .active-tool {
-            background-color: #4f46e5 !important;
+            background-color: #6366f1 !important;
             color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
         }
 
         .tool-btn {
-            transition: all 0.15s ease;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tool-btn:hover:not(.active-tool) {
-            background-color: #334155;
+            background-color: rgba(51, 65, 85, 0.6);
             color: #ffffff;
         }
 
-        #assistive-ball {
-            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5), 0 8px 10px -6px rgba(79, 70, 229, 0.5);
-        }
-        
-        .drawer-open {
-            transform: scale(1) translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .drawer-closed {
-            transform: scale(0.85) translateY(20px);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Sticky Note Overlay styling */
         .sticky-note-input {
             background: transparent;
             border: none;
             outline: none;
             resize: none;
-            font-family: sans-serif;
+            font-family: inherit;
             font-weight: 500;
             width: 100%;
             height: 100%;
-            color: #1e293b;
+            color: #0f172a;
         }
     </style>
 </head>
 <body class="bg-slate-950 h-screen w-screen overflow-hidden flex flex-col font-sans text-slate-200 select-none">
 
-    <header class="h-12 border-b border-slate-800 bg-slate-900/90 backdrop-blur px-3 flex items-center justify-between shrink-0 z-20">
+    <header class="h-14 border-b border-slate-800/80 bg-slate-900/80 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-30 shadow-lg">
         <div class="flex items-center gap-3">
-            <div class="flex items-center text-base font-black uppercase tracking-wider">
-                <span class="bg-gradient-to-r from-cyan-400 via-sky-400 to-purple-500 bg-clip-text text-transparent">Sprk</span>
-                <span class="text-white font-light ml-0.5">-Board</span>
+            <div class="flex items-center text-lg font-black uppercase tracking-wider">
+                <span class="bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">Sprk</span>
+                <span class="text-white font-light ml-1">Board</span>
             </div>
-            <span class="text-xs px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded border border-indigo-500/30 hidden sm:inline-block">Vector Engine v2.0</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 bg-indigo-500/20 text-indigo-300 rounded-full border border-indigo-500/30 hidden sm:inline-block">v2.5 Pro Engine</span>
         </div>
 
-        <div class="flex items-center gap-1.5">
-            <button id="undo-btn" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30" title="Undo (Ctrl+Z)">
+        <div class="flex items-center gap-1.5 sm:gap-2">
+            <button id="undo-btn" class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none" title="Undo (Ctrl+Z)">
                 <i data-lucide="undo-2" class="w-4 h-4"></i>
             </button>
-            <button id="redo-btn" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30" title="Redo (Ctrl+Y)">
+            <button id="redo-btn" class="p-2 rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition disabled:opacity-30 disabled:pointer-events-none" title="Redo (Ctrl+Y)">
                 <i data-lucide="redo-2" class="w-4 h-4"></i>
             </button>
             <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
-            <button id="delete-selected-btn" class="p-1.5 rounded-lg text-amber-400 hover:bg-amber-950/40 transition disabled:opacity-30" title="Delete Selected Object (Del)">
-                <i data-lucide="mouse-pointer-click" class="w-4 h-4"></i>
+            <button id="delete-selected-btn" class="p-2 rounded-lg text-amber-400 hover:bg-amber-950/40 transition disabled:opacity-30 disabled:pointer-events-none" title="Delete Selection (Del)">
+                <i data-lucide="trash" class="w-4 h-4"></i>
             </button>
-            <button id="clear-btn" class="p-1.5 rounded-lg text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition" title="Clear All Canvas">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            <button id="clear-btn" class="p-2 rounded-lg text-rose-400 hover:bg-rose-950/40 transition" title="Clear Canvas">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
             </button>
             <div class="h-4 w-[1px] bg-slate-800 mx-1"></div>
-            <button id="export-btn" class="flex items-center gap-1 bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium transition active:scale-95 shadow">
-                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <button id="export-btn" class="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition active:scale-95 shadow-md">
+                <i data-lucide="download" class="w-4 h-4"></i>
                 <span class="hidden sm:inline">Export PNG</span>
             </button>
         </div>
@@ -92,69 +76,58 @@
 
     <div class="flex-1 flex overflow-hidden relative">
 
-        <aside id="desktop-sidebar" class="hidden md:flex absolute left-3 top-3 bottom-3 z-30 w-14 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-xl p-1.5 flex-col items-center justify-between shadow-2xl">
+        <aside id="desktop-sidebar" class="hidden md:flex absolute left-4 top-4 bottom-4 z-30 w-14 bg-slate-900/90 backdrop-blur-md border border-slate-800/80 rounded-2xl p-2 flex-col items-center justify-between shadow-2xl">
             <div class="flex flex-col gap-1.5 w-full">
-                <button id="tool-select" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Select & Move (V)">
+                <button id="tool-select" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Select & Move (V)">
                     <i data-lucide="mouse-pointer" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-pan" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Pan Canvas (Space+Drag)">
+                <button id="tool-pan" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Pan Canvas (Space+Drag)">
                     <i data-lucide="hand" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-laser" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Laser Pointer (L)">
+                <button id="tool-laser" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Laser Pointer (L)">
                     <i data-lucide="pointer" class="w-4 h-4"></i>
                 </button>
                 
-                <div class="h-[1px] bg-slate-800 my-0.5"></div>
+                <div class="h-[1px] bg-slate-800 my-1"></div>
 
-                <button id="tool-pen" class="tool-btn active-tool p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Pen Tool (P)">
+                <button id="tool-pen" class="tool-btn active-tool p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Pen Tool (P)">
                     <i data-lucide="pencil" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-highlighter" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Highlighter (H)">
+                <button id="tool-highlighter" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Highlighter (H)">
                     <i data-lucide="highlighter" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-auto-shape" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Smart Shape Auto-Detect">
-                    <i data-lucide="sparkle" class="w-4 h-4"></i>
-                </button>
-                <button id="tool-eraser" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Eraser Tool (E)">
+                <button id="tool-eraser" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Eraser Tool (E)">
                     <i data-lucide="eraser" class="w-4 h-4"></i>
                 </button>
 
-                <div class="h-[1px] bg-slate-800 my-0.5"></div>
+                <div class="h-[1px] bg-slate-800 my-1"></div>
 
-                <button id="tool-text" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Text Note (T)">
+                <button id="tool-text" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Text Note (T)">
                     <i data-lucide="type" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-sticky" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Sticky Note (S)">
+                <button id="tool-sticky" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Sticky Note (S)">
                     <i data-lucide="sticky-note" class="w-4 h-4"></i>
                 </button>
 
-                <div class="h-[1px] bg-slate-800 my-0.5"></div>
+                <div class="h-[1px] bg-slate-800 my-1"></div>
 
-                <button id="tool-line" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Straight Line">
+                <button id="tool-line" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Straight Line">
                     <i data-lucide="minus" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-arrow" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Arrow">
+                <button id="tool-arrow" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Arrow">
                     <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-rect" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Rectangle">
+                <button id="tool-rect" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Rectangle">
                     <i data-lucide="square" class="w-4 h-4"></i>
                 </button>
-                <button id="tool-circle" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Circle">
+                <button id="tool-circle" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Circle">
                     <i data-lucide="circle" class="w-4 h-4"></i>
-                </button>
-                <button id="tool-triangle" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Triangle">
-                    <i data-lucide="triangle" class="w-4 h-4"></i>
-                </button>
-                <button id="tool-graph" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="2D Axis Graph">
-                    <i data-lucide="line-chart" class="w-4 h-4"></i>
                 </button>
             </div>
 
-            <div class="flex flex-col gap-1.5 w-full">
-                <button id="theme-btn" class="tool-btn p-2.5 rounded-lg text-slate-400 flex justify-center items-center" title="Toggle Board Theme">
-                    <i data-lucide="sun" class="w-4 h-4"></i>
-                </button>
-            </div>
+            <button id="theme-btn" class="tool-btn p-2.5 rounded-xl text-slate-400 flex justify-center items-center" title="Toggle Board Theme">
+                <i data-lucide="sun" class="w-4 h-4"></i>
+            </button>
         </aside>
 
         <main class="flex-1 h-full w-full relative bg-slate-950 overflow-hidden" id="canvas-container">
@@ -162,53 +135,24 @@
             <div id="html-overlay" class="absolute inset-0 pointer-events-none z-20"></div>
         </main>
 
-        <div id="assistive-ball-container" class="md:hidden fixed bottom-16 right-4 z-40 flex flex-col items-end">
-            <div id="mobile-drawer" class="drawer-closed transition-all duration-200 bg-slate-900/95 border border-slate-800 backdrop-blur rounded-2xl p-3 mb-3 shadow-2xl flex flex-col gap-3 w-64 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-800">Navigation & Modes</div>
-                <div class="grid grid-cols-4 gap-1.5">
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="select"><i data-lucide="mouse-pointer" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="pan"><i data-lucide="hand" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="laser"><i data-lucide="pointer" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="eraser"><i data-lucide="eraser" class="w-4 h-4"></i></button>
-                </div>
-
-                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-800">Drawing & Notes</div>
-                <div class="grid grid-cols-4 gap-1.5">
-                    <button class="m-tool-btn p-2 rounded-lg bg-indigo-600 text-white flex justify-center items-center" data-tool="pen"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="highlighter"><i data-lucide="highlighter" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="text"><i data-lucide="type" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="sticky"><i data-lucide="sticky-note" class="w-4 h-4"></i></button>
-                </div>
-
-                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-800">Shapes</div>
-                <div class="grid grid-cols-4 gap-1.5">
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="line"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="arrow"><i data-lucide="arrow-up-right" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="rect"><i data-lucide="square" class="w-4 h-4"></i></button>
-                    <button class="m-tool-btn p-2 rounded-lg bg-slate-800 text-slate-300 flex justify-center items-center" data-tool="circle"><i data-lucide="circle" class="w-4 h-4"></i></button>
-                </div>
-
-                <div class="flex justify-between items-center pt-2 border-t border-slate-800">
-                    <span class="text-xs text-slate-400">Board Theme</span>
-                    <button id="m-theme-btn" class="p-2 rounded-lg bg-slate-800 text-slate-300"><i data-lucide="sun" class="w-4 h-4"></i></button>
-                </div>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-slate-900/90 backdrop-blur-md border border-slate-800/80 rounded-2xl px-4 py-2 flex items-center gap-4 shadow-2xl text-xs max-w-[95vw] overflow-x-auto custom-scrollbar">
+            
+            <div class="flex md:hidden items-center gap-1 shrink-0 border-r border-slate-800 pr-3">
+                <button class="m-tool-btn active-tool p-2 rounded-lg" data-tool="pen"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                <button class="m-tool-btn p-2 rounded-lg text-slate-400" data-tool="eraser"><i data-lucide="eraser" class="w-4 h-4"></i></button>
+                <button class="m-tool-btn p-2 rounded-lg text-slate-400" data-tool="select"><i data-lucide="mouse-pointer" class="w-4 h-4"></i></button>
+                <button class="m-tool-btn p-2 rounded-lg text-slate-400" data-tool="sticky"><i data-lucide="sticky-note" class="w-4 h-4"></i></button>
             </div>
 
-            <button id="assistive-ball" class="w-12 h-12 rounded-full bg-indigo-600 text-white flex items-center justify-center transition active:scale-90 z-50">
-                <i data-lucide="pen-tool" class="w-5 h-5"></i>
-            </button>
-        </div>
-
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 bg-slate-900/90 backdrop-blur border border-slate-800 rounded-xl px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-4 shadow-2xl text-xs max-w-[95vw] overflow-x-auto custom-scrollbar">
-            <div class="flex items-center gap-1.5 shrink-0">
-                <input type="color" id="wb-color" value="#ffffff" class="w-6 h-6 rounded cursor-pointer bg-transparent border-0">
-                <div class="flex gap-1">
+            <div class="flex items-center gap-2 shrink-0">
+                <input type="color" id="wb-color" value="#ffffff" class="w-7 h-7 rounded-lg cursor-pointer bg-transparent border-0 p-0">
+                <div class="flex gap-1.5">
                     <button class="w-5 h-5 rounded-full bg-white border border-slate-600 color-preset" data-color="#ffffff"></button>
-                    <button class="w-5 h-5 rounded-full bg-black border border-slate-600 color-preset" data-color="#000000"></button>
-                    <button class="w-5 h-5 rounded-full bg-red-500 color-preset" data-color="#ef4444"></button>
-                    <button class="w-5 h-5 rounded-full bg-blue-500 color-preset" data-color="#3b82f6"></button>
+                    <button class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600 color-preset" data-color="#0f172a"></button>
+                    <button class="w-5 h-5 rounded-full bg-rose-500 color-preset" data-color="#f43f5e"></button>
+                    <button class="w-5 h-5 rounded-full bg-sky-500 color-preset" data-color="#0284c7"></button>
                     <button class="w-5 h-5 rounded-full bg-emerald-500 color-preset" data-color="#10b981"></button>
-                    <button class="w-5 h-5 rounded-full bg-amber-400 color-preset" data-color="#f59e0b"></button>
+                    <button class="w-5 h-5 rounded-full bg-amber-400 color-preset" data-color="#fbbf24"></button>
                 </div>
             </div>
 
@@ -216,15 +160,15 @@
 
             <div class="flex items-center gap-2 shrink-0">
                 <i data-lucide="circle-dot" class="w-3.5 h-3.5 text-slate-400"></i>
-                <input type="range" id="wb-size" min="1" max="40" value="3" class="w-16 sm:w-20 accent-indigo-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
-                <span id="size-preview" class="text-[11px] text-slate-400 min-w-[22px]">3px</span>
+                <input type="range" id="wb-size" min="1" max="30" value="3" class="w-16 sm:w-24 accent-indigo-500 h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                <span id="size-preview" class="text-[11px] font-mono text-slate-400 w-6">3px</span>
             </div>
 
             <div class="h-4 w-[1px] bg-slate-800 shrink-0"></div>
 
             <div class="flex items-center gap-1.5 shrink-0">
                 <i data-lucide="grid" class="w-3.5 h-3.5 text-slate-400"></i>
-                <select id="grid-pattern-select" class="bg-slate-800 text-slate-200 text-xs px-2 py-1 rounded border border-slate-700 focus:outline-none cursor-pointer">
+                <select id="grid-pattern-select" class="bg-slate-800 text-slate-200 text-xs px-2 py-1 rounded-lg border border-slate-700 focus:outline-none cursor-pointer">
                     <option value="none">Blank</option>
                     <option value="grid" selected>Grid</option>
                     <option value="dots">Dots</option>
@@ -236,9 +180,9 @@
 
             <div class="flex items-center gap-1 shrink-0">
                 <button id="zoom-out-btn" class="p-1 rounded text-slate-400 hover:text-white" title="Zoom Out"><i data-lucide="zoom-out" class="w-3.5 h-3.5"></i></button>
-                <span id="zoom-level" class="text-[11px] text-slate-400 min-w-[32px] text-center">100%</span>
+                <span id="zoom-level" class="text-[11px] font-mono text-slate-400 min-w-[36px] text-center">100%</span>
                 <button id="zoom-in-btn" class="p-1 rounded text-slate-400 hover:text-white" title="Zoom In"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i></button>
-                <button id="zoom-reset-btn" class="p-1 rounded text-slate-400 hover:text-white text-[10px] font-semibold" title="Reset Zoom View">1:1</button>
+                <button id="zoom-reset-btn" class="p-1 px-1.5 rounded bg-slate-800 text-slate-400 hover:text-white text-[10px] font-mono font-semibold" title="Reset View">1:1</button>
             </div>
         </div>
     </div>
@@ -246,13 +190,13 @@
     <script>
         lucide.createIcons();
 
-        // Canvas & DOM Containers
+        // Canvas & DOM Container Initialization
         const canvasContainer = document.getElementById('canvas-container');
         const canvas = document.getElementById('whiteboard');
         const ctx = canvas.getContext('2d');
         const htmlOverlay = document.getElementById('html-overlay');
 
-        // UI Tool Controls
+        // UI Controls
         const colorPicker = document.getElementById('wb-color');
         const sizePicker = document.getElementById('wb-size');
         const sizePreview = document.getElementById('size-preview');
@@ -261,18 +205,15 @@
         const redoBtn = document.getElementById('redo-btn');
         const deleteSelectedBtn = document.getElementById('delete-selected-btn');
         const themeBtn = document.getElementById('theme-btn');
-        const mobileThemeBtn = document.getElementById('m-theme-btn');
-        const assistiveBall = document.getElementById('assistive-ball');
-        const mobileDrawer = document.getElementById('mobile-drawer');
 
-        // State Variables
+        // Engine State
         let activeTool = 'pen';
         let strokeColor = '#ffffff';
         let strokeWidth = 3;
         let activeGridPattern = 'grid';
         let isDarkModeBoard = true;
         
-        // Transform Engine State
+        // Canvas Transformation Engine
         let scale = 1;
         let panX = 0;
         let panY = 0;
@@ -280,34 +221,30 @@
         let isSpacePressed = false;
         let startPanX = 0, startPanY = 0;
 
-        // Interaction State
+        // Interactive States
         let isDrawing = false;
         let currentPath = [];
-        let shapeStart = null;
         let selectedElementIndex = -1;
         let isDraggingElement = false;
         let dragOffset = { x: 0, y: 0 };
 
-        // Laser Pointer Trail Engine
+        // Laser Engine
         let laserTrail = [];
 
-        // Vector Database & Stack Management
+        // Data Management Stack
         let elements = [];
         let undoStack = [];
         let redoStack = [];
 
-        // Mobile Gesture State
-        let initialPinchDistance = null;
-        let initialScale = 1;
+        // Touch Interaction State
+        let initialPinchDist = null;
 
-        // Initialize Canvas Bounds
         function resizeCanvas() {
             canvas.width = canvasContainer.clientWidth;
             canvas.height = canvasContainer.clientHeight;
             requestRender();
         }
 
-        // Save History Snapshot
         function pushState() {
             undoStack.push(JSON.stringify(elements));
             if (undoStack.length > 50) undoStack.shift();
@@ -321,19 +258,13 @@
             deleteSelectedBtn.disabled = selectedElementIndex === -1;
         }
 
-        // Coordinate Conversion Engine
+        // World to Screen Coordinate Translators
         function screenToWorld(sx, sy) {
-            return {
-                x: (sx - panX) / scale,
-                y: (sy - panY) / scale
-            };
+            return { x: (sx - panX) / scale, y: (sy - panY) / scale };
         }
 
         function worldToScreen(wx, wy) {
-            return {
-                x: wx * scale + panX,
-                y: wy * scale + panY
-            };
+            return { x: wx * scale + panX, y: wy * scale + panY };
         }
 
         function getEventCoords(e) {
@@ -353,7 +284,6 @@
             };
         }
 
-        // Render Request Loop
         let renderRequested = false;
         function requestRender() {
             if (!renderRequested) {
@@ -362,19 +292,18 @@
             }
         }
 
-        // Render Background Grid Pattern
         function renderGrid() {
-            ctx.fillStyle = isDarkModeBoard ? '#0f172a' : '#f8fafc';
+            ctx.fillStyle = isDarkModeBoard ? '#090d16' : '#f8fafc';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             if (activeGridPattern === 'none') return;
 
             ctx.save();
-            ctx.strokeStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.07)';
-            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.12)';
+            ctx.strokeStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)';
+            ctx.fillStyle = isDarkModeBoard ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
             ctx.lineWidth = 1;
 
-            const step = 30 * scale;
+            const step = 32 * scale;
             const offsetX = panX % step;
             const offsetY = panY % step;
 
@@ -397,7 +326,7 @@
                 for (let x = offsetX; x < canvas.width; x += step) {
                     for (let y = offsetY; y < canvas.height; y += step) {
                         ctx.beginPath();
-                        ctx.arc(x, y, 1.2 * Math.min(scale, 1.5), 0, Math.PI * 2);
+                        ctx.arc(x, y, 1.2 * Math.min(scale, 1.2), 0, Math.PI * 2);
                         ctx.fill();
                     }
                 }
@@ -405,7 +334,6 @@
             ctx.restore();
         }
 
-        // Main Drawing Loop
         function render() {
             renderRequested = false;
             renderGrid();
@@ -414,18 +342,15 @@
             ctx.translate(panX, panY);
             ctx.scale(scale, scale);
 
-            // Render All Vector Database Elements
             elements.forEach((el, index) => {
                 drawElement(el, index === selectedElementIndex);
             });
 
-            // Preview active drawing shape
             if (isDrawing && currentPath.length > 0) {
                 const previewEl = createActiveElement();
                 if (previewEl) drawElement(previewEl, false);
             }
 
-            // Laser Pointer Render Trail
             if (laserTrail.length > 0) {
                 ctx.save();
                 ctx.lineCap = 'round';
@@ -433,8 +358,8 @@
                 for (let i = 1; i < laserTrail.length; i++) {
                     const pt1 = laserTrail[i - 1];
                     const pt2 = laserTrail[i];
-                    ctx.strokeStyle = `rgba(239, 68, 68, ${pt2.alpha})`;
-                    ctx.lineWidth = 5 / scale;
+                    ctx.strokeStyle = `rgba(244, 63, 94, ${pt2.alpha})`;
+                    ctx.lineWidth = 4 / scale;
                     ctx.beginPath();
                     ctx.moveTo(pt1.x, pt1.y);
                     ctx.lineTo(pt2.x, pt2.y);
@@ -447,7 +372,6 @@
             renderHTMLOverlay();
         }
 
-        // Vector Primitive Draw Engine
         function drawElement(el, isSelected) {
             ctx.save();
             ctx.strokeStyle = el.color;
@@ -458,14 +382,14 @@
 
             if (el.type === 'highlighter') {
                 ctx.globalAlpha = 0.35;
-                ctx.lineWidth = el.size * 3;
+                ctx.lineWidth = el.size * 3.5;
             }
 
             ctx.beginPath();
 
             if (['pen', 'highlighter', 'eraser'].includes(el.type)) {
                 if (el.type === 'eraser') {
-                    ctx.strokeStyle = isDarkModeBoard ? '#0f172a' : '#f8fafc';
+                    ctx.strokeStyle = isDarkModeBoard ? '#090d16' : '#f8fafc';
                     ctx.lineWidth = el.size * 4;
                 }
                 if (el.points.length > 0) {
@@ -490,27 +414,14 @@
             } else if (el.type === 'rect') {
                 ctx.strokeRect(el.x, el.y, el.w, el.h);
             } else if (el.type === 'circle') {
-                const r = Math.hypot(el.w, el.h);
-                ctx.arc(el.x, el.y, r, 0, Math.PI * 2);
-                ctx.stroke();
-            } else if (el.type === 'triangle') {
-                ctx.moveTo(el.x + el.w / 2, el.y);
-                ctx.lineTo(el.x, el.y + el.h);
-                ctx.lineTo(el.x + el.w, el.y + el.h);
-                ctx.closePath();
-                ctx.stroke();
-            } else if (el.type === 'graph') {
-                const cx = el.x + el.w / 2;
-                const cy = el.y + el.h / 2;
-                ctx.moveTo(el.x, cy); ctx.lineTo(el.x + el.w, cy);
-                ctx.moveTo(cx, el.y); ctx.lineTo(cx, el.y + el.h);
+                ctx.beginPath();
+                ctx.arc(el.x + el.w / 2, el.y + el.h / 2, Math.abs(Math.max(el.w, el.h)) / 2, 0, Math.PI * 2);
                 ctx.stroke();
             } else if (el.type === 'text') {
-                ctx.font = `${Math.max(16, el.size * 4)}px sans-serif`;
+                ctx.font = `${Math.max(16, el.size * 3)}px sans-serif`;
                 ctx.fillText(el.text || 'Text', el.x, el.y);
             }
 
-            // Draw bounding selection outline
             if (isSelected) {
                 const b = getElementBounds(el);
                 ctx.save();
@@ -524,7 +435,6 @@
             ctx.restore();
         }
 
-        // Compute Bounding Box for Hitting/Selection
         function getElementBounds(el) {
             if (['pen', 'highlighter', 'eraser'].includes(el.type)) {
                 let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -535,25 +445,17 @@
                 return { x: minX, y: minY, w: maxX - minX || 10, h: maxY - minY || 10 };
             } else if (['line', 'arrow'].includes(el.type)) {
                 return {
-                    x: Math.min(el.x1, el.x2),
-                    y: Math.min(el.y1, el.y2),
-                    w: Math.abs(el.x2 - el.x1) || 10,
-                    h: Math.abs(el.y2 - el.y1) || 10
+                    x: Math.min(el.x1, el.x2), y: Math.min(el.y1, el.y2),
+                    w: Math.abs(el.x2 - el.x1) || 10, h: Math.abs(el.y2 - el.y1) || 10
                 };
-            } else if (['rect', 'triangle', 'graph'].includes(el.type)) {
+            } else if (['rect', 'circle', 'sticky'].includes(el.type)) {
                 return { x: el.x, y: el.y, w: el.w, h: el.h };
-            } else if (el.type === 'circle') {
-                const r = Math.hypot(el.w, el.h);
-                return { x: el.x - r, y: el.y - r, w: r * 2, h: r * 2 };
             } else if (el.type === 'text') {
-                return { x: el.x, y: el.y - 20, w: (el.text.length || 4) * 10, h: 24 };
-            } else if (el.type === 'sticky') {
-                return { x: el.x, y: el.y, w: el.w, h: el.h };
+                return { x: el.x, y: el.y - 18, w: (el.text.length || 4) * 10, h: 22 };
             }
             return { x: 0, y: 0, w: 0, h: 0 };
         }
 
-        // Render HTML Overlay Elements (Sticky Notes)
         function renderHTMLOverlay() {
             htmlOverlay.innerHTML = '';
             elements.forEach((el, index) => {
@@ -566,7 +468,7 @@
                     card.style.width = `${el.w * scale}px`;
                     card.style.height = `${el.h * scale}px`;
                     card.style.backgroundColor = el.color;
-                    card.style.borderColor = 'rgba(0,0,0,0.1)';
+                    card.style.borderColor = 'rgba(0,0,0,0.08)';
 
                     const textarea = document.createElement('textarea');
                     textarea.className = 'sticky-note-input custom-scrollbar';
@@ -574,13 +476,8 @@
                     textarea.value = el.text || '';
                     textarea.placeholder = 'Type note...';
                     
-                    textarea.addEventListener('input', (e) => {
-                        el.text = e.target.value;
-                    });
-                    textarea.addEventListener('focus', () => {
-                        selectedElementIndex = index;
-                        requestRender();
-                    });
+                    textarea.addEventListener('input', (e) => { el.text = e.target.value; });
+                    textarea.addEventListener('focus', () => { selectedElementIndex = index; requestRender(); });
 
                     card.appendChild(textarea);
                     htmlOverlay.appendChild(card);
@@ -588,7 +485,6 @@
             });
         }
 
-        // Construct Active Shape Definition
         function createActiveElement() {
             if (currentPath.length === 0) return null;
             const p1 = currentPath[0];
@@ -600,15 +496,20 @@
                 return { type: 'line', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, color: strokeColor, size: strokeWidth };
             } else if (activeTool === 'arrow') {
                 return { type: 'arrow', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, color: strokeColor, size: strokeWidth };
-            } else if (['rect', 'triangle', 'graph'].includes(activeTool)) {
-                return { type: activeTool, x: Math.min(p1.x, p2.x), y: Math.min(p1.y, p2.y), w: Math.abs(p2.x - p1.x), h: Math.abs(p2.y - p1.y), color: strokeColor, size: strokeWidth };
-            } else if (activeTool === 'circle') {
-                return { type: 'circle', x: p1.x, y: p1.y, w: p2.x - p1.x, h: p2.y - p1.y, color: strokeColor, size: strokeWidth };
+            } else if (['rect', 'circle'].includes(activeTool)) {
+                return { 
+                    type: activeTool, 
+                    x: Math.min(p1.x, p2.x), 
+                    y: Math.min(p1.y, p2.y), 
+                    w: Math.abs(p2.x - p1.x), 
+                    h: Math.abs(p2.y - p1.y), 
+                    color: strokeColor, 
+                    size: strokeWidth 
+                };
             }
             return null;
         }
 
-        // Point Inside Bounding Hit Test
         function hitTest(worldPt) {
             for (let i = elements.length - 1; i >= 0; i--) {
                 const b = getElementBounds(elements[i]);
@@ -619,16 +520,11 @@
             return -1;
         }
 
-        // Pointer Event Engine
         function handlePointerStart(e) {
             if (e.touches && e.touches.length === 2) {
                 isDrawing = false;
                 isPanning = true;
-                initialPinchDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                initialScale = scale;
+                initialPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 return;
             }
 
@@ -663,7 +559,7 @@
 
             if (activeTool === 'text') {
                 pushState();
-                const textVal = prompt('Enter Note Text:', 'Sample Text');
+                const textVal = prompt('Enter Text Note:', 'Text');
                 if (textVal) {
                     elements.push({ type: 'text', x: world.x, y: world.y, text: textVal, color: strokeColor, size: strokeWidth });
                 }
@@ -680,18 +576,14 @@
 
             isDrawing = true;
             currentPath = [world];
-            shapeStart = world;
         }
 
         function handlePointerMove(e) {
             if (e.touches && e.touches.length === 2 && isPanning) {
-                const dist = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                if (initialPinchDistance) {
-                    const factor = dist / initialPinchDistance;
-                    zoomAtPoint(initialScale * factor, canvas.width / 2, canvas.height / 2);
+                const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                if (initialPinchDist) {
+                    zoomAtPoint(scale * (dist / initialPinchDist), canvas.width / 2, canvas.height / 2);
+                    initialPinchDist = dist;
                 }
                 return;
             }
@@ -710,13 +602,11 @@
                 const dx = world.x - dragOffset.x;
                 const dy = world.y - dragOffset.y;
 
-                if (['rect', 'triangle', 'graph', 'text', 'sticky'].includes(el.type)) {
+                if (['rect', 'circle', 'text', 'sticky'].includes(el.type)) {
                     el.x = dx; el.y = dy;
                 } else if (['line', 'arrow'].includes(el.type)) {
                     const w = el.x2 - el.x1; const h = el.y2 - el.y1;
                     el.x1 = dx; el.y1 = dy; el.x2 = dx + w; el.y2 = dy + h;
-                } else if (el.type === 'circle') {
-                    el.x = dx; el.y = dy;
                 }
                 requestRender();
                 return;
@@ -726,7 +616,7 @@
 
             if (activeTool === 'laser') {
                 laserTrail.push({ x: world.x, y: world.y, alpha: 1 });
-                if (laserTrail.length > 25) laserTrail.shift();
+                if (laserTrail.length > 20) laserTrail.shift();
                 requestRender();
                 return;
             }
@@ -738,7 +628,7 @@
         function handlePointerEnd() {
             if (isPanning) {
                 isPanning = false;
-                initialPinchDistance = null;
+                initialPinchDist = null;
                 return;
             }
 
@@ -753,17 +643,11 @@
 
             if (activeTool === 'laser') {
                 const fadeInterval = setInterval(() => {
-                    laserTrail.forEach(pt => pt.alpha -= 0.1);
+                    laserTrail.forEach(pt => pt.alpha -= 0.15);
                     laserTrail = laserTrail.filter(pt => pt.alpha > 0);
                     requestRender();
                     if (laserTrail.length === 0) clearInterval(fadeInterval);
                 }, 30);
-                return;
-            }
-
-            if (activeTool === 'auto-shape') {
-                processSmartAutoShape(currentPath);
-                currentPath = [];
                 return;
             }
 
@@ -777,51 +661,8 @@
             requestRender();
         }
 
-        // Smart Geometric Shape Auto-Recognition Engine
-        function processSmartAutoShape(pts) {
-            if (pts.length < 6) return;
-            pushState();
-
-            const first = pts[0];
-            const last = pts[pts.length - 1];
-            const isClosed = Math.hypot(last.x - first.x, last.y - first.y) < 50;
-
-            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
-            pts.forEach(p => {
-                minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
-                minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
-            });
-
-            const w = maxX - minX;
-            const h = maxY - minY;
-
-            if (isClosed) {
-                elements.push({
-                    type: 'circle',
-                    x: minX + w / 2,
-                    y: minY + h / 2,
-                    w: w / 2,
-                    h: h / 2,
-                    color: strokeColor,
-                    size: strokeWidth
-                });
-            } else {
-                elements.push({
-                    type: 'line',
-                    x1: first.x,
-                    y1: first.y,
-                    x2: last.x,
-                    y2: last.y,
-                    color: strokeColor,
-                    size: strokeWidth
-                });
-            }
-            requestRender();
-        }
-
-        // Cursor Focal-Point Zooming
         function zoomAtPoint(newScale, sx, sy) {
-            const clampedScale = Math.min(Math.max(0.15, newScale), 6);
+            const clampedScale = Math.min(Math.max(0.2, newScale), 5);
             const world = screenToWorld(sx, sy);
             scale = clampedScale;
             panX = sx - world.x * scale;
@@ -831,7 +672,7 @@
             requestRender();
         }
 
-        // Event Binding Listeners
+        // Attach Canvas Interaction Events
         canvas.addEventListener('mousedown', handlePointerStart);
         canvas.addEventListener('mousemove', handlePointerMove);
         window.addEventListener('mouseup', handlePointerEnd);
@@ -840,7 +681,6 @@
         canvas.addEventListener('touchmove', (e) => handlePointerMove(e), { passive: false });
         window.addEventListener('touchend', handlePointerEnd);
 
-        // Smooth Mouse Wheel Zoom / Pan
         canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
             if (e.ctrlKey || e.metaKey) {
@@ -853,8 +693,8 @@
             }
         }, { passive: false });
 
-        // Tool Selection Handling
-        const toolsList = ['select', 'pan', 'laser', 'pen', 'highlighter', 'auto-shape', 'eraser', 'text', 'sticky', 'line', 'arrow', 'rect', 'circle', 'triangle', 'graph'];
+        // Tool Switching
+        const toolsList = ['select', 'pan', 'laser', 'pen', 'highlighter', 'eraser', 'text', 'sticky', 'line', 'arrow', 'rect', 'circle'];
         
         function setTool(toolName) {
             activeTool = toolName;
@@ -870,11 +710,9 @@
 
             document.querySelectorAll('.m-tool-btn').forEach(btn => {
                 if (btn.getAttribute('data-tool') === toolName) {
-                    btn.classList.remove('bg-slate-800', 'text-slate-300');
-                    btn.classList.add('bg-indigo-600', 'text-white');
+                    btn.classList.add('active-tool');
                 } else {
-                    btn.classList.remove('bg-indigo-600', 'text-white');
-                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                    btn.classList.remove('active-tool');
                 }
             });
 
@@ -888,36 +726,18 @@
         });
 
         document.querySelectorAll('.m-tool-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                setTool(btn.getAttribute('data-tool'));
-                toggleMobileDrawer(false);
-            });
+            btn.addEventListener('click', () => setTool(btn.getAttribute('data-tool')));
         });
 
-        function toggleMobileDrawer(forceState) {
-            const isClosed = mobileDrawer.classList.contains('drawer-closed');
-            const shouldOpen = forceState !== undefined ? forceState : isClosed;
-            if (shouldOpen) {
-                mobileDrawer.classList.remove('drawer-closed');
-                mobileDrawer.classList.add('drawer-open');
-            } else {
-                mobileDrawer.classList.remove('drawer-open');
-                mobileDrawer.classList.add('drawer-closed');
-            }
-        }
-        assistiveBall.addEventListener('click', () => toggleMobileDrawer());
-
-        // Theme Toggle Logic
+        // Theme Switch
         function toggleTheme() {
             isDarkModeBoard = !isDarkModeBoard;
-            const icon = isDarkModeBoard ? 'sun' : 'moon';
-            themeBtn.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
-            mobileThemeBtn.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i>`;
+            themeBtn.innerHTML = `<i data-lucide="${isDarkModeBoard ? 'sun' : 'moon'}" class="w-4 h-4"></i>`;
 
             if (!isDarkModeBoard && strokeColor === '#ffffff') {
-                strokeColor = '#000000';
-                colorPicker.value = '#000000';
-            } else if (isDarkModeBoard && strokeColor === '#000000') {
+                strokeColor = '#0f172a';
+                colorPicker.value = '#0f172a';
+            } else if (isDarkModeBoard && strokeColor === '#0f172a') {
                 strokeColor = '#ffffff';
                 colorPicker.value = '#ffffff';
             }
@@ -926,14 +746,13 @@
             requestRender();
         }
         themeBtn.addEventListener('click', toggleTheme);
-        mobileThemeBtn.addEventListener('click', toggleTheme);
 
-        // Zoom Toolbar Controls
+        // Zoom Toolbar
         document.getElementById('zoom-in-btn').addEventListener('click', () => zoomAtPoint(scale * 1.2, canvas.width / 2, canvas.height / 2));
         document.getElementById('zoom-out-btn').addEventListener('click', () => zoomAtPoint(scale / 1.2, canvas.width / 2, canvas.height / 2));
         document.getElementById('zoom-reset-btn').addEventListener('click', () => { panX = 0; panY = 0; zoomAtPoint(1, 0, 0); });
 
-        // Stroke & Color Pickers
+        // Color & Stroke Adjusters
         colorPicker.addEventListener('input', (e) => strokeColor = e.target.value);
         document.querySelectorAll('.color-preset').forEach(p => {
             p.addEventListener('click', () => {
@@ -952,7 +771,7 @@
             requestRender();
         });
 
-        // Undo, Redo, Delete & Clear Handlers
+        // Stack History Options
         undoBtn.addEventListener('click', () => {
             if (undoStack.length > 0) {
                 redoStack.push(JSON.stringify(elements));
@@ -984,7 +803,7 @@
         });
 
         document.getElementById('clear-btn').addEventListener('click', () => {
-            if (confirm('Clear entire whiteboard canvas?')) {
+            if (confirm('Clear entire canvas?')) {
                 pushState();
                 elements = [];
                 selectedElementIndex = -1;
@@ -992,15 +811,14 @@
             }
         });
 
-        // Clean PNG Export
+        // Clean Image Exporter
         document.getElementById('export-btn').addEventListener('click', () => {
             const expCanvas = document.createElement('canvas');
             expCanvas.width = canvas.width;
             expCanvas.height = canvas.height;
             const expCtx = expCanvas.getContext('2d');
 
-            // Copy background
-            expCtx.fillStyle = isDarkModeBoard ? '#0f172a' : '#f8fafc';
+            expCtx.fillStyle = isDarkModeBoard ? '#090d16' : '#f8fafc';
             expCtx.fillRect(0, 0, expCanvas.width, expCanvas.height);
             expCtx.drawImage(canvas, 0, 0);
 
@@ -1010,7 +828,7 @@
             a.click();
         });
 
-        // Global Keyboard Shortcut Listener Engine
+        // Keyboard Shortcut Mapping
         window.addEventListener('keydown', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
@@ -1041,8 +859,6 @@
         });
 
         window.addEventListener('resize', resizeCanvas);
-
-        // Application Startup Boot
         resizeCanvas();
     </script>
 </body>
