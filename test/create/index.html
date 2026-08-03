@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPRK Test Studio</title>
+    <link rel="icon" href="https://sprk-web.github.io/favicon.png" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { cyan: '#00f2fe', blue: '#4facfe', purple: '#7f00ff' }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .brand-main {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .brand-sub::after {
+            content: ''; position: absolute; width: 6px; height: 6px;
+            background-color: #00f2fe; border-radius: 50%; top: 25%; right: -10px;
+            box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+            animation: pulse 2s infinite alternate;
+        }
+        .logo-underline {
+            width: 25px; height: 3px; background: linear-gradient(90deg, #00f2fe, #7f00ff);
+            margin-top: 2px; border-radius: 2px; transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .brand-logo-container:hover .logo-underline { width: 100%; }
+        @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 1; } }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 3px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased selection:bg-brand-blue selection:text-white">
+
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 w-full">
+        <div class="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center w-full">
+            <div class="brand-logo-container flex flex-col cursor-pointer" onclick="studio.resetToNew()">
+                <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
+                    <span class="brand-main">Sprk</span>
+                    <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">Studio</span>
+                </div>
+                <div class="logo-underline"></div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button onclick="studio.saveDraft()" title="Save Draft to Browser" class="px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4 text-brand-purple"></i>
+                    <span class="hidden sm:inline">Save Draft</span>
+                </button>
+                <button onclick="studio.exportFile()" title="Export .sprk File" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-blue to-brand-purple text-white hover:opacity-95 shadow-lg shadow-brand-blue/20 transition flex items-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Export .sprk</span>
+                </button>
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
+                <button id="theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i id="theme-icon" data-lucide="sun" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <aside class="lg:col-span-4 space-y-6">
+            
+            <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl p-5 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 cursor-pointer transition text-center group">
+                <i data-lucide="file-up" class="w-7 h-7 text-brand-blue group-hover:scale-110 transition"></i>
+                <p class="mt-2 text-xs font-bold">Import Existing Test</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Drop <span class="text-brand-blue font-semibold">.sprk</span> or <span class="text-brand-purple font-semibold">.json</span> file here</p>
+                <input type="file" id="file-input" accept=".sprk,.json" class="hidden" />
+            </div>
+
+            <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 shadow-sm">
+                <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h2 class="text-sm font-bold tracking-wide uppercase text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-brand-blue"></i> Global Settings
+                    </h2>
+                    <button onclick="studio.clearAll()" class="text-[11px] text-red-500 hover:underline font-semibold flex items-center gap-1">
+                        <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Clear Studio
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Test Title</label>
+                        <input type="text" id="meta-title" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none" placeholder="e.g. JEE Advanced Physics Mock Test">
+                    </div>
+
+                    <div>
+                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Description</label>
+                        <textarea id="meta-desc" rows="2" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Brief test guidelines or instructions..."></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 pt-1">
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Duration (m)</label>
+                            <input type="number" id="meta-time" min="1" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="180">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Default +Marks</label>
+                            <input type="number" id="meta-default-pos" step="any" oninput="studio.applyGlobalMarksDefaults()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="4">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-red-500 uppercase tracking-wider">Default -Marks</label>
+                            <input type="number" id="meta-default-neg" step="any" oninput="studio.applyGlobalMarksDefaults()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-red-500 outline-none" placeholder="1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white to-slate-100 dark:from-slate-900 dark:to-slate-900/80 space-y-4 shadow-sm sticky top-20">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-purple"></i> Live Test Summary
+                </h3>
+
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="p-3 bg-slate-100/80 dark:bg-slate-800/50 rounded-xl">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase">Questions</span>
+                        <p id="summary-total-q" class="text-xl font-black text-brand-blue mt-0.5">0</p>
+                    </div>
+                    <div class="p-3 bg-slate-100/80 dark:bg-slate-800/50 rounded-xl">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase">Max Score</span>
+                        <p id="summary-max-score" class="text-xl font-black text-emerald-500 mt-0.5">0</p>
+                    </div>
+                    <div class="p-3 bg-slate-100/80 dark:bg-slate-800/50 rounded-xl">
+                        <span class="text-[10px] font-semibold text-slate-400 uppercase">Duration</span>
+                        <p id="summary-duration" class="text-xl font-black text-brand-purple mt-0.5">0m</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-200 dark:border-slate-800 pt-3 space-y-1.5 text-xs">
+                    <div class="flex justify-between text-slate-500 dark:text-slate-400">
+                        <span>MCQ (Single Select):</span>
+                        <span id="summary-count-mcq" class="font-bold">0</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500 dark:text-slate-400">
+                        <span>Multiple Select:</span>
+                        <span id="summary-count-msq" class="font-bold">0</span>
+                    </div>
+                    <div class="flex justify-between text-slate-500 dark:text-slate-400">
+                        <span>Numerical Input:</span>
+                        <span id="summary-count-num" class="font-bold">0</span>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <section class="lg:col-span-8 space-y-6">
+
+            <div class="flex items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-extrabold tracking-tight">Question Builder</h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Configure questions, options, individual weightage, and explanations.</p>
+                </div>
+                <button onclick="studio.addQuestion()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-brand-blue text-white hover:opacity-90 shadow-md shadow-brand-blue/20 transition flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Add Question
+                </button>
+            </div>
+
+            <div id="questions-list" class="space-y-6"></div>
+
+            <div id="empty-state" class="hidden p-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/30 space-y-3">
+                <i data-lucide="file-question" class="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto"></i>
+                <p class="text-sm font-semibold text-slate-500">No questions added yet.</p>
+                <button onclick="studio.addQuestion()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 inline-flex items-center gap-2">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Add First Question
+                </button>
+            </div>
+
+            <button onclick="studio.addQuestion()" class="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl flex items-center justify-center gap-2 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition bg-white/50 dark:bg-slate-900/30">
+                <i data-lucide="plus-circle" class="w-4 h-4 text-brand-blue"></i> Add New Question Item
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // SPRK Test Studio Application Controller
+        class SprkStudio {
+            constructor() {
+                this.testData = {
+                    title: "Untitled Test",
+                    description: "",
+                    timeLimitMinutes: 180,
+                    defaultPositiveMarks: 4,
+                    defaultNegativeMarks: 1,
+                    questions: []
+                };
+
+                this.initTheme();
+                this.bindFileEvents();
+                this.loadDraftOnStart();
+            }
+
+            initTheme() {
+                const toggleBtn = document.getElementById('theme-toggle');
+                const themeIcon = document.getElementById('theme-icon');
+                toggleBtn.addEventListener('click', () => {
+                    document.documentElement.classList.toggle('dark');
+                    const isDark = document.documentElement.classList.contains('dark');
+                    themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
+                    lucide.createIcons();
+                });
+            }
+
+            bindFileEvents() {
+                const dropZone = document.getElementById('drop-zone');
+                const fileInput = document.getElementById('file-input');
+
+                dropZone.addEventListener('click', () => fileInput.click());
+                dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-brand-blue'); });
+                dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-brand-blue'));
+                dropZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('border-brand-blue');
+                    if (e.dataTransfer.files.length) this.parseFile(e.dataTransfer.files[0]);
+                });
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files.length) this.parseFile(e.target.files[0]);
+                });
+            }
+
+            parseFile(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const parsed = JSON.parse(e.target.result);
+                        if (!parsed.questions || !Array.isArray(parsed.questions)) {
+                            throw new Error("Invalid .sprk test file structure");
+                        }
+                        this.testData = {
+                            title: parsed.title || "Loaded Test",
+                            description: parsed.description || "",
+                            timeLimitMinutes: parsed.timeLimitMinutes || 180,
+                            defaultPositiveMarks: parsed.defaultPositiveMarks ?? 4,
+                            defaultNegativeMarks: parsed.defaultNegativeMarks ?? 1,
+                            questions: parsed.questions || []
+                        };
+                        this.syncFormWithData();
+                    } catch (err) {
+                        alert("Failed to load .sprk file: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            loadDraftOnStart() {
+                const draft = localStorage.getItem('sprk_studio_draft');
+                if (draft) {
+                    try {
+                        this.testData = JSON.parse(draft);
+                    } catch(e) {
+                        this.addQuestion();
+                    }
+                } else {
+                    this.addQuestion();
+                }
+                this.syncFormWithData();
+            }
+
+            syncFormWithData() {
+                document.getElementById('meta-title').value = this.testData.title;
+                document.getElementById('meta-desc').value = this.testData.description;
+                document.getElementById('meta-time').value = this.testData.timeLimitMinutes;
+                document.getElementById('meta-default-pos').value = this.testData.defaultPositiveMarks;
+                document.getElementById('meta-default-neg').value = this.testData.defaultNegativeMarks;
+                this.renderQuestions();
+            }
+
+            updateMeta() {
+                this.testData.title = document.getElementById('meta-title').value || "Untitled Test";
+                this.testData.description = document.getElementById('meta-desc').value;
+                this.testData.timeLimitMinutes = parseFloat(document.getElementById('meta-time').value) || 0;
+                this.updateSummary();
+            }
+
+            applyGlobalMarksDefaults() {
+                const pos = parseFloat(document.getElementById('meta-default-pos').value) || 0;
+                const neg = parseFloat(document.getElementById('meta-default-neg').value) || 0;
+                this.testData.defaultPositiveMarks = pos;
+                this.testData.defaultNegativeMarks = neg;
+
+                this.testData.questions.forEach(q => {
+                    if (q.positiveMarks === undefined || q.positiveMarks === null) q.positiveMarks = pos;
+                    if (q.negativeMarks === undefined || q.negativeMarks === null) q.negativeMarks = neg;
+                });
+                this.renderQuestions();
+            }
+
+            addQuestion() {
+                const pos = parseFloat(document.getElementById('meta-default-pos').value) ?? 4;
+                const neg = parseFloat(document.getElementById('meta-default-neg').value) ?? 1;
+
+                this.testData.questions.push({
+                    id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    text: '',
+                    type: 'mcq',
+                    options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
+                    correctAnswer: 'Option 1',
+                    positiveMarks: pos,
+                    negativeMarks: neg,
+                    hint: '',
+                    explanation: '',
+                    media: null
+                });
+                this.renderQuestions();
+            }
+
+            duplicateQuestion(idx) {
+                const source = this.testData.questions[idx];
+                const clone = JSON.parse(JSON.stringify(source));
+                clone.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                this.testData.questions.splice(idx + 1, 0, clone);
+                this.renderQuestions();
+            }
+
+            deleteQuestion(idx) {
+                this.testData.questions.splice(idx, 1);
+                this.renderQuestions();
+            }
+
+            moveQuestion(idx, dir) {
+                const target = idx + dir;
+                if (target < 0 || target >= this.testData.questions.length) return;
+                const temp = this.testData.questions[idx];
+                this.testData.questions[idx] = this.testData.questions[target];
+                this.testData.questions[target] = temp;
+                this.renderQuestions();
+            }
+
+            renderQuestions() {
+                const container = document.getElementById('questions-list');
+                const emptyState = document.getElementById('empty-state');
+                container.innerHTML = '';
+
+                if (this.testData.questions.length === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+
+                this.testData.questions.forEach((q, idx) => {
+                    const qCard = document.createElement('div');
+                    qCard.className = "p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 shadow-sm";
+                    
+                    qCard.innerHTML = `
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                            <span class="font-extrabold text-xs text-brand-blue uppercase tracking-wider">Question ${idx + 1}</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="studio.moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move Up" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="studio.moveQuestion(${idx}, 1)" ${idx === this.testData.questions.length - 1 ? 'disabled' : ''} title="Move Down" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="studio.duplicateQuestion(${idx})" title="Duplicate Question" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                                <button onclick="studio.deleteQuestion(${idx})" title="Delete Question" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                            <div class="sm:col-span-6">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Question Type</label>
+                                <select onchange="studio.updateQType(${idx}, this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none font-medium">
+                                    <option value="mcq" ${q.type === 'mcq' ? 'selected' : ''}>MCQ (Single Select)</option>
+                                    <option value="multiple_select" ${q.type === 'multiple_select' ? 'selected' : ''}>Multiple Select</option>
+                                    <option value="numerical" ${q.type === 'numerical' ? 'selected' : ''}>Numerical Answer</option>
+                                </select>
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">+ Marks</label>
+                                <input type="number" step="any" value="${q.positiveMarks ?? 4}" oninput="studio.updateQField(${idx}, 'positiveMarks', parseFloat(this.value))" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-emerald-600 dark:text-emerald-400">
+                            </div>
+                            <div class="sm:col-span-3">
+                                <label class="text-[10px] font-bold text-red-500 uppercase tracking-wider">- Marks</label>
+                                <input type="number" step="any" value="${q.negativeMarks ?? 1}" oninput="studio.updateQField(${idx}, 'negativeMarks', parseFloat(this.value))" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600 dark:text-red-400">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Question Statement</label>
+                            <textarea rows="2" oninput="studio.updateQField(${idx}, 'text', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Enter question statement here...">${q.text || ''}</textarea>
+                        </div>
+
+                        <div class="p-3 bg-slate-50/70 dark:bg-slate-800/30 rounded-xl border border-slate-200/60 dark:border-slate-800 space-y-2">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="image" class="w-3.5 h-3.5 text-brand-blue"></i> Image Attachment
+                            </label>
+                            <div class="flex flex-col sm:flex-row items-center gap-3">
+                                <input type="text" value="${q.media && q.media.type === 'url' ? q.media.url : ''}" onchange="studio.handleImageUrl(${idx}, this.value)" placeholder="https://example.com/image.png" class="flex-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none">
+                                <span class="text-[10px] text-slate-400 font-bold uppercase">OR</span>
+                                <input type="file" accept="image/*" onchange="studio.handleImageFileUpload(${idx}, this)" class="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-brand-blue/10 file:text-brand-blue hover:file:bg-brand-blue/20 cursor-pointer">
+                            </div>
+                            ${q.media ? `
+                                <div class="mt-2 flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
+                                    <div class="flex items-center gap-2 overflow-hidden">
+                                        <img src="${q.media.type === 'url' ? q.media.url : `data:${q.media.mimeType};base64,${q.media.data}`}" class="w-10 h-10 object-cover rounded border">
+                                        <span class="text-[11px] text-emerald-500 font-semibold truncate">Image attached (${q.media.type})</span>
+                                    </div>
+                                    <button onclick="studio.removeImage(${idx})" class="text-[11px] text-red-500 hover:underline font-semibold">Remove</button>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${q.type !== 'numerical' ? `
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Option Choices</label>
+                                    <button onclick="studio.addOption(${idx})" class="text-[11px] font-bold text-brand-blue hover:underline flex items-center gap-1">
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Add Option Choice
+                                    </button>
+                                </div>
+                                <div class="space-y-2">
+                                    ${(q.options || []).map((opt, oIdx) => `
+                                        <div class="flex items-center gap-2">
+                                            <input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" disabled class="w-4 h-4 text-brand-blue">
+                                            <input type="text" value="${opt}" oninput="studio.updateOptionText(${idx}, ${oIdx}, this.value)" class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Option Text">
+                                            <button onclick="studio.removeOption(${idx}, ${oIdx})" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div>
+                            <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
+                                Correct Answer ${q.type === 'multiple_select' ? '(Comma Separated Options)' : ''}
+                            </label>
+                            <input type="text" value="${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : (q.correctAnswer || '')}" oninput="studio.updateQAnswer(${idx}, this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-emerald-600 dark:text-emerald-400" placeholder="${q.type === 'numerical' ? 'e.g. 2.5' : 'e.g. Option 1'}">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hint (Optional)</label>
+                                <input type="text" value="${q.hint || ''}" oninput="studio.updateQField(${idx}, 'hint', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Short hint for test-taker">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Solution Explanation</label>
+                                <input type="text" value="${q.explanation || ''}" oninput="studio.updateQField(${idx}, 'explanation', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Detailed step-by-step solution">
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(qCard);
+                });
+
+                lucide.createIcons();
+                this.updateSummary();
+            }
+
+            updateQField(idx, field, val) {
+                this.testData.questions[idx][field] = val;
+                this.updateSummary();
+            }
+
+            updateQType(idx, type) {
+                const q = this.testData.questions[idx];
+                q.type = type;
+                if (type === 'multiple_select' && !Array.isArray(q.correctAnswer)) {
+                    q.correctAnswer = q.correctAnswer ? [q.correctAnswer] : [];
+                }
+                this.renderQuestions();
+            }
+
+            addOption(qIdx) {
+                const q = this.testData.questions[qIdx];
+                if (!q.options) q.options = [];
+                q.options.push(`Option ${q.options.length + 1}`);
+                this.renderQuestions();
+            }
+
+            removeOption(qIdx, oIdx) {
+                this.testData.questions[qIdx].options.splice(oIdx, 1);
+                this.renderQuestions();
+            }
+
+            updateOptionText(qIdx, oIdx, val) {
+                this.testData.questions[qIdx].options[oIdx] = val;
+            }
+
+            updateQAnswer(qIdx, val) {
+                const q = this.testData.questions[qIdx];
+                if (q.type === 'multiple_select') {
+                    q.correctAnswer = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                } else {
+                    q.correctAnswer = val.trim();
+                }
+            }
+
+            handleImageUrl(idx, url) {
+                if (url.trim() === '') {
+                    this.removeImage(idx);
+                    return;
+                }
+                this.testData.questions[idx].media = { type: "url", url: url.trim() };
+                this.renderQuestions();
+            }
+
+            handleImageFileUpload(idx, input) {
+                if (!input.files || !input.files[0]) return;
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Data = e.target.result.split(',')[1];
+                    this.testData.questions[idx].media = {
+                        type: "base64",
+                        mimeType: file.type,
+                        data: base64Data
+                    };
+                    this.renderQuestions();
+                };
+                reader.readAsDataURL(file);
+            }
+
+            removeImage(idx) {
+                this.testData.questions[idx].media = null;
+                this.renderQuestions();
+            }
+
+            updateSummary() {
+                const questions = this.testData.questions || [];
+                let maxScore = 0;
+                let mcqCount = 0;
+                let msqCount = 0;
+                let numCount = 0;
+
+                questions.forEach(q => {
+                    maxScore += (q.positiveMarks || 0);
+                    if (q.type === 'mcq') mcqCount++;
+                    else if (q.type === 'multiple_select') msqCount++;
+                    else if (q.type === 'numerical') numCount++;
+                });
+
+                document.getElementById('summary-total-q').innerText = questions.length;
+                document.getElementById('summary-max-score').innerText = maxScore;
+                document.getElementById('summary-duration').innerText = (this.testData.timeLimitMinutes || 0) + 'm';
+                
+                document.getElementById('summary-count-mcq').innerText = mcqCount;
+                document.getElementById('summary-count-msq').innerText = msqCount;
+                document.getElementById('summary-count-num').innerText = numCount;
+            }
+
+            saveDraft() {
+                this.updateMeta();
+                localStorage.setItem('sprk_studio_draft', JSON.stringify(this.testData));
+                alert("Test draft successfully saved to local browser storage!");
+            }
+
+            exportFile() {
+                this.updateMeta();
+                if (this.testData.questions.length === 0) {
+                    alert("Please add at least one question before exporting.");
+                    return;
+                }
+
+                const dataStr = JSON.stringify(this.testData, null, 2);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                const safeName = (this.testData.title || "test").toLowerCase().replace(/[^a-z0-9]/g, '_');
+                a.download = `${safeName}.sprk`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            clearAll() {
+                if (confirm("Are you sure you want to clear all test settings and questions?")) {
+                    this.testData = {
+                        title: "Untitled Test",
+                        description: "",
+                        timeLimitMinutes: 180,
+                        defaultPositiveMarks: 4,
+                        defaultNegativeMarks: 1,
+                        questions: []
+                    };
+                    localStorage.removeItem('sprk_studio_draft');
+                    this.syncFormWithData();
+                }
+            }
+
+            resetToNew() {
+                this.syncFormWithData();
+            }
+        }
+
+        // Initialize Application
+        let studio;
+        window.addEventListener('DOMContentLoaded', () => {
+            studio = new SprkStudio();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
