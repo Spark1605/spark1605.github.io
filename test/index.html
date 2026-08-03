@@ -172,65 +172,53 @@
             }
         }
 
-        // Fetch & Parse Tests from Directory
-        async function fetchDirectoryTests() {
-            const loadingEl = document.getElementById('loading-state');
-            const gridEl = document.getElementById('test-grid');
+async function fetchDirectoryTests() {
+    const loadingEl = document.getElementById('loading-state');
+    const gridEl = document.getElementById('test-grid');
 
-            try {
-                // Fetch the HTML page or directory structure
-                const response = await fetch('https://sprk-web.github.io/test/tests/');
-                if (!response.ok) throw new Error('Failed to fetch test listing');
+    const apiUrl = 'https://api.github.com/repos/sprk-web/test/contents/tests';
 
-                const htmlText = await response.text();
-                
-                // Parse HTML to extract links ending in .sprk
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(htmlText, 'text/html');
-                const links = Array.from(doc.querySelectorAll('a'));
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`GitHub API returned status ${response.status}`);
 
-                const tests = [];
-                links.forEach(link => {
-                    const href = link.getAttribute('href');
-                    const text = link.innerText.trim();
-                    
-                    // Filter specifically for .sprk files
-                    if (href && href.toLowerCase().endsWith('.sprk')) {
-                        // Clean title by stripping off .sprk
-                        const cleanName = text.replace(/\.sprk$/i, '');
-                        tests.push({ name: cleanName, path: href });
-                    }
-                });
+        const files = await response.json();
 
-                loadingEl.classList.add('hidden');
-                gridEl.classList.remove('hidden');
+        const tests = files
+            .filter(file => file.type === 'file' && file.name.toLowerCase().endsWith('.sprk'))
+            .map(file => ({
+                name: file.name.replace(/\.sprk$/i, ''),
+                path: file.name
+            }));
 
-                if (tests.length === 0) {
-                    gridEl.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-4">No .sprk test files found in directory.</p>`;
-                    return;
-                }
+        loadingEl.classList.add('hidden');
+        gridEl.classList.remove('hidden');
 
-                // Render test cards
-                gridEl.innerHTML = tests.map(test => `
-                    <div class="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:border-brand-cyan transition">
-                        <div class="truncate mr-2">
-                            <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" title="${test.name}">${test.name}</h5>
-                            <span class="text-[10px] text-slate-400 uppercase tracking-wide">.sprk</span>
-                        </div>
-                        <a href="https://sprk-web.github.io/test/live/?path=${encodeURIComponent(test.path)}" class="px-3 py-1.5 bg-gradient-to-r from-brand-blue to-brand-purple text-white text-[10px] font-semibold rounded-md hover:opacity-90 transition flex items-center gap-1 shrink-0">
-                            Start <i data-lucide="play" class="w-2.5 h-2.5"></i>
-                        </a>
-                    </div>
-                `).join('');
-
-                lucide.createIcons();
-
-            } catch (err) {
-                console.error('Error fetching test listings:', err);
-                loadingEl.innerHTML = `<span class="text-rose-500">Could not load test directory automatically. Use the direct link above.</span>`;
-            }
+        if (tests.length === 0) {
+            gridEl.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-4">No .sprk test files found in directory.</p>`;
+            return;
         }
 
+        gridEl.innerHTML = tests.map(test => `
+            <div class="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:border-brand-cyan transition">
+                <div class="truncate mr-2">
+                    <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" title="${test.name}">${test.name}</h5>
+                    <span class="text-[10px] text-slate-400 uppercase tracking-wide">.sprk</span>
+                </div>
+                <a href="https://sprk-web.github.io/test/live/?path=${encodeURIComponent(test.path)}" class="px-3 py-1.5 bg-gradient-to-r from-brand-blue to-brand-purple text-white text-[10px] font-semibold rounded-md hover:opacity-90 transition flex items-center gap-1 shrink-0">
+                    Start <i data-lucide="play" class="w-2.5 h-2.5"></i>
+                </a>
+            </div>
+        `).join('');
+
+        lucide.createIcons();
+
+    } catch (err) {
+        console.error('Error fetching test listings:', err);
+        loadingEl.innerHTML = `<span class="text-rose-500 text-center block">Could not load test directory automatically.<br/>Ensure repository privacy is public and path is correct.</span>`;
+    }
+}
+        
         // Initialize Lucide Icons & Load Tests
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
