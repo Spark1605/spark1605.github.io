@@ -50,7 +50,7 @@
         .view-hidden { display: none !important; opacity: 0; transform: translateY(6px); }
 
         @media print {
-            header, #exam-header-controls, .print\\:hidden { display: none !important; }
+            header, #exam-header-controls, .print\:hidden { display: none !important; }
             body { background: white !important; color: black !important; }
             .view-section { display: block !important; opacity: 1 !important; transform: none !important; }
         }
@@ -320,7 +320,6 @@
                 this.handleInitialLoad();
             }
 
-            // Safe KaTeX Helper with Custom Delimiters (Inline, Block, mhchem)
             renderMath(element) {
                 if (window.renderMathInElement && element) {
                     try {
@@ -386,13 +385,11 @@
                 });
             }
 
-            // Global Keyboard Navigation
             bindKeyboardShortcuts() {
                 window.addEventListener('keydown', (e) => {
                     const examView = document.getElementById('view-exam');
                     if (examView.classList.contains('view-hidden') || this.examState.isPaused) return;
 
-                    // Avoid triggering shortcuts when typing in numeric input
                     if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
                         if (e.key === 'Enter') {
                             this.examSaveAndNext();
@@ -497,14 +494,23 @@
             async handleInitialLoad() {
                 this.checkSavedSession();
                 const params = new URLSearchParams(window.location.search);
-                const testName = params.get('testName');
+                const testPath = params.get('path') || params.get('testName') || params.get('test');
 
-                if (testName) {
+                if (testPath) {
                     this.showLoading(true, "Fetching test configuration...");
-                    const urls = [
-                        `https://sprk-web.github.io/test/tests/${testName}.sprk`,
-                        `https://sprk-web.github.io/test/tests/${testName}.json`
-                    ];
+                    
+                    let filename = testPath;
+                    let urls = [];
+
+                    if (filename.startsWith('http://') || filename.startsWith('https://')) {
+                        urls.push(filename);
+                    } else {
+                        const cleanName = filename.replace(/\.(sprk|json)$/i, '');
+                        urls = [
+                            `https://sprk-web.github.io/test/tests/${cleanName}.sprk`,
+                            `https://sprk-web.github.io/test/tests/${cleanName}.json`
+                        ];
+                    }
 
                     let loaded = false;
                     for (const url of urls) {
@@ -524,7 +530,7 @@
 
                     this.showLoading(false);
                     if (!loaded) {
-                        this.showError(`Failed to fetch test '${testName}'. Upload file manually.`);
+                        this.showError(`Failed to fetch test '${testPath}'. Upload file manually.`);
                     }
                 }
             }
