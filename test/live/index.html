@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPRK Test Runner</title>
+    <title>SPRK-Web | Live Test</title>
     <link rel="icon" href="https://sprk-web.github.io/favicon.png" type="image/x-icon">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,7 +19,13 @@
             }
         }
     </script>
+
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+
     <style>
         .brand-main {
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
@@ -38,31 +45,26 @@
         .brand-logo-container:hover .logo-underline { width: 100%; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 1; } }
 
-        .view-section {
-            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-        }
-        .view-hidden {
-            display: none !important;
-            opacity: 0;
-            transform: translateY(6px);
-        }
+        .view-section { transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; }
+        .view-hidden { display: none !important; opacity: 0; transform: translateY(6px); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased select-none">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased">
 
     <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full">
         <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center w-full">
-            <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="runner.confirmExitHome()">
-                <div class="flex items-center text-xl font-black uppercase tracking-wider">
+            <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="runner.showHome()">
+                <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
                     <span class="brand-main">Sprk</span>
-                    <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">Runner</span>
+                    <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
                 </div>
                 <div class="logo-underline"></div>
             </div>
-
-            <div id="header-test-info" class="hidden md:flex items-center gap-3">
-                <span id="header-title" class="font-bold text-sm tracking-wide">Test Title</span>
-                <span id="header-status-badge" class="text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">Active</span>
+            
+            <div id="exam-header-controls" class="hidden flex items-center gap-4">
+                <button onclick="runner.togglePauseTest()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i data-lucide="pause" class="w-4 h-4"></i> Pause Test
+                </button>
             </div>
 
             <div class="flex items-center gap-3">
@@ -73,89 +75,76 @@
         </div>
     </header>
 
-    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 md:px-6 py-6 flex flex-col items-center justify-center">
+    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-6 py-6 flex flex-col items-center">
 
-        <section id="view-loading" class="view-section flex flex-col items-center justify-center gap-4 py-20 text-center">
-            <div class="relative w-16 h-16 flex items-center justify-center">
-                <div class="absolute inset-0 rounded-full border-4 border-slate-200 dark:border-slate-800"></div>
-                <div class="absolute inset-0 rounded-full border-4 border-brand-cyan border-t-transparent animate-spin"></div>
-                <i data-lucide="file-text" class="w-6 h-6 text-brand-blue"></i>
-            </div>
-            <div class="space-y-1">
-                <h3 class="text-lg font-bold">Loading SPRK Test...</h3>
-                <p id="loading-msg" class="text-xs text-slate-400">Fetching remote test package details.</p>
-            </div>
-        </section>
-
-        <section id="view-upload" class="view-section view-hidden w-full max-w-xl flex flex-col gap-6">
-            <div id="error-banner" class="hidden p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs flex items-start gap-3">
-                <i data-lucide="alert-circle" class="w-5 h-5 shrink-0 mt-0.5"></i>
-                <div>
-                    <span class="font-bold">Fetch Failed:</span>
-                    <span id="error-banner-text">Unable to retrieve specified test remotely.</span>
-                </div>
-            </div>
-
+        <section id="view-dashboard" class="view-section w-full max-w-2xl flex flex-col gap-6 my-auto">
             <div class="text-center space-y-2">
-                <h1 class="text-2xl font-extrabold tracking-tight">SPRK Test Runner</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-xs">Load a local .sprk test file to begin your examination session.</p>
+                <h1 class="text-3xl font-extrabold tracking-tight">SPRK Test Runner</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Load your assigned test file or choose a local file to execute.</p>
+            </div>
+
+            <div id="loading-spinner" class="hidden flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-4">
+                <div class="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
+                <p id="loading-text" class="text-sm font-medium text-slate-600 dark:text-slate-300">Fetching remote test environment...</p>
+            </div>
+
+            <div id="fetch-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm space-y-2">
+                <div class="flex items-center gap-2 font-semibold"><i data-lucide="alert-circle" class="w-4 h-4"></i> Unable to load requested remote test.</div>
+                <p id="error-message-text" class="text-xs opacity-90"></p>
             </div>
 
             <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl p-8 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 cursor-pointer transition group">
                 <div class="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition">
                     <i data-lucide="upload-cloud" class="w-8 h-8"></i>
                 </div>
-                <p class="mt-4 text-sm font-semibold">Drag & Drop your <span class="text-brand-blue dark:text-brand-cyan font-bold">.sprk</span> file here</p>
-                <p class="text-xs text-slate-400 mt-1">or click to browse from computer</p>
+                <p class="mt-4 text-base font-semibold">Select or Drop <span class="text-brand-blue dark:text-brand-cyan font-bold">.sprk</span> file</p>
+                <p class="text-xs text-slate-400 mt-1">Choose a file manually to begin testing</p>
                 <input type="file" id="file-input" accept=".sprk,.json" class="hidden" />
             </div>
         </section>
 
         <section id="view-exam" class="view-section view-hidden w-full flex flex-col gap-4">
-            <div class="flex flex-wrap items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 gap-4">
-                <div class="flex items-center gap-3">
-                    <button onclick="runner.togglePause()" class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1.5">
-                        <i data-lucide="pause" class="w-3.5 h-3.5"></i>
-                        <span>Pause Test</span>
-                    </button>
+            <div class="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 gap-4">
+                <div>
+                    <h2 id="exam-title-display" class="font-bold text-lg">Exam Title</h2>
+                    <span id="exam-status-badge" class="inline-block mt-0.5 text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">Test Active</span>
                 </div>
-
-                <div class="flex items-center gap-2 font-mono text-lg font-bold bg-slate-100 dark:bg-slate-800/80 px-4 py-1.5 rounded-xl text-brand-blue">
-                    <i data-lucide="clock" class="w-4 h-4"></i>
+                <div class="flex items-center gap-3 font-mono text-xl font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
+                    <i data-lucide="clock" class="w-5 h-5 text-brand-blue"></i>
                     <span id="timer-display">00:00:00</span>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div class="lg:col-span-3 flex flex-col gap-4">
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 min-h-[420px] flex flex-col justify-between shadow-sm">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 min-h-[420px] flex flex-col justify-between">
                         <div class="space-y-4">
                             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-                                <span id="exam-q-num" class="font-bold text-brand-blue text-sm">Question 1</span>
+                                <span id="exam-q-num" class="font-bold text-brand-blue">Question 1</span>
                                 <div class="flex items-center gap-2">
-                                    <span id="exam-q-marks" class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-brand-blue">Marks: +4 / -0</span>
-                                    <span id="exam-q-type" class="text-xs uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 font-medium">MCQ</span>
+                                    <span id="exam-q-marks" class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">+4 / 0 Marks</span>
+                                    <span id="exam-q-type" class="text-xs uppercase tracking-wider px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">MCQ</span>
                                 </div>
                             </div>
 
-                            <p id="exam-q-text" class="text-base font-medium leading-relaxed"></p>
+                            <div id="exam-q-text" class="text-base font-medium leading-relaxed"></div>
 
-                            <div id="exam-q-media" class="hidden my-2 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden max-w-lg bg-slate-50 dark:bg-slate-950"></div>
+                            <div id="exam-q-media" class="hidden my-2 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden max-w-lg"></div>
 
                             <div id="exam-q-options" class="space-y-2 mt-4"></div>
                         </div>
 
                         <div class="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 flex-wrap gap-2">
                             <div class="flex items-center gap-2">
-                                <button onclick="runner.examMarkForReview()" class="px-3.5 py-2 rounded-xl text-xs font-medium border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 hover:bg-purple-100 transition">
+                                <button onclick="runner.examMarkForReview()" class="px-3 py-2 rounded-lg text-xs font-medium border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 hover:bg-purple-100 transition">
                                     Mark for Review & Next
                                 </button>
-                                <button onclick="runner.examClearResponse()" class="px-3.5 py-2 rounded-xl text-xs font-medium border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <button onclick="runner.examClearResponse()" class="px-3 py-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                                     Clear Response
                                 </button>
                             </div>
                             <div class="flex items-center gap-2">
-                                <button onclick="runner.examSaveAndNext()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-blue to-brand-purple text-white hover:opacity-90 transition shadow-md">
+                                <button onclick="runner.examSaveAndNext()" class="px-5 py-2 rounded-lg text-xs font-semibold bg-brand-blue text-white hover:opacity-90 transition">
                                     Save & Next
                                 </button>
                             </div>
@@ -163,28 +152,29 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4 shadow-sm">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4">
                     <div class="space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                            <h3 class="text-xs font-bold tracking-wide uppercase text-slate-400">Question Palette</h3>
-                            <select id="palette-filter" onchange="runner.renderPalette()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-md px-2 py-1 outline-none font-medium">
-                                <option value="all">All Items</option>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-xs font-bold tracking-wide uppercase text-slate-400">Palette</h3>
+                            <select id="palette-filter" onchange="runner.renderPalette()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-2 py-1 outline-none">
+                                <option value="all">All</option>
                                 <option value="unanswered">Unanswered</option>
                                 <option value="marked">Marked</option>
+                                <option value="answered">Answered</option>
                             </select>
                         </div>
-                        <div id="exam-palette-grid" class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto p-1"></div>
+                        <div id="exam-palette-grid" class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-1"></div>
                     </div>
 
                     <div class="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-3">
-                        <div class="text-[10px] grid grid-cols-2 gap-1.5 text-slate-500 font-medium">
-                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-slate-800"></span> Not Visited</div>
+                        <div class="text-[10px] grid grid-cols-2 gap-1.5 text-slate-500">
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-slate-700"></span> Unvisited</div>
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-red-500"></span> Unanswered</div>
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Answered</div>
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Marked</div>
                         </div>
 
-                        <button onclick="runner.promptSubmitModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                        <button onclick="runner.openSubmissionModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition">
                             Submit Test
                         </button>
                     </div>
@@ -194,80 +184,77 @@
 
         <section id="view-results" class="view-section view-hidden w-full max-w-4xl space-y-6">
             <div class="text-center space-y-2">
-                <h2 class="text-3xl font-extrabold tracking-tight">Test Performance Summary</h2>
-                <p id="res-test-title" class="text-xs font-medium text-slate-400">Summary details</p>
+                <h2 class="text-3xl font-extrabold">Performance Overview</h2>
+                <p class="text-xs text-slate-400">Comprehensive score analysis & solutions breakdown.</p>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                     <span class="text-xs font-semibold text-slate-400 uppercase">Final Score</span>
                     <p id="res-score" class="text-2xl font-bold text-brand-blue mt-1">0/0</p>
                 </div>
-                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                     <span class="text-xs font-semibold text-slate-400 uppercase">Accuracy</span>
                     <p id="res-accuracy" class="text-2xl font-bold text-emerald-500 mt-1">0%</p>
                 </div>
-                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
                     <span class="text-xs font-semibold text-slate-400 uppercase">Time Elapsed</span>
                     <p id="res-time" class="text-2xl font-bold text-purple-500 mt-1">00:00</p>
                 </div>
-                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Correct / Total</span>
+                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
+                    <span class="text-xs font-semibold text-slate-400 uppercase">Correct Ratio</span>
                     <p id="res-count" class="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-1">0/0</p>
                 </div>
             </div>
 
-            <div class="space-y-3">
-                <h3 class="text-sm font-bold uppercase tracking-wide text-slate-400">Detailed Review</h3>
-                <div id="res-questions-review" class="space-y-4"></div>
-            </div>
+            <div id="res-questions-review" class="space-y-4"></div>
 
-            <div class="flex justify-center pb-8">
-                <button onclick="window.location.reload()" class="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 font-semibold text-xs bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    Load Another Test
+            <div class="flex justify-center">
+                <button onclick="runner.showHome()" class="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    Return to Home
                 </button>
             </div>
         </section>
 
     </main>
 
-    <div id="pause-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex flex-col items-center justify-center gap-4 text-center p-4">
-        <div class="p-4 rounded-full bg-slate-800 text-brand-cyan">
-            <i data-lucide="pause-circle" class="w-12 h-12"></i>
+    <div id="modal-pause" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4">
+            <div class="p-3 bg-brand-blue/10 text-brand-blue w-fit rounded-full mx-auto">
+                <i data-lucide="pause-circle" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold">Test Paused</h3>
+            <p class="text-xs text-slate-400">The timer is temporarily frozen. Questions are hidden until resumed.</p>
+            <button onclick="runner.togglePauseTest()" class="w-full py-2.5 bg-brand-blue text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:opacity-90 transition">
+                Resume Examination
+            </button>
         </div>
-        <h3 class="text-2xl font-bold">Test Paused</h3>
-        <p class="text-xs text-slate-400 max-w-sm">Timer is stopped. Questions are hidden to preserve examination integrity.</p>
-        <button onclick="runner.togglePause()" class="mt-2 px-6 py-2.5 rounded-xl font-bold text-xs bg-brand-blue text-white hover:opacity-90 transition uppercase tracking-wider">
-            Resume Examination
-        </button>
     </div>
 
-    <div id="submit-modal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 class="text-lg font-bold">Submit Test Execution?</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Please review your submission status breakdown before final submission.</p>
+    <div id="modal-submit" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5">
+            <h3 class="text-xl font-bold">Submit Examination?</h3>
             
-            <div id="submit-summary-grid" class="grid grid-cols-3 gap-2 text-center text-xs py-2">
-                <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-                    <span class="block font-bold text-emerald-500" id="sub-stat-answered">0</span>
-                    <span class="text-[10px] text-slate-400">Answered</span>
+            <div class="grid grid-cols-3 gap-2 text-center text-xs">
+                <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                    <span class="font-bold text-lg block" id="summary-answered">0</span> Answered
                 </div>
-                <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-                    <span class="block font-bold text-red-500" id="sub-stat-unanswered">0</span>
-                    <span class="text-[10px] text-slate-400">Unanswered</span>
+                <div class="p-3 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl">
+                    <span class="font-bold text-lg block" id="summary-unanswered">0</span> Unanswered
                 </div>
-                <div class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800">
-                    <span class="block font-bold text-purple-500" id="sub-stat-marked">0</span>
-                    <span class="text-[10px] text-slate-400">Marked</span>
+                <div class="p-3 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 rounded-xl">
+                    <span class="font-bold text-lg block" id="summary-marked">0</span> Marked
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 pt-2">
-                <button onclick="runner.closeSubmitModal()" class="flex-1 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <p class="text-xs text-slate-400">Are you sure you wish to end the exam? You will not be able to change your answers after submission.</p>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="runner.closeSubmissionModal()" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     Cancel
                 </button>
-                <button onclick="runner.submitExam()" class="flex-1 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white transition">
-                    Confirm Submit
+                <button onclick="runner.confirmSubmit()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition">
+                    Confirm Submission
                 </button>
             </div>
         </div>
@@ -276,27 +263,26 @@
     <script>
         class SprkTestRunner {
             constructor() {
-                this.quiz = null;
-                this.isPaused = false;
+                this.quiz = { title: "Test", timeLimitMinutes: 30, questions: [] };
                 this.examState = {
                     currentIndex: 0,
                     responses: {},
                     status: {},
                     secondsRemaining: 0,
                     timerId: null,
+                    isPaused: false,
                     startTime: null,
                     endTime: null
                 };
 
                 this.initTheme();
                 this.bindEvents();
+                this.handleInitialLoad();
             }
 
-            // Theme Switcher Initialization
             initTheme() {
                 const toggleBtn = document.getElementById('theme-toggle');
                 const themeIcon = document.getElementById('theme-icon');
-                
                 toggleBtn.addEventListener('click', () => {
                     document.documentElement.classList.toggle('dark');
                     const isDark = document.documentElement.classList.contains('dark');
@@ -305,14 +291,24 @@
                 });
             }
 
-            // View Management
             switchView(viewId) {
                 document.querySelectorAll('.view-section').forEach(el => el.classList.add('view-hidden'));
                 const active = document.getElementById(viewId);
                 if (active) active.classList.remove('view-hidden');
+
+                const headerControls = document.getElementById('exam-header-controls');
+                if (viewId === 'view-exam') {
+                    headerControls.classList.remove('hidden');
+                } else {
+                    headerControls.classList.add('hidden');
+                }
             }
 
-            // File Upload Binding
+            showHome() {
+                if (this.examState.timerId) clearInterval(this.examState.timerId);
+                this.switchView('view-dashboard');
+            }
+
             bindEvents() {
                 const dropZone = document.getElementById('drop-zone');
                 const fileInput = document.getElementById('file-input');
@@ -330,43 +326,59 @@
                 });
             }
 
-            // Remote or Local Parse Engine
-            async initLoad() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const testName = urlParams.get('testName');
+            async handleInitialLoad() {
+                const params = new URLSearchParams(window.location.search);
+                const testName = params.get('testName');
 
                 if (testName) {
-                    this.switchView('view-loading');
-                    const success = await this.fetchRemoteTest(testName);
-                    if (!success) {
-                        this.showUploadView(`Could not load remote test "${testName}".`);
+                    this.showLoading(true, "Fetching test configuration...");
+                    const urls = [
+                        `https://sprk-web.github.io/test/tests/${testName}.sprk`,
+                        `https://sprk-web.github.io/test/tests/${testName}.json`
+                    ];
+
+                    let loaded = false;
+                    for (const url of urls) {
+                        try {
+                            const res = await fetch(url);
+                            if (res.ok) {
+                                const data = await res.json();
+                                this.quiz = data;
+                                loaded = true;
+                                this.startExam();
+                                break;
+                            }
+                        } catch (e) {
+                            console.warn("Failed loading from URL:", url);
+                        }
                     }
-                } else {
-                    this.showUploadView();
+
+                    this.showLoading(false);
+                    if (!loaded) {
+                        this.showError(`Failed to fetch test '${testName}'. Upload file manually.`);
+                    }
                 }
             }
 
-            async fetchRemoteTest(testName) {
-                const endpoints = [
-                    `https://sprk-web.github.io/test/tests/${testName}.sprk`,
-                    `https://sprk-web.github.io/test/tests/${testName}.json`,
-                    `./${testName}.sprk`,
-                    `./${testName}.json`
-                ];
-
-                for (let url of endpoints) {
-                    try {
-                        const res = await fetch(url);
-                        if (res.ok) {
-                            const parsed = await res.json();
-                            this.validateAndStartQuiz(parsed);
-                            return true;
-                        }
-                    } catch (e) {
-                        // Continue checking fallback endpoints
-                    }
+            showLoading(visible, message = "") {
+                const spinner = document.getElementById('loading-spinner');
+                const dropZone = document.getElementById('drop-zone');
+                if (visible) {
+                    document.getElementById('loading-text').innerText = message;
+                    spinner.classList.remove('hidden');
+                    spinner.classList.add('flex');
+                    dropZone.classList.add('hidden');
+                } else {
+                    spinner.classList.add('hidden');
+                    spinner.classList.remove('flex');
+                    dropZone.classList.remove('hidden');
                 }
-                return false;
+            }
+
+            showError(msg) {
+                const errBox = document.getElementById('fetch-error');
+                document.getElementById('error-message-text').innerText = msg;
+                errBox.classList.remove('hidden');
             }
 
             parseFile(file) {
@@ -374,34 +386,16 @@
                 reader.onload = (e) => {
                     try {
                         const parsed = JSON.parse(e.target.result);
-                        this.validateAndStartQuiz(parsed);
+                        if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error("Invalid format");
+                        this.quiz = parsed;
+                        this.startExam();
                     } catch (err) {
-                        alert("Invalid .sprk format: " + err.message);
+                        alert("Error loading file: " + err.message);
                     }
                 };
                 reader.readAsText(file);
             }
 
-            showUploadView(errorMsg = null) {
-                if (errorMsg) {
-                    document.getElementById('error-banner-text').innerText = errorMsg;
-                    document.getElementById('error-banner').classList.remove('hidden');
-                }
-                this.switchView('view-upload');
-                lucide.createIcons();
-            }
-
-            validateAndStartQuiz(quizData) {
-                if (!quizData.questions || !Array.isArray(quizData.questions) || quizData.questions.length === 0) {
-                    alert("Invalid test payload: Contains no valid questions.");
-                    this.showUploadView("Test data empty or malformed.");
-                    return;
-                }
-                this.quiz = quizData;
-                this.startExam();
-            }
-
-            // Exam Engine Operations
             startExam() {
                 this.examState = {
                     currentIndex: 0,
@@ -409,6 +403,7 @@
                     status: {},
                     secondsRemaining: (this.quiz.timeLimitMinutes || 30) * 60,
                     timerId: null,
+                    isPaused: false,
                     startTime: new Date(),
                     endTime: null
                 };
@@ -416,11 +411,11 @@
                 this.quiz.questions.forEach(q => {
                     this.examState.status[q.id] = 'unvisited';
                 });
-                this.examState.status[this.quiz.questions[0].id] = 'unanswered';
+                if (this.quiz.questions.length > 0) {
+                    this.examState.status[this.quiz.questions[0].id] = 'unanswered';
+                }
 
-                document.getElementById('header-title').innerText = this.quiz.title || "SPRK Examination";
-                document.getElementById('header-test-info').classList.remove('hidden');
-
+                document.getElementById('exam-title-display').innerText = this.quiz.title || "SPRK Test";
                 this.startTimer();
                 this.renderExamQuestion();
                 this.renderPalette();
@@ -430,61 +425,63 @@
 
             startTimer() {
                 const timerDisplay = document.getElementById('timer-display');
-                const updateDisplay = () => {
+                const update = () => {
+                    if (this.examState.isPaused) return;
+                    
                     const h = Math.floor(this.examState.secondsRemaining / 3600);
                     const m = Math.floor((this.examState.secondsRemaining % 3600) / 60);
                     const s = this.examState.secondsRemaining % 60;
                     timerDisplay.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+                    if (this.examState.secondsRemaining <= 0) {
+                        clearInterval(this.examState.timerId);
+                        alert("Time expired! Automatically submitting your responses.");
+                        this.confirmSubmit();
+                    }
+                    this.examState.secondsRemaining--;
                 };
 
-                updateDisplay();
-                this.examState.timerId = setInterval(() => {
-                    if (!this.isPaused) {
-                        this.examState.secondsRemaining--;
-                        if (this.examState.secondsRemaining <= 0) {
-                            clearInterval(this.examState.timerId);
-                            alert("Time expired! Submitting test automatically.");
-                            this.submitExam();
-                        } else {
-                            updateDisplay();
-                        }
-                    }
-                }, 1000);
+                update();
+                if (this.examState.timerId) clearInterval(this.examState.timerId);
+                this.examState.timerId = setInterval(update, 1000);
             }
 
-            togglePause() {
-                this.isPaused = !this.isPaused;
-                const modal = document.getElementById('pause-modal');
-                if (this.isPaused) {
+            togglePauseTest() {
+                this.examState.isPaused = !this.examState.isPaused;
+                const modal = document.getElementById('modal-pause');
+                if (this.examState.isPaused) {
                     modal.classList.remove('hidden');
                 } else {
                     modal.classList.add('hidden');
                 }
-                lucide.createIcons();
             }
 
             renderExamQuestion() {
                 const q = this.quiz.questions[this.examState.currentIndex];
+                if (!q) return;
+
                 document.getElementById('exam-q-num').innerText = `Question ${this.examState.currentIndex + 1} of ${this.quiz.questions.length}`;
+                document.getElementById('exam-q-type').innerText = q.type ? q.type.replace('_', ' ') : 'MCQ';
                 
-                const posMarks = q.positiveMarks !== undefined ? q.positiveMarks : 4;
-                const negMarks = q.negativeMarks !== undefined ? q.negativeMarks : 0;
-                document.getElementById('exam-q-marks').innerText = `Marks: +${posMarks} / -${negMarks}`;
-                document.getElementById('exam-q-type').innerText = q.type.replace('_', ' ');
-                document.getElementById('exam-q-text').innerText = q.text;
+                const posMarks = q.positiveMarks ?? 4;
+                const negMarks = q.negativeMarks ?? 0;
+                document.getElementById('exam-q-marks').innerText = `+${posMarks} / -${negMarks} Marks`;
 
-                // Media Attachment
+                const textEl = document.getElementById('exam-q-text');
+                textEl.innerHTML = q.text || '';
+
                 const mediaContainer = document.getElementById('exam-q-media');
-                if (q.media && (q.media.data || q.media.url)) {
-                    const src = q.media.data ? `data:${q.media.mimeType || 'image/png'};base64,${q.media.data}` : q.media.url;
-                    mediaContainer.innerHTML = `<img src="${src}" class="w-full h-auto object-contain max-h-72 rounded-lg" />`;
-                    mediaContainer.classList.remove('hidden');
-                } else {
-                    mediaContainer.classList.add('hidden');
-                    mediaContainer.innerHTML = '';
-                }
+                if (q.media) {
+                    let src = "";
+                    if (q.media.type === 'base64') src = `data:${q.media.mimeType};base64,${q.media.data}`;
+                    else if (q.media.url) src = q.media.url;
 
-                // Question Inputs
+                    if (src) {
+                        mediaContainer.innerHTML = `<img src="${src}" class="w-full h-auto object-contain max-h-80" />`;
+                        mediaContainer.classList.remove('hidden');
+                    } else mediaContainer.classList.add('hidden');
+                } else mediaContainer.classList.add('hidden');
+
                 const optionsContainer = document.getElementById('exam-q-options');
                 optionsContainer.innerHTML = '';
                 const currentResp = this.examState.responses[q.id];
@@ -492,58 +489,56 @@
                 if (q.type === 'numerical') {
                     optionsContainer.innerHTML = `
                         <input type="number" step="any" id="opt-numerical" value="${currentResp || ''}" 
-                        class="w-full md:w-1/2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none text-sm" 
+                        class="w-full md:w-1/2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none" 
                         placeholder="Enter numerical response...">
                     `;
-                } else if (q.type === 'mcq') {
-                    (q.options || []).forEach((opt) => {
-                        const isChecked = currentResp === opt;
-                        const label = document.createElement('label');
-                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition text-sm ${isChecked ? 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
-                        label.innerHTML = `
-                            <input type="radio" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue">
-                            <span class="font-medium">${opt}</span>
-                        `;
-                        optionsContainer.appendChild(label);
-                    });
                 } else if (q.type === 'multiple_select') {
                     const selectedArr = Array.isArray(currentResp) ? currentResp : [];
                     (q.options || []).forEach((opt) => {
                         const isChecked = selectedArr.includes(opt);
                         const label = document.createElement('label');
-                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition text-sm ${isChecked ? 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
+                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${isChecked ? 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
                         label.innerHTML = `
                             <input type="checkbox" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue rounded">
-                            <span class="font-medium">${opt}</span>
+                            <span class="text-sm font-medium">${opt}</span>
                         `;
                         optionsContainer.appendChild(label);
                     });
+                } else {
+                    (q.options || []).forEach((opt) => {
+                        const isChecked = currentResp === opt;
+                        const label = document.createElement('label');
+                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${isChecked ? 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
+                        label.innerHTML = `
+                            <input type="radio" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue">
+                            <span class="text-sm font-medium">${opt}</span>
+                        `;
+                        optionsContainer.appendChild(label);
+                    });
+                }
+
+                if (window.renderMathInElement) {
+                    renderMathInElement(document.getElementById('view-exam'));
                 }
             }
 
             captureCurrentResponse() {
                 const q = this.quiz.questions[this.examState.currentIndex];
+                if (!q) return;
+
                 if (q.type === 'numerical') {
                     const input = document.getElementById('opt-numerical');
                     if (input && input.value.trim() !== '') {
                         this.examState.responses[q.id] = input.value.trim();
-                    } else {
-                        delete this.examState.responses[q.id];
-                    }
-                } else if (q.type === 'mcq') {
-                    const selected = document.querySelector('input[name="exam-opt"]:checked');
-                    if (selected) {
-                        this.examState.responses[q.id] = selected.value;
-                    } else {
-                        delete this.examState.responses[q.id];
-                    }
+                    } else delete this.examState.responses[q.id];
                 } else if (q.type === 'multiple_select') {
                     const checked = Array.from(document.querySelectorAll('input[name="exam-opt"]:checked')).map(el => el.value);
-                    if (checked.length) {
-                        this.examState.responses[q.id] = checked;
-                    } else {
-                        delete this.examState.responses[q.id];
-                    }
+                    if (checked.length) this.examState.responses[q.id] = checked;
+                    else delete this.examState.responses[q.id];
+                } else {
+                    const selected = document.querySelector('input[name="exam-opt"]:checked');
+                    if (selected) this.examState.responses[q.id] = selected.value;
+                    else delete this.examState.responses[q.id];
                 }
             }
 
@@ -600,8 +595,9 @@
                 this.quiz.questions.forEach((q, idx) => {
                     const status = this.examState.status[q.id] || 'unvisited';
 
-                    if (filter === 'unanswered' && status !== 'unanswered' && status !== 'unvisited') return;
-                    if (filter === 'marked' && status !== 'marked' && status !== 'marked_answered') return;
+                    if (filter === 'unanswered' && status !== 'unanswered') return;
+                    if (filter === 'marked' && !status.includes('marked')) return;
+                    if (filter === 'answered' && !status.includes('answered')) return;
 
                     const btn = document.createElement('button');
                     btn.onclick = () => this.jumpToQuestion(idx);
@@ -610,18 +606,10 @@
                     if (idx === this.examState.currentIndex) baseClasses += "ring-2 ring-offset-2 ring-brand-blue ";
 
                     switch (status) {
-                        case 'unvisited':
-                            baseClasses += "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300";
-                            break;
-                        case 'unanswered':
-                            baseClasses += "bg-red-500 text-white";
-                            break;
-                        case 'answered':
-                            baseClasses += "bg-emerald-500 text-white";
-                            break;
-                        case 'marked':
-                            baseClasses += "bg-purple-500 text-white";
-                            break;
+                        case 'unvisited': baseClasses += "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300"; break;
+                        case 'unanswered': baseClasses += "bg-red-500 text-white"; break;
+                        case 'answered': baseClasses += "bg-emerald-500 text-white"; break;
+                        case 'marked': baseClasses += "bg-purple-500 text-white"; break;
                         case 'marked_answered':
                             baseClasses += "bg-purple-500 text-white";
                             btn.innerHTML = `${idx + 1}<span class="absolute right-0.5 bottom-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>`;
@@ -634,77 +622,76 @@
                 });
             }
 
-            // Modal Handlers & Evaluation
-            promptSubmitModal() {
+            openSubmissionModal() {
                 this.captureCurrentResponse();
                 let answered = 0, unanswered = 0, marked = 0;
 
-                this.quiz.questions.forEach(q => {
-                    const st = this.examState.status[q.id];
+                Object.values(this.examState.status).forEach(st => {
                     if (st === 'answered' || st === 'marked_answered') answered++;
                     else if (st === 'marked') marked++;
                     else unanswered++;
                 });
 
-                document.getElementById('sub-stat-answered').innerText = answered;
-                document.getElementById('sub-stat-unanswered').innerText = unanswered;
-                document.getElementById('sub-stat-marked').innerText = marked;
+                document.getElementById('summary-answered').innerText = answered;
+                document.getElementById('summary-unanswered').innerText = unanswered;
+                document.getElementById('summary-marked').innerText = marked;
 
-                document.getElementById('submit-modal').classList.remove('hidden');
+                document.getElementById('modal-submit').classList.remove('hidden');
             }
 
-            closeSubmitModal() {
-                document.getElementById('submit-modal').classList.add('hidden');
+            closeSubmissionModal() {
+                document.getElementById('modal-submit').classList.add('hidden');
             }
 
-            submitExam() {
-                this.closeSubmitModal();
+            confirmSubmit() {
+                this.closeSubmissionModal();
                 if (this.examState.timerId) clearInterval(this.examState.timerId);
                 this.examState.endTime = new Date();
 
                 let score = 0;
-                let maxPossibleScore = 0;
+                let maxScore = 0;
                 let totalCorrect = 0;
 
                 const reviewContainer = document.getElementById('res-questions-review');
                 reviewContainer.innerHTML = '';
 
                 this.quiz.questions.forEach((q, idx) => {
+                    const pos = q.positiveMarks ?? 4;
+                    const neg = q.negativeMarks ?? 0;
+                    maxScore += pos;
+
                     const userVal = this.examState.responses[q.id];
                     const correctVal = q.correctAnswer;
-                    const posMarks = q.positiveMarks !== undefined ? q.positiveMarks : 4;
-                    const negMarks = q.negativeMarks !== undefined ? q.negativeMarks : 0;
-                    
-                    maxPossibleScore += posMarks;
                     let isCorrect = false;
+                    let isAttempted = userVal !== undefined;
 
-                    if (q.type === 'multiple_select') {
-                        const uArr = Array.isArray(userVal) ? userVal.sort() : [];
-                        const cArr = Array.isArray(correctVal) ? correctVal.sort() : [];
-                        isCorrect = JSON.stringify(uArr) === JSON.stringify(cArr);
-                    } else {
-                        isCorrect = String(userVal).trim().toLowerCase() === String(correctVal).trim().toLowerCase();
+                    if (isAttempted) {
+                        if (q.type === 'multiple_select') {
+                            const uArr = Array.isArray(userVal) ? userVal.sort() : [];
+                            const cArr = Array.isArray(correctVal) ? correctVal.sort() : [];
+                            isCorrect = JSON.stringify(uArr) === JSON.stringify(cArr);
+                        } else {
+                            isCorrect = String(userVal).trim().toLowerCase() === String(correctVal).trim().toLowerCase();
+                        }
                     }
 
                     if (isCorrect) {
-                        score += posMarks;
+                        score += pos;
                         totalCorrect++;
-                    } else if (userVal !== undefined) {
-                        score -= negMarks;
+                    } else if (isAttempted) {
+                        score -= neg;
                     }
 
                     const card = document.createElement('div');
-                    card.className = `p-5 rounded-2xl border bg-white dark:bg-slate-900 ${isCorrect ? 'border-emerald-200 dark:border-emerald-900/50' : 'border-red-200 dark:border-red-900/50'} shadow-sm`;
+                    card.className = `p-5 rounded-xl border bg-white dark:bg-slate-900 ${isCorrect ? 'border-emerald-200 dark:border-emerald-900/50' : (isAttempted ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-slate-800')}`;
                     card.innerHTML = `
                         <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-xs font-bold ${isCorrect ? 'text-emerald-500' : 'text-red-500'} uppercase">
-                                Q${idx + 1} - ${isCorrect ? `Correct (+${posMarks})` : (userVal ? `Incorrect (-${negMarks})` : 'Unanswered (0)')}
-                            </span>
-                            <span class="text-xs text-slate-400 uppercase font-medium">${q.type}</span>
+                            <span class="text-xs font-bold ${isCorrect ? 'text-emerald-500' : (isAttempted ? 'text-red-500' : 'text-slate-400')} uppercase">Q${idx + 1} - ${isCorrect ? `Correct (+${pos})` : (isAttempted ? `Incorrect (-${neg})` : 'Unattempted (0)')}</span>
+                            <span class="text-xs text-slate-400 uppercase">${q.type || 'MCQ'}</span>
                         </div>
-                        <p class="font-medium text-sm mb-3">${q.text}</p>
-                        <div class="text-xs space-y-1.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl">
-                            <p><strong>Your Response:</strong> ${userVal ? (Array.isArray(userVal) ? userVal.join(', ') : userVal) : '<span class="italic text-slate-400">Not Answered</span>'}</p>
+                        <div class="font-medium text-sm mb-3">${q.text}</div>
+                        <div class="text-xs space-y-1 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                            <p><strong>Your Answer:</strong> ${userVal ? (Array.isArray(userVal) ? userVal.join(', ') : userVal) : '<span class="italic text-slate-400">None</span>'}</p>
                             <p class="text-emerald-600 dark:text-emerald-400"><strong>Correct Answer:</strong> ${Array.isArray(correctVal) ? correctVal.join(', ') : correctVal}</p>
                             ${q.hint ? `<p class="text-purple-500 mt-2"><strong>Hint:</strong> ${q.hint}</p>` : ''}
                             ${q.explanation ? `<p class="text-slate-500 dark:text-slate-400 mt-1"><strong>Explanation:</strong> ${q.explanation}</p>` : ''}
@@ -718,21 +705,14 @@
                 const totalSeconds = Math.floor((this.examState.endTime - this.examState.startTime) / 1000);
                 const timeStr = `${Math.floor(totalSeconds / 60)}m ${totalSeconds % 60}s`;
 
-                document.getElementById('res-test-title').innerText = this.quiz.title || "SPRK Test";
-                document.getElementById('res-score').innerText = `${score}/${maxPossibleScore}`;
+                document.getElementById('res-score').innerText = `${score}/${maxScore}`;
                 document.getElementById('res-accuracy').innerText = `${accuracy}%`;
                 document.getElementById('res-time').innerText = timeStr;
                 document.getElementById('res-count').innerText = `${totalCorrect}/${totalQ}`;
 
-                document.getElementById('header-test-info').classList.add('hidden');
                 this.switchView('view-results');
-            }
-
-            confirmExitHome() {
-                if (document.getElementById('view-exam').classList.contains('view-hidden')) {
-                    window.location.reload();
-                } else if (confirm("Exit examination session? Your current progress will be lost.")) {
-                    window.location.reload();
+                if (window.renderMathInElement) {
+                    renderMathInElement(document.getElementById('view-results'));
                 }
             }
         }
@@ -740,7 +720,6 @@
         let runner;
         window.addEventListener('DOMContentLoaded', () => {
             runner = new SprkTestRunner();
-            runner.initLoad();
             lucide.createIcons();
         });
     </script>
