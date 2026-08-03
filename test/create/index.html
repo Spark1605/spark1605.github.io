@@ -45,7 +45,7 @@
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased selection:bg-brand-blue selection:text-white">
 
-    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 w-full">
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full">
         <div class="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center w-full">
             <div class="brand-logo-container flex flex-col cursor-pointer" onclick="studio.resetToNew()">
                 <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
@@ -55,8 +55,12 @@
                 <div class="logo-underline"></div>
             </div>
 
-            <div class="flex items-center gap-3">
-                <button onclick="studio.saveDraft()" title="Save Draft to Browser" class="px-3.5 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+            <div class="flex items-center gap-2 sm:gap-3">
+                <button onclick="studio.openJsonModal()" title="View Raw JSON Data" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                    <i data-lucide="code" class="w-4 h-4 text-brand-cyan"></i>
+                    <span class="hidden md:inline">JSON View</span>
+                </button>
+                <button onclick="studio.saveDraft()" title="Save Draft to Browser" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
                     <i data-lucide="save" class="w-4 h-4 text-brand-purple"></i>
                     <span class="hidden sm:inline">Save Draft</span>
                 </button>
@@ -78,9 +82,9 @@
             
             <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl p-5 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 cursor-pointer transition text-center group">
                 <i data-lucide="file-up" class="w-7 h-7 text-brand-blue group-hover:scale-110 transition"></i>
-                <p class="mt-2 text-xs font-bold">Import Existing Test</p>
-                <p class="text-[11px] text-slate-400 mt-0.5">Drop <span class="text-brand-blue font-semibold">.sprk</span> or <span class="text-brand-purple font-semibold">.json</span> file here</p>
-                <input type="file" id="file-input" accept=".sprk,.json" class="hidden" />
+                <p class="mt-2 text-xs font-bold">Import Existing Test File(s)</p>
+                <p class="text-[11px] text-slate-400 mt-0.5">Drop or select <span class="text-brand-blue font-semibold">.sprk</span> / <span class="text-brand-purple font-semibold">.json</span> files</p>
+                <input type="file" id="file-input" accept=".sprk,.json" multiple class="hidden" />
             </div>
 
             <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 shadow-sm">
@@ -107,7 +111,7 @@
                     <div class="grid grid-cols-3 gap-2 pt-1">
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Duration (m)</label>
-                            <input type="number" id="meta-time" min="1" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="180">
+                            <input type="text" id="meta-time" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="180 or 'none'">
                         </div>
                         <div>
                             <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Default +Marks</label>
@@ -161,14 +165,19 @@
 
         <section class="lg:col-span-8 space-y-6">
 
-            <div class="flex items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 class="text-2xl font-extrabold tracking-tight">Question Builder</h1>
                     <p class="text-xs text-slate-500 dark:text-slate-400">Configure questions, options, individual weightage, and explanations.</p>
                 </div>
-                <button onclick="studio.addQuestion()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-brand-blue text-white hover:opacity-90 shadow-md shadow-brand-blue/20 transition flex items-center gap-2">
-                    <i data-lucide="plus" class="w-4 h-4"></i> Add Question
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="studio.openBulkModal()" class="px-3 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                        <i data-lucide="file-text" class="w-4 h-4 text-brand-purple"></i> Bulk Import
+                    </button>
+                    <button onclick="studio.addQuestion()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-brand-blue text-white hover:opacity-90 shadow-md shadow-brand-blue/20 transition flex items-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add Question
+                    </button>
+                </div>
             </div>
 
             <div id="questions-list" class="space-y-6"></div>
@@ -188,8 +197,59 @@
 
     </main>
 
+    <div id="json-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="code" class="w-4 h-4 text-brand-cyan"></i> JSON Test Code View
+                </h3>
+                <button onclick="studio.closeJsonModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 flex-1 overflow-hidden flex flex-col">
+                <textarea id="json-textarea" class="w-full flex-1 font-mono text-xs p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none custom-scrollbar resize-none"></textarea>
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-900/50">
+                <span class="text-[11px] text-slate-400">Edit JSON directly and click Apply Changes.</span>
+                <div class="flex gap-2">
+                    <button onclick="studio.closeJsonModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">Cancel</button>
+                    <button onclick="studio.applyJsonChanges()" class="px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-blue text-white">Apply Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="bulk-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-brand-purple"></i> Bulk Markdown/Text Import
+                </h3>
+                <button onclick="studio.closeBulkModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                <p class="text-xs text-slate-500">Paste questions using simple text formatting below. Separate questions with blank lines.</p>
+                <textarea id="bulk-textarea" rows="10" class="w-full font-mono text-xs p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none custom-scrollbar" placeholder="Q1. What is the speed of light?
+A) 3x10^8 m/s
+B) 150 km/h
+C) 9.8 m/s^2
+D) None
+Answer: A
+
+Q2. Select prime numbers:
+A) 2
+B) 4
+C) 3
+D) 9
+Answer: A, C"></textarea>
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2 bg-slate-50/50 dark:bg-slate-900/50">
+                <button onclick="studio.closeBulkModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">Cancel</button>
+                <button onclick="studio.processBulkImport()" class="px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-purple text-white">Parse & Append</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // SPRK Test Studio Application Controller
         class SprkStudio {
             constructor() {
                 this.testData = {
@@ -201,6 +261,7 @@
                     questions: []
                 };
 
+                this.draggedIndex = null;
                 this.initTheme();
                 this.bindFileEvents();
                 this.loadDraftOnStart();
@@ -227,35 +288,52 @@
                 dropZone.addEventListener('drop', (e) => {
                     e.preventDefault();
                     dropZone.classList.remove('border-brand-blue');
-                    if (e.dataTransfer.files.length) this.parseFile(e.dataTransfer.files[0]);
+                    if (e.dataTransfer.files.length) this.parseFiles(Array.from(e.dataTransfer.files));
                 });
                 fileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length) this.parseFile(e.target.files[0]);
+                    if (e.target.files.length) this.parseFiles(Array.from(e.target.files));
                 });
             }
 
-            parseFile(file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    try {
-                        const parsed = JSON.parse(e.target.result);
-                        if (!parsed.questions || !Array.isArray(parsed.questions)) {
-                            throw new Error("Invalid .sprk test file structure");
+            parseFiles(files) {
+                let processed = 0;
+                let isFirst = true;
+
+                files.forEach((file) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const parsed = JSON.parse(e.target.result);
+                            if (!parsed.questions || !Array.isArray(parsed.questions)) {
+                                throw new Error("Invalid structure");
+                            }
+
+                            if (isFirst && this.testData.questions.length === 0) {
+                                this.testData.title = parsed.title || "Loaded Test";
+                                this.testData.description = parsed.description || "";
+                                this.testData.timeLimitMinutes = parsed.timeLimitMinutes ?? 180;
+                                this.testData.defaultPositiveMarks = parsed.defaultPositiveMarks ?? 4;
+                                this.testData.defaultNegativeMarks = parsed.defaultNegativeMarks ?? 1;
+                                isFirst = false;
+                            }
+
+                            parsed.questions.forEach(q => {
+                                const newQ = JSON.parse(JSON.stringify(q));
+                                newQ.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                                this.testData.questions.push(newQ);
+                            });
+
+                        } catch (err) {
+                            alert(`Failed to load file ${file.name}: Invalid SPRK test structure.`);
                         }
-                        this.testData = {
-                            title: parsed.title || "Loaded Test",
-                            description: parsed.description || "",
-                            timeLimitMinutes: parsed.timeLimitMinutes || 180,
-                            defaultPositiveMarks: parsed.defaultPositiveMarks ?? 4,
-                            defaultNegativeMarks: parsed.defaultNegativeMarks ?? 1,
-                            questions: parsed.questions || []
-                        };
-                        this.syncFormWithData();
-                    } catch (err) {
-                        alert("Failed to load .sprk file: " + err.message);
-                    }
-                };
-                reader.readAsText(file);
+
+                        processed++;
+                        if (processed === files.length) {
+                            this.syncFormWithData();
+                        }
+                    };
+                    reader.readAsText(file);
+                });
             }
 
             loadDraftOnStart() {
@@ -273,18 +351,29 @@
             }
 
             syncFormWithData() {
-                document.getElementById('meta-title').value = this.testData.title;
-                document.getElementById('meta-desc').value = this.testData.description;
-                document.getElementById('meta-time').value = this.testData.timeLimitMinutes;
-                document.getElementById('meta-default-pos').value = this.testData.defaultPositiveMarks;
-                document.getElementById('meta-default-neg').value = this.testData.defaultNegativeMarks;
+                document.getElementById('meta-title').value = this.testData.title || '';
+                document.getElementById('meta-desc').value = this.testData.description || '';
+                
+                const time = this.testData.timeLimitMinutes;
+                document.getElementById('meta-time').value = (time === null || time === 0) ? 'none' : time;
+                
+                document.getElementById('meta-default-pos').value = this.testData.defaultPositiveMarks ?? 4;
+                document.getElementById('meta-default-neg').value = this.testData.defaultNegativeMarks ?? 1;
                 this.renderQuestions();
             }
 
             updateMeta() {
                 this.testData.title = document.getElementById('meta-title').value || "Untitled Test";
                 this.testData.description = document.getElementById('meta-desc').value;
-                this.testData.timeLimitMinutes = parseFloat(document.getElementById('meta-time').value) || 0;
+                
+                const rawTime = document.getElementById('meta-time').value.trim().toLowerCase();
+                if (rawTime === 'none' || rawTime === '0' || rawTime === '') {
+                    this.testData.timeLimitMinutes = null;
+                } else {
+                    const parsed = parseFloat(rawTime);
+                    this.testData.timeLimitMinutes = isNaN(parsed) ? null : parsed;
+                }
+                
                 this.updateSummary();
             }
 
@@ -298,7 +387,7 @@
                     if (q.positiveMarks === undefined || q.positiveMarks === null) q.positiveMarks = pos;
                     if (q.negativeMarks === undefined || q.negativeMarks === null) q.negativeMarks = neg;
                 });
-                this.renderQuestions();
+                this.updateSummary();
             }
 
             addQuestion() {
@@ -342,6 +431,14 @@
                 this.renderQuestions();
             }
 
+            jumpToPosition(idx, newPosStr) {
+                const target = parseInt(newPosStr) - 1;
+                if (isNaN(target) || target < 0 || target >= this.testData.questions.length || target === idx) return;
+                const [item] = this.testData.questions.splice(idx, 1);
+                this.testData.questions.splice(target, 0, item);
+                this.renderQuestions();
+            }
+
             renderQuestions() {
                 const container = document.getElementById('questions-list');
                 const emptyState = document.getElementById('empty-state');
@@ -355,11 +452,38 @@
 
                 this.testData.questions.forEach((q, idx) => {
                     const qCard = document.createElement('div');
-                    qCard.className = "p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 shadow-sm";
-                    
+                    qCard.className = "p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 shadow-sm relative group";
+                    qCard.setAttribute('draggable', 'true');
+                    qCard.dataset.index = idx;
+
+                    // Drag Events
+                    qCard.addEventListener('dragstart', (e) => {
+                        this.draggedIndex = idx;
+                        e.dataTransfer.effectAllowed = 'move';
+                        qCard.classList.add('opacity-50');
+                    });
+                    qCard.addEventListener('dragend', () => {
+                        qCard.classList.remove('opacity-50');
+                        this.draggedIndex = null;
+                    });
+                    qCard.addEventListener('dragover', (e) => e.preventDefault());
+                    qCard.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        if (this.draggedIndex !== null && this.draggedIndex !== idx) {
+                            const [dragged] = this.testData.questions.splice(this.draggedIndex, 1);
+                            this.testData.questions.splice(idx, 0, dragged);
+                            this.renderQuestions();
+                        }
+                    });
+
                     qCard.innerHTML = `
                         <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                            <span class="font-extrabold text-xs text-brand-blue uppercase tracking-wider">Question ${idx + 1}</span>
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-grab"></i>
+                                <span class="font-extrabold text-xs text-brand-blue uppercase tracking-wider">Question ${idx + 1}</span>
+                                <span class="text-[10px] text-slate-400">#</span>
+                                <input type="number" min="1" max="${this.testData.questions.length}" value="${idx + 1}" onchange="studio.jumpToPosition(${idx}, this.value)" class="w-10 text-center bg-slate-100 dark:bg-slate-800 rounded px-1 text-[11px] font-bold outline-none">
+                            </div>
                             <div class="flex items-center gap-1">
                                 <button onclick="studio.moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move Up" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
                                 <button onclick="studio.moveQuestion(${idx}, 1)" ${idx === this.testData.questions.length - 1 ? 'disabled' : ''} title="Move Down" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
@@ -415,28 +539,31 @@
                         ${q.type !== 'numerical' ? `
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Option Choices</label>
+                                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Option Choices (Select correct option)</label>
                                     <button onclick="studio.addOption(${idx})" class="text-[11px] font-bold text-brand-blue hover:underline flex items-center gap-1">
                                         <i data-lucide="plus" class="w-3 h-3"></i> Add Option Choice
                                     </button>
                                 </div>
                                 <div class="space-y-2">
-                                    ${(q.options || []).map((opt, oIdx) => `
+                                    ${(q.options || []).map((opt, oIdx) => {
+                                        const isSelected = this.isOptionSelected(q, opt, oIdx);
+                                        return `
                                         <div class="flex items-center gap-2">
-                                            <input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" disabled class="w-4 h-4 text-brand-blue">
+                                            <input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" name="q_opt_${idx}" ${isSelected ? 'checked' : ''} onchange="studio.toggleOptionSelection(${idx}, ${oIdx})" class="w-4 h-4 text-brand-blue cursor-pointer">
+                                            <span class="text-xs font-bold text-slate-400 w-4">${oIdx + 1}.</span>
                                             <input type="text" value="${opt}" oninput="studio.updateOptionText(${idx}, ${oIdx}, this.value)" class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Option Text">
                                             <button onclick="studio.removeOption(${idx}, ${oIdx})" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                                         </div>
-                                    `).join('')}
+                                    `}).join('')}
                                 </div>
                             </div>
                         ` : ''}
 
                         <div>
                             <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
-                                Correct Answer ${q.type === 'multiple_select' ? '(Comma Separated Options)' : ''}
+                                Correct Answer ${q.type === 'multiple_select' ? '(Comma Separated Options / Numbers)' : q.type === 'mcq' ? '(Option Text or Option Number)' : ''}
                             </label>
-                            <input type="text" value="${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : (q.correctAnswer || '')}" oninput="studio.updateQAnswer(${idx}, this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-emerald-600 dark:text-emerald-400" placeholder="${q.type === 'numerical' ? 'e.g. 2.5' : 'e.g. Option 1'}">
+                            <input type="text" value="${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : (q.correctAnswer || '')}" oninput="studio.updateQAnswerInput(${idx}, this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-emerald-600 dark:text-emerald-400" placeholder="${q.type === 'numerical' ? 'e.g. 2.5' : 'e.g. 1 or Option Text'}">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
@@ -455,6 +582,64 @@
 
                 lucide.createIcons();
                 this.updateSummary();
+            }
+
+            isOptionSelected(q, optText, oIdx) {
+                if (!q.correctAnswer) return false;
+                const matchVal = (val) => {
+                    const trimmed = String(val).trim();
+                    return trimmed === optText || trimmed === String(oIdx + 1);
+                };
+
+                if (Array.isArray(q.correctAnswer)) {
+                    return q.correctAnswer.some(matchVal);
+                }
+                return matchVal(q.correctAnswer);
+            }
+
+            toggleOptionSelection(qIdx, oIdx) {
+                const q = this.testData.questions[qIdx];
+                const optText = q.options[oIdx];
+
+                if (q.type === 'mcq') {
+                    q.correctAnswer = optText;
+                } else if (q.type === 'multiple_select') {
+                    let current = Array.isArray(q.correctAnswer) ? [...q.correctAnswer] : (q.correctAnswer ? [q.correctAnswer] : []);
+                    const resolved = current.map(c => {
+                        const idx = parseInt(c) - 1;
+                        return (idx >= 0 && q.options[idx]) ? q.options[idx] : c;
+                    });
+
+                    const existIndex = resolved.indexOf(optText);
+                    if (existIndex > -1) {
+                        resolved.splice(existIndex, 1);
+                    } else {
+                        resolved.push(optText);
+                    }
+                    q.correctAnswer = resolved;
+                }
+                this.renderQuestions();
+            }
+
+            updateOptionText(qIdx, oIdx, val) {
+                const q = this.testData.questions[qIdx];
+                const oldText = q.options[oIdx];
+                q.options[oIdx] = val;
+
+                if (q.type === 'mcq' && q.correctAnswer === oldText) {
+                    q.correctAnswer = val;
+                } else if (q.type === 'multiple_select' && Array.isArray(q.correctAnswer)) {
+                    q.correctAnswer = q.correctAnswer.map(c => c === oldText ? val : c);
+                }
+            }
+
+            updateQAnswerInput(qIdx, val) {
+                const q = this.testData.questions[qIdx];
+                if (q.type === 'multiple_select') {
+                    q.correctAnswer = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                } else {
+                    q.correctAnswer = val.trim();
+                }
             }
 
             updateQField(idx, field, val) {
@@ -481,19 +666,6 @@
             removeOption(qIdx, oIdx) {
                 this.testData.questions[qIdx].options.splice(oIdx, 1);
                 this.renderQuestions();
-            }
-
-            updateOptionText(qIdx, oIdx, val) {
-                this.testData.questions[qIdx].options[oIdx] = val;
-            }
-
-            updateQAnswer(qIdx, val) {
-                const q = this.testData.questions[qIdx];
-                if (q.type === 'multiple_select') {
-                    q.correctAnswer = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                } else {
-                    q.correctAnswer = val.trim();
-                }
             }
 
             handleImageUrl(idx, url) {
@@ -542,32 +714,55 @@
 
                 document.getElementById('summary-total-q').innerText = questions.length;
                 document.getElementById('summary-max-score').innerText = maxScore;
-                document.getElementById('summary-duration').innerText = (this.testData.timeLimitMinutes || 0) + 'm';
+                
+                const time = this.testData.timeLimitMinutes;
+                document.getElementById('summary-duration').innerText = (time === null || time === 0) ? 'No Limit' : time + 'm';
                 
                 document.getElementById('summary-count-mcq').innerText = mcqCount;
                 document.getElementById('summary-count-msq').innerText = msqCount;
                 document.getElementById('summary-count-num').innerText = numCount;
             }
 
-            saveDraft() {
+            normalizeExportData() {
                 this.updateMeta();
-                localStorage.setItem('sprk_studio_draft', JSON.stringify(this.testData));
+                const copy = JSON.parse(JSON.stringify(this.testData));
+                
+                copy.questions.forEach(q => {
+                    if (q.type === 'mcq' && q.options) {
+                        const pIdx = parseInt(q.correctAnswer) - 1;
+                        if (!isNaN(pIdx) && q.options[pIdx]) {
+                            q.correctAnswer = q.options[pIdx];
+                        }
+                    } else if (q.type === 'multiple_select' && q.options && Array.isArray(q.correctAnswer)) {
+                        q.correctAnswer = q.correctAnswer.map(ans => {
+                            const pIdx = parseInt(ans) - 1;
+                            return (!isNaN(pIdx) && q.options[pIdx]) ? q.options[pIdx] : ans;
+                        });
+                    }
+                });
+
+                return copy;
+            }
+
+            saveDraft() {
+                const exportData = this.normalizeExportData();
+                localStorage.setItem('sprk_studio_draft', JSON.stringify(exportData));
                 alert("Test draft successfully saved to local browser storage!");
             }
 
             exportFile() {
-                this.updateMeta();
-                if (this.testData.questions.length === 0) {
+                const exportData = this.normalizeExportData();
+                if (exportData.questions.length === 0) {
                     alert("Please add at least one question before exporting.");
                     return;
                 }
 
-                const dataStr = JSON.stringify(this.testData, null, 2);
+                const dataStr = JSON.stringify(exportData, null, 2);
                 const blob = new Blob([dataStr], { type: "application/json" });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                const safeName = (this.testData.title || "test").toLowerCase().replace(/[^a-z0-9]/g, '_');
+                const safeName = (exportData.title || "test").toLowerCase().replace(/[^a-z0-9]/g, '_');
                 a.download = `${safeName}.sprk`;
                 a.click();
                 URL.revokeObjectURL(url);
@@ -591,9 +786,92 @@
             resetToNew() {
                 this.syncFormWithData();
             }
+
+            // Modal Controls
+            openJsonModal() {
+                const modal = document.getElementById('json-modal');
+                const textarea = document.getElementById('json-textarea');
+                textarea.value = JSON.stringify(this.normalizeExportData(), null, 2);
+                modal.classList.remove('hidden');
+            }
+
+            closeJsonModal() {
+                document.getElementById('json-modal').classList.add('hidden');
+            }
+
+            applyJsonChanges() {
+                try {
+                    const parsed = JSON.parse(document.getElementById('json-textarea').value);
+                    if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error("Missing questions array");
+                    this.testData = parsed;
+                    this.syncFormWithData();
+                    this.closeJsonModal();
+                } catch(e) {
+                    alert("Invalid JSON format: " + e.message);
+                }
+            }
+
+            openBulkModal() {
+                document.getElementById('bulk-modal').classList.remove('hidden');
+            }
+
+            closeBulkModal() {
+                document.getElementById('bulk-modal').classList.add('hidden');
+            }
+
+            processBulkImport() {
+                const text = document.getElementById('bulk-textarea').value;
+                const blocks = text.split(/\n\s*\n/);
+                const pos = parseFloat(document.getElementById('meta-default-pos').value) ?? 4;
+                const neg = parseFloat(document.getElementById('meta-default-neg').value) ?? 1;
+
+                blocks.forEach(block => {
+                    const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    if (lines.length === 0) return;
+
+                    let statement = '';
+                    let options = [];
+                    let answer = '';
+
+                    lines.forEach(line => {
+                        if (/^[A-D]\)/i.test(line) || /^[A-D]\./i.test(line)) {
+                            options.push(line.replace(/^[A-D][\.\)]\s*/i, ''));
+                        } else if (/^Answer:/i.test(line)) {
+                            answer = line.replace(/^Answer:\s*/i, '');
+                        } else {
+                            statement += (statement ? ' ' : '') + line.replace(/^Q\d+[\.\)]\s*/i, '');
+                        }
+                    });
+
+                    let type = 'mcq';
+                    if (answer.includes(',')) type = 'multiple_select';
+                    if (options.length === 0) type = 'numerical';
+
+                    let finalAnswer = answer;
+                    if (type === 'mcq' && answer.length === 1 && /[A-D]/i.test(answer)) {
+                        const idx = answer.toUpperCase().charCodeAt(0) - 65;
+                        if (options[idx]) finalAnswer = options[idx];
+                    }
+
+                    this.testData.questions.push({
+                        id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                        text: statement,
+                        type: type,
+                        options: options.length ? options : ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
+                        correctAnswer: finalAnswer || 'Option 1',
+                        positiveMarks: pos,
+                        negativeMarks: neg,
+                        hint: '',
+                        explanation: '',
+                        media: null
+                    });
+                });
+
+                this.renderQuestions();
+                this.closeBulkModal();
+            }
         }
 
-        // Initialize Application
         let studio;
         window.addEventListener('DOMContentLoaded', () => {
             studio = new SprkStudio();
