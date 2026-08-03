@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPRK-Web | Create Test</title>
     <link rel="icon" href="https://sprk-web.github.io/favicon.png" type="image/x-icon">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -18,7 +19,9 @@
             }
         }
     </script>
+    
     <script src="https://unpkg.com/lucide@latest"></script>
+
     <style>
         .brand-main {
             background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
@@ -38,16 +41,21 @@
         .brand-logo-container:hover .logo-underline { width: 100%; }
         @keyframes pulse { 0% { transform: scale(0.8); opacity: 0.5; } 100% { transform: scale(1.3); opacity: 1; } }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 3px; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased selection:bg-brand-blue selection:text-white">
 
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-slate-700 dark:border-slate-200">
+        <i id="toast-icon" data-lucide="info" class="w-5 h-5 text-brand-cyan"></i>
+        <span id="toast-msg" class="text-xs font-semibold">Notification message</span>
+    </div>
+
     <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full">
-        <div class="max-w-7xl mx-auto px-6 py-3.5 flex justify-between items-center w-full">
-            <div class="brand-logo-container flex flex-col cursor-pointer" onclick="studio.resetToNew()">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center w-full gap-2">
+            <div class="brand-logo-container flex flex-col cursor-pointer" onclick="studio.resetToNew()" title="Start New Test Studio">
                 <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
                     <span class="brand-main">Sprk</span>
                     <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
@@ -55,21 +63,40 @@
                 <div class="logo-underline"></div>
             </div>
 
-            <div class="flex items-center gap-2 sm:gap-3">
-                <button onclick="studio.openJsonModal()" title="View Raw JSON Data" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
-                    <i data-lucide="code" class="w-4 h-4 text-brand-cyan"></i>
-                    <span class="hidden md:inline">JSON View</span>
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+                <button onclick="studio.undo()" id="btn-undo" title="Undo (Ctrl+Z)" disabled class="p-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-30 disabled:hover:bg-transparent">
+                    <i data-lucide="undo-2" class="w-4 h-4 text-brand-blue"></i>
                 </button>
-                <button onclick="studio.saveDraft()" title="Save Draft to Browser" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
+                <button onclick="studio.redo()" id="btn-redo" title="Redo (Ctrl+Y)" disabled class="p-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-30 disabled:hover:bg-transparent">
+                    <i data-lucide="redo-2" class="w-4 h-4 text-brand-blue"></i>
+                </button>
+
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-0.5 hidden sm:block"></div>
+
+                <button onclick="studio.triggerMergePicker()" title="Merge questions from another .sprk/.json file" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i data-lucide="git-merge" class="w-4 h-4 text-brand-cyan"></i>
+                    <span class="hidden md:inline">Merge Test File</span>
+                </button>
+                <input type="file" id="merge-file-input" accept=".sprk,.json" multiple class="hidden" />
+
+                <button onclick="studio.openJsonModal()" title="View & Edit Raw JSON Data" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i data-lucide="code" class="w-4 h-4 text-brand-cyan"></i>
+                    <span class="hidden lg:inline">JSON View</span>
+                </button>
+
+                <button onclick="studio.saveDraft()" title="Save Draft to Browser Storage" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
                     <i data-lucide="save" class="w-4 h-4 text-brand-purple"></i>
                     <span class="hidden sm:inline">Save Draft</span>
                 </button>
-                <button onclick="studio.exportFile()" title="Export .sprk File" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-blue to-brand-purple text-white hover:opacity-95 shadow-lg shadow-brand-blue/20 transition flex items-center gap-2">
+
+                <button onclick="studio.exportFile()" title="Export .sprk Test File" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-blue to-brand-purple text-white hover:opacity-95 shadow-lg shadow-brand-blue/20 transition flex items-center gap-1.5">
                     <i data-lucide="download" class="w-4 h-4"></i>
                     <span class="hidden sm:inline">Export .sprk</span>
                 </button>
-                <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
-                <button id="theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+
+                <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-0.5"></div>
+
+                <button id="theme-toggle" title="Toggle Light/Dark Theme" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i id="theme-icon" data-lucide="sun" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -82,7 +109,7 @@
             
             <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl p-5 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 cursor-pointer transition text-center group">
                 <i data-lucide="file-up" class="w-7 h-7 text-brand-blue group-hover:scale-110 transition"></i>
-                <p class="mt-2 text-xs font-bold">Import Existing Test File(s)</p>
+                <p class="mt-2 text-xs font-bold">Import Test File(s)</p>
                 <p class="text-[11px] text-slate-400 mt-0.5">Drop or select <span class="text-brand-blue font-semibold">.sprk</span> / <span class="text-brand-purple font-semibold">.json</span> files</p>
                 <input type="file" id="file-input" accept=".sprk,.json" multiple class="hidden" />
             </div>
@@ -92,7 +119,7 @@
                     <h2 class="text-sm font-bold tracking-wide uppercase text-slate-500 dark:text-slate-400 flex items-center gap-2">
                         <i data-lucide="sliders" class="w-4 h-4 text-brand-blue"></i> Global Settings
                     </h2>
-                    <button onclick="studio.clearAll()" class="text-[11px] text-red-500 hover:underline font-semibold flex items-center gap-1">
+                    <button onclick="studio.clearAll()" title="Reset all test fields" class="text-[11px] text-red-500 hover:underline font-semibold flex items-center gap-1">
                         <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Clear Studio
                     </button>
                 </div>
@@ -108,7 +135,7 @@
                         <textarea id="meta-desc" rows="2" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Brief test guidelines or instructions..."></textarea>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-2 pt-1">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                         <div>
                             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Duration (m)</label>
                             <input type="text" id="meta-time" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="180 or 'none'">
@@ -171,12 +198,42 @@
                     <p class="text-xs text-slate-500 dark:text-slate-400">Configure questions, options, individual weightage, and explanations.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button onclick="studio.openBulkModal()" class="px-3 py-2.5 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
-                        <i data-lucide="file-text" class="w-4 h-4 text-brand-purple"></i> Bulk Import
-                    </button>
                     <button onclick="studio.addQuestion()" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-brand-blue text-white hover:opacity-90 shadow-md shadow-brand-blue/20 transition flex items-center gap-2">
                         <i data-lucide="plus" class="w-4 h-4"></i> Add Question
                     </button>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-3 shadow-sm">
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                        <input type="text" id="search-input" oninput="studio.handleSearchFilter()" placeholder="Search questions text or options..." class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none">
+                    </div>
+                    
+                    <select id="filter-type" onchange="studio.handleSearchFilter()" class="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-medium focus:ring-2 focus:ring-brand-blue outline-none">
+                        <option value="all">All Types</option>
+                        <option value="mcq">MCQ (Single Select)</option>
+                        <option value="multiple_select">Multiple Select</option>
+                        <option value="numerical">Numerical</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 text-xs">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="select-all-checkbox" onchange="studio.toggleSelectAll(this.checked)" class="w-4 h-4 text-brand-blue rounded cursor-pointer">
+                        <label for="select-all-checkbox" class="font-bold text-slate-500 cursor-pointer text-[11px] uppercase tracking-wider">Select All</label>
+                        <span id="batch-count" class="text-[11px] text-slate-400 ml-1">(0 selected)</span>
+                    </div>
+
+                    <div id="batch-actions-container" class="flex items-center gap-2 opacity-50 pointer-events-none transition">
+                        <button onclick="studio.batchChangeMarks()" title="Batch change positive/negative marks" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition flex items-center gap-1">
+                            <i data-lucide="edit-3" class="w-3 h-3 text-brand-blue"></i> Set Marks
+                        </button>
+                        <button onclick="studio.batchDelete()" title="Batch delete selected questions" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 hover:bg-red-100 transition flex items-center gap-1 border border-red-200 dark:border-red-900">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -184,7 +241,7 @@
 
             <div id="empty-state" class="hidden p-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900/30 space-y-3">
                 <i data-lucide="file-question" class="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto"></i>
-                <p class="text-sm font-semibold text-slate-500">No questions added yet.</p>
+                <p class="text-sm font-semibold text-slate-500">No questions found matching your criteria.</p>
                 <button onclick="studio.addQuestion()" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 inline-flex items-center gap-2">
                     <i data-lucide="plus" class="w-4 h-4"></i> Add First Question
                 </button>
@@ -218,33 +275,63 @@
         </div>
     </div>
 
-    <div id="bulk-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div id="katex-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                 <h3 class="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="file-text" class="w-4 h-4 text-brand-purple"></i> Bulk Markdown/Text Import
+                    <i data-lucide="sigma" class="w-4 h-4 text-brand-purple"></i> KaTeX Math & Chemistry Syntax Guide
                 </h3>
-                <button onclick="studio.closeBulkModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <button onclick="studio.closeKatexModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <div class="p-4 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                <p class="text-xs text-slate-500">Paste questions using simple text formatting below. Separate questions with blank lines.</p>
-                <textarea id="bulk-textarea" rows="10" class="w-full font-mono text-xs p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none custom-scrollbar" placeholder="Q1. What is the speed of light?
-A) 3x10^8 m/s
-B) 150 km/h
-C) 9.8 m/s^2
-D) None
-Answer: A
+            <div class="p-5 flex-1 overflow-y-auto space-y-4 custom-scrollbar text-xs">
+                <div class="p-3 bg-brand-blue/10 border border-brand-blue/20 rounded-xl">
+                    <p class="font-bold text-brand-blue">Delimiters Guide</p>
+                    <p class="mt-1 text-slate-600 dark:text-slate-300">Use <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded">$...$</code> for inline math (e.g. $E=mc^2$) and <code class="bg-slate-200 dark:bg-slate-800 px-1 rounded">$$...$$</code> for display equations on new lines.</p>
+                </div>
 
-Q2. Select prime numbers:
-A) 2
-B) 4
-C) 3
-D) 9
-Answer: A, C"></textarea>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <h4 class="font-extrabold uppercase text-slate-400 text-[10px]">Mathematics Examples</h4>
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase text-slate-400">
+                                    <th class="py-1">Type</th>
+                                    <th class="py-1">Code</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-[11px]">
+                                <tr><td class="py-1.5 font-sans">Fraction</td><td>\frac{a}{b}</td></tr>
+                                <tr><td class="py-1.5 font-sans">Exponent</td><td>x^{n}</td></tr>
+                                <tr><td class="py-1.5 font-sans">Square Root</td><td>\sqrt{x}</td></tr>
+                                <tr><td class="py-1.5 font-sans">Summation</td><td>\sum_{i=1}^{n}</td></tr>
+                                <tr><td class="py-1.5 font-sans">Integral</td><td>\int_{a}^{b}</td></tr>
+                                <tr><td class="py-1.5 font-sans">Greek</td><td>\alpha, \beta, \theta, \pi</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="space-y-2">
+                        <h4 class="font-extrabold uppercase text-slate-400 text-[10px]">Chemistry Examples</h4>
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase text-slate-400">
+                                    <th class="py-1">Type</th>
+                                    <th class="py-1">Code</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 dark:divide-slate-800 font-mono text-[11px]">
+                                <tr><td class="py-1.5 font-sans">Water Formula</td><td>\text{H}_2\text{O}</td></tr>
+                                <tr><td class="py-1.5 font-sans">Reaction Arrow</td><td>\rightarrow</td></tr>
+                                <tr><td class="py-1.5 font-sans">Equilibrium</td><td>\rightleftharpoons</td></tr>
+                                <tr><td class="py-1.5 font-sans">Gas / Precipitate</td><td>\uparrow , \downarrow</td></tr>
+                                <tr><td class="py-1.5 font-sans">Sulfate Ion</td><td>\text{SO}_4^{2-}</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2 bg-slate-50/50 dark:bg-slate-900/50">
-                <button onclick="studio.closeBulkModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">Cancel</button>
-                <button onclick="studio.processBulkImport()" class="px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-purple text-white">Parse & Append</button>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end bg-slate-50/50 dark:bg-slate-900/50">
+                <button onclick="studio.closeKatexModal()" class="px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-blue text-white">Got it</button>
             </div>
         </div>
     </div>
@@ -261,12 +348,95 @@ Answer: A, C"></textarea>
                     questions: []
                 };
 
+                // Undo / Redo Stacks
+                this.undoStack = [];
+                this.redoStack = [];
+                this.maxStackSize = 30;
+
+                // Selection & Drag State
+                this.selectedQuestionIds = new Set();
                 this.draggedIndex = null;
+                this.lastFocusedInput = null;
+
+                // Initialization
                 this.initTheme();
                 this.bindFileEvents();
+                this.bindKeyboardShortcuts();
                 this.loadDraftOnStart();
             }
 
+            // --- State & History System ---
+            saveState() {
+                if (this.undoStack.length >= this.maxStackSize) {
+                    this.undoStack.shift();
+                }
+                this.undoStack.push(JSON.stringify(this.testData));
+                this.redoStack = []; // Reset redo on new action
+                this.updateUndoRedoUI();
+            }
+
+            undo() {
+                if (this.undoStack.length === 0) return;
+                this.redoStack.push(JSON.stringify(this.testData));
+                const previousState = this.undoStack.pop();
+                this.testData = JSON.parse(previousState);
+                this.syncFormWithData(false);
+                this.updateUndoRedoUI();
+                this.showToast("Undo applied", "undo-2");
+            }
+
+            redo() {
+                if (this.redoStack.length === 0) return;
+                this.undoStack.push(JSON.stringify(this.testData));
+                const nextState = this.redoStack.pop();
+                this.testData = JSON.parse(nextState);
+                this.syncFormWithData(false);
+                this.updateUndoRedoUI();
+                this.showToast("Redo applied", "redo-2");
+            }
+
+            updateUndoRedoUI() {
+                const btnUndo = document.getElementById('btn-undo');
+                const btnRedo = document.getElementById('btn-redo');
+                if (btnUndo) btnUndo.disabled = this.undoStack.length === 0;
+                if (btnRedo) btnRedo.disabled = this.redoStack.length === 0;
+            }
+
+            bindKeyboardShortcuts() {
+                window.addEventListener('keydown', (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                        if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+                        e.preventDefault();
+                        this.undo();
+                    } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key === 'Z'))) {
+                        if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+                        e.preventDefault();
+                        this.redo();
+                    }
+                });
+            }
+
+            // --- Toast Notification ---
+            showToast(msg, iconName = "info") {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toast-msg');
+                const toastIcon = document.getElementById('toast-icon');
+
+                toastMsg.innerText = msg;
+                toastIcon.setAttribute('data-lucide', iconName);
+                lucide.createIcons();
+
+                toast.classList.remove('translate-y-20', 'opacity-0');
+                toast.classList.add('translate-y-0', 'opacity-100');
+
+                clearTimeout(this.toastTimeout);
+                this.toastTimeout = setTimeout(() => {
+                    toast.classList.remove('translate-y-0', 'opacity-100');
+                    toast.classList.add('translate-y-20', 'opacity-0');
+                }, 3000);
+            }
+
+            // --- Theme Initialization ---
             initTheme() {
                 const toggleBtn = document.getElementById('theme-toggle');
                 const themeIcon = document.getElementById('theme-icon');
@@ -278,9 +448,11 @@ Answer: A, C"></textarea>
                 });
             }
 
+            // --- File Handling & Merge Utilities ---
             bindFileEvents() {
                 const dropZone = document.getElementById('drop-zone');
                 const fileInput = document.getElementById('file-input');
+                const mergeInput = document.getElementById('merge-file-input');
 
                 dropZone.addEventListener('click', () => fileInput.click());
                 dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-brand-blue'); });
@@ -288,16 +460,29 @@ Answer: A, C"></textarea>
                 dropZone.addEventListener('drop', (e) => {
                     e.preventDefault();
                     dropZone.classList.remove('border-brand-blue');
-                    if (e.dataTransfer.files.length) this.parseFiles(Array.from(e.dataTransfer.files));
+                    if (e.dataTransfer.files.length) this.parseFiles(Array.from(e.dataTransfer.files), false);
                 });
+
                 fileInput.addEventListener('change', (e) => {
-                    if (e.target.files.length) this.parseFiles(Array.from(e.target.files));
+                    if (e.target.files.length) this.parseFiles(Array.from(e.target.files), false);
+                    fileInput.value = '';
+                });
+
+                mergeInput.addEventListener('change', (e) => {
+                    if (e.target.files.length) this.parseFiles(Array.from(e.target.files), true);
+                    mergeInput.value = '';
                 });
             }
 
-            parseFiles(files) {
+            triggerMergePicker() {
+                document.getElementById('merge-file-input').click();
+            }
+
+            parseFiles(files, isMerge = false) {
                 let processed = 0;
-                let isFirst = true;
+                let mergedQuestionCount = 0;
+
+                if (!isMerge) this.saveState();
 
                 files.forEach((file) => {
                     const reader = new FileReader();
@@ -305,31 +490,38 @@ Answer: A, C"></textarea>
                         try {
                             const parsed = JSON.parse(e.target.result);
                             if (!parsed.questions || !Array.isArray(parsed.questions)) {
-                                throw new Error("Invalid structure");
+                                throw new Error("Invalid SPRK JSON format");
                             }
 
-                            if (isFirst && this.testData.questions.length === 0) {
+                            if (!isMerge && processed === 0 && this.testData.questions.length === 0) {
                                 this.testData.title = parsed.title || "Loaded Test";
                                 this.testData.description = parsed.description || "";
                                 this.testData.timeLimitMinutes = parsed.timeLimitMinutes ?? 180;
                                 this.testData.defaultPositiveMarks = parsed.defaultPositiveMarks ?? 4;
                                 this.testData.defaultNegativeMarks = parsed.defaultNegativeMarks ?? 1;
-                                isFirst = false;
                             }
+
+                            if (isMerge) this.saveState();
 
                             parsed.questions.forEach(q => {
                                 const newQ = JSON.parse(JSON.stringify(q));
-                                newQ.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                                newQ.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
                                 this.testData.questions.push(newQ);
+                                mergedQuestionCount++;
                             });
 
                         } catch (err) {
-                            alert(`Failed to load file ${file.name}: Invalid SPRK test structure.`);
+                            alert(`Failed to parse ${file.name}: Invalid file structure.`);
                         }
 
                         processed++;
                         if (processed === files.length) {
-                            this.syncFormWithData();
+                            this.syncFormWithData(false);
+                            if (isMerge) {
+                                this.showToast(`Successfully merged ${mergedQuestionCount} questions!`, "git-merge");
+                            } else {
+                                this.showToast("Test file loaded successfully!", "file-check");
+                            }
                         }
                     };
                     reader.readAsText(file);
@@ -342,15 +534,17 @@ Answer: A, C"></textarea>
                     try {
                         this.testData = JSON.parse(draft);
                     } catch(e) {
-                        this.addQuestion();
+                        this.addQuestion(false);
                     }
                 } else {
-                    this.addQuestion();
+                    this.addQuestion(false);
                 }
-                this.syncFormWithData();
+                this.syncFormWithData(false);
             }
 
-            syncFormWithData() {
+            syncFormWithData(recordHistory = true) {
+                if (recordHistory) this.saveState();
+
                 document.getElementById('meta-title').value = this.testData.title || '';
                 document.getElementById('meta-desc').value = this.testData.description || '';
                 
@@ -359,10 +553,12 @@ Answer: A, C"></textarea>
                 
                 document.getElementById('meta-default-pos').value = this.testData.defaultPositiveMarks ?? 4;
                 document.getElementById('meta-default-neg').value = this.testData.defaultNegativeMarks ?? 1;
+                
                 this.renderQuestions();
             }
 
             updateMeta() {
+                this.saveState();
                 this.testData.title = document.getElementById('meta-title').value || "Untitled Test";
                 this.testData.description = document.getElementById('meta-desc').value;
                 
@@ -378,24 +574,28 @@ Answer: A, C"></textarea>
             }
 
             applyGlobalMarksDefaults() {
+                this.saveState();
                 const pos = parseFloat(document.getElementById('meta-default-pos').value) || 0;
                 const neg = parseFloat(document.getElementById('meta-default-neg').value) || 0;
                 this.testData.defaultPositiveMarks = pos;
                 this.testData.defaultNegativeMarks = neg;
 
                 this.testData.questions.forEach(q => {
-                    if (q.positiveMarks === undefined || q.positiveMarks === null) q.positiveMarks = pos;
-                    if (q.negativeMarks === undefined || q.negativeMarks === null) q.negativeMarks = neg;
+                    q.positiveMarks = pos;
+                    q.negativeMarks = neg;
                 });
-                this.updateSummary();
+                this.renderQuestions();
             }
 
-            addQuestion() {
+            // --- Question Lifecycle Management ---
+            addQuestion(recordHistory = true) {
+                if (recordHistory) this.saveState();
+
                 const pos = parseFloat(document.getElementById('meta-default-pos').value) ?? 4;
                 const neg = parseFloat(document.getElementById('meta-default-neg').value) ?? 1;
 
                 this.testData.questions.push({
-                    id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
                     text: '',
                     type: 'mcq',
                     options: ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
@@ -407,24 +607,31 @@ Answer: A, C"></textarea>
                     media: null
                 });
                 this.renderQuestions();
+                this.showToast("Question added", "plus");
             }
 
             duplicateQuestion(idx) {
+                this.saveState();
                 const source = this.testData.questions[idx];
                 const clone = JSON.parse(JSON.stringify(source));
-                clone.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+                clone.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
                 this.testData.questions.splice(idx + 1, 0, clone);
                 this.renderQuestions();
+                this.showToast("Question duplicated", "copy");
             }
 
             deleteQuestion(idx) {
-                this.testData.questions.splice(idx, 1);
+                this.saveState();
+                const removed = this.testData.questions.splice(idx, 1)[0];
+                if (removed && removed.id) this.selectedQuestionIds.delete(removed.id);
                 this.renderQuestions();
+                this.showToast("Question deleted", "trash-2");
             }
 
             moveQuestion(idx, dir) {
                 const target = idx + dir;
                 if (target < 0 || target >= this.testData.questions.length) return;
+                this.saveState();
                 const temp = this.testData.questions[idx];
                 this.testData.questions[idx] = this.testData.questions[target];
                 this.testData.questions[target] = temp;
@@ -434,29 +641,87 @@ Answer: A, C"></textarea>
             jumpToPosition(idx, newPosStr) {
                 const target = parseInt(newPosStr) - 1;
                 if (isNaN(target) || target < 0 || target >= this.testData.questions.length || target === idx) return;
+                this.saveState();
                 const [item] = this.testData.questions.splice(idx, 1);
                 this.testData.questions.splice(target, 0, item);
                 this.renderQuestions();
             }
 
+            // --- Option Reordering Utilities ---
+            moveOption(qIdx, oIdx, dir) {
+                const q = this.testData.questions[qIdx];
+                const target = oIdx + dir;
+                if (!q.options || target < 0 || target >= q.options.length) return;
+
+                this.saveState();
+                const temp = q.options[oIdx];
+                q.options[oIdx] = q.options[target];
+                q.options[target] = temp;
+                this.renderQuestions();
+            }
+
+            // --- KaTeX Syntax Helper Toolbar ---
+            insertKatexSnippet(snippet) {
+                if (!this.lastFocusedInput) {
+                    alert("Please click inside a question text area or solution explanation field first.");
+                    return;
+                }
+
+                const input = this.lastFocusedInput;
+                const start = input.selectionStart || 0;
+                const end = input.selectionEnd || 0;
+                const val = input.value;
+
+                input.value = val.substring(0, start) + snippet + val.substring(end);
+                input.selectionStart = input.selectionEnd = start + snippet.length;
+                input.focus();
+
+                // Trigger input event to update underlying state
+                input.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+
+            openKatexModal() {
+                document.getElementById('katex-modal').classList.remove('hidden');
+            }
+
+            closeKatexModal() {
+                document.getElementById('katex-modal').classList.add('hidden');
+            }
+
+            // --- Render Question Cards ---
             renderQuestions() {
                 const container = document.getElementById('questions-list');
                 const emptyState = document.getElementById('empty-state');
                 container.innerHTML = '';
 
-                if (this.testData.questions.length === 0) {
+                const searchQuery = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+                const filterType = document.getElementById('filter-type')?.value || 'all';
+
+                const visibleQuestions = this.testData.questions.filter(q => {
+                    const matchesType = filterType === 'all' || q.type === filterType;
+                    const matchesSearch = !searchQuery || 
+                        (q.text || '').toLowerCase().includes(searchQuery) ||
+                        (q.options || []).some(o => o.toLowerCase().includes(searchQuery)) ||
+                        (q.explanation || '').toLowerCase().includes(searchQuery);
+                    return matchesType && matchesSearch;
+                });
+
+                if (visibleQuestions.length === 0) {
                     emptyState.classList.remove('hidden');
                 } else {
                     emptyState.classList.add('hidden');
                 }
 
-                this.testData.questions.forEach((q, idx) => {
+                visibleQuestions.forEach((q) => {
+                    const idx = this.testData.questions.findIndex(item => item.id === q.id);
+                    const isChecked = this.selectedQuestionIds.has(q.id);
+
                     const qCard = document.createElement('div');
-                    qCard.className = "p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-4 shadow-sm relative group";
+                    qCard.className = `p-5 rounded-2xl border ${isChecked ? 'border-brand-blue ring-1 ring-brand-blue' : 'border-slate-200 dark:border-slate-800'} bg-white dark:bg-slate-900 space-y-4 shadow-sm relative group transition`;
                     qCard.setAttribute('draggable', 'true');
                     qCard.dataset.index = idx;
 
-                    // Drag Events
+                    // Drag and Drop reordering
                     qCard.addEventListener('dragstart', (e) => {
                         this.draggedIndex = idx;
                         e.dataTransfer.effectAllowed = 'move';
@@ -470,6 +735,7 @@ Answer: A, C"></textarea>
                     qCard.addEventListener('drop', (e) => {
                         e.preventDefault();
                         if (this.draggedIndex !== null && this.draggedIndex !== idx) {
+                            this.saveState();
                             const [dragged] = this.testData.questions.splice(this.draggedIndex, 1);
                             this.testData.questions.splice(idx, 0, dragged);
                             this.renderQuestions();
@@ -477,8 +743,9 @@ Answer: A, C"></textarea>
                     });
 
                     qCard.innerHTML = `
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
                             <div class="flex items-center gap-2">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="studio.toggleSelectQuestion('${q.id}', this.checked)" class="w-4 h-4 text-brand-blue rounded cursor-pointer mr-1">
                                 <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-grab"></i>
                                 <span class="font-extrabold text-xs text-brand-blue uppercase tracking-wider">Question ${idx + 1}</span>
                                 <span class="text-[10px] text-slate-400">#</span>
@@ -511,9 +778,25 @@ Answer: A, C"></textarea>
                             </div>
                         </div>
 
+                        <div class="flex items-center justify-between gap-1 overflow-x-auto pb-1 custom-scrollbar text-[10px] bg-slate-50 dark:bg-slate-800/40 p-2 rounded-xl border border-slate-100 dark:border-slate-800">
+                            <span class="font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap flex items-center gap-1">
+                                <i data-lucide="sigma" class="w-3 h-3 text-brand-purple"></i> Quick KaTeX:
+                            </span>
+                            <div class="flex items-center gap-1 whitespace-nowrap">
+                                <button type="button" onclick="studio.insertKatexSnippet('$$\\\\frac{a}{b}$$')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">Frac</button>
+                                <button type="button" onclick="studio.insertKatexSnippet('x^{n}')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">Power</button>
+                                <button type="button" onclick="studio.insertKatexSnippet('\\\\sqrt{x}')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">Root</button>
+                                <button type="button" onclick="studio.insertKatexSnippet('\\\\sum_{i=1}^{n}')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">Sum</button>
+                                <button type="button" onclick="studio.insertKatexSnippet('\\\\int')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">Integral</button>
+                                <button type="button" onclick="studio.insertKatexSnippet('\\\\text{H}_2\\\\text{O}')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">Chem H₂O</button>
+                                <button type="button" onclick="studio.insertKatexSnippet('\\\\rightarrow')" class="px-2 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-brand-blue">→</button>
+                                <button type="button" onclick="studio.openKatexModal()" class="px-2 py-0.5 rounded bg-brand-purple/10 text-brand-purple border border-brand-purple/20 font-bold hover:bg-brand-purple/20">Guide</button>
+                            </div>
+                        </div>
+
                         <div>
                             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Question Statement</label>
-                            <textarea rows="2" oninput="studio.updateQField(${idx}, 'text', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Enter question statement here...">${q.text || ''}</textarea>
+                            <textarea rows="2" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'text', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Enter question statement here...">${q.text || ''}</textarea>
                         </div>
 
                         <div class="p-3 bg-slate-50/70 dark:bg-slate-800/30 rounded-xl border border-slate-200/60 dark:border-slate-800 space-y-2">
@@ -541,7 +824,7 @@ Answer: A, C"></textarea>
                                 <div class="flex items-center justify-between">
                                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Option Choices (Select correct option)</label>
                                     <button onclick="studio.addOption(${idx})" class="text-[11px] font-bold text-brand-blue hover:underline flex items-center gap-1">
-                                        <i data-lucide="plus" class="w-3 h-3"></i> Add Option Choice
+                                        <i data-lucide="plus" class="w-3 h-3"></i> Add Choice
                                     </button>
                                 </div>
                                 <div class="space-y-2">
@@ -549,9 +832,14 @@ Answer: A, C"></textarea>
                                         const isSelected = this.isOptionSelected(q, opt, oIdx);
                                         return `
                                         <div class="flex items-center gap-2">
+                                            <div class="flex flex-col text-slate-400">
+                                                <button onclick="studio.moveOption(${idx}, ${oIdx}, -1)" ${oIdx === 0 ? 'disabled' : ''} class="hover:text-brand-blue disabled:opacity-20"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
+                                                <button onclick="studio.moveOption(${idx}, ${oIdx}, 1)" ${oIdx === (q.options.length - 1) ? 'disabled' : ''} class="hover:text-brand-blue disabled:opacity-20"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
+                                            </div>
+
                                             <input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" name="q_opt_${idx}" ${isSelected ? 'checked' : ''} onchange="studio.toggleOptionSelection(${idx}, ${oIdx})" class="w-4 h-4 text-brand-blue cursor-pointer">
                                             <span class="text-xs font-bold text-slate-400 w-4">${oIdx + 1}.</span>
-                                            <input type="text" value="${opt}" oninput="studio.updateOptionText(${idx}, ${oIdx}, this.value)" class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Option Text">
+                                            <input type="text" value="${opt}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateOptionText(${idx}, ${oIdx}, this.value)" class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Option Text">
                                             <button onclick="studio.removeOption(${idx}, ${oIdx})" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                                         </div>
                                     `}).join('')}
@@ -569,11 +857,11 @@ Answer: A, C"></textarea>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hint (Optional)</label>
-                                <input type="text" value="${q.hint || ''}" oninput="studio.updateQField(${idx}, 'hint', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Short hint for test-taker">
+                                <input type="text" value="${q.hint || ''}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'hint', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Short hint for test-taker">
                             </div>
                             <div>
                                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Solution Explanation</label>
-                                <input type="text" value="${q.explanation || ''}" oninput="studio.updateQField(${idx}, 'explanation', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Detailed step-by-step solution">
+                                <input type="text" value="${q.explanation || ''}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'explanation', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Detailed step-by-step solution">
                             </div>
                         </div>
                     `;
@@ -582,10 +870,12 @@ Answer: A, C"></textarea>
 
                 lucide.createIcons();
                 this.updateSummary();
+                this.updateBatchBarUI();
             }
 
+            // --- Option Logic & Answer Binding ---
             isOptionSelected(q, optText, oIdx) {
-                if (!q.correctAnswer) return false;
+                if (q.correctAnswer === undefined || q.correctAnswer === null) return false;
                 const matchVal = (val) => {
                     const trimmed = String(val).trim();
                     return trimmed === optText || trimmed === String(oIdx + 1);
@@ -598,6 +888,7 @@ Answer: A, C"></textarea>
             }
 
             toggleOptionSelection(qIdx, oIdx) {
+                this.saveState();
                 const q = this.testData.questions[qIdx];
                 const optText = q.options[oIdx];
 
@@ -626,6 +917,7 @@ Answer: A, C"></textarea>
                 const oldText = q.options[oIdx];
                 q.options[oIdx] = val;
 
+                // Update correct answer seamlessly to prevent orphaned string references
                 if (q.type === 'mcq' && q.correctAnswer === oldText) {
                     q.correctAnswer = val;
                 } else if (q.type === 'multiple_select' && Array.isArray(q.correctAnswer)) {
@@ -648,15 +940,29 @@ Answer: A, C"></textarea>
             }
 
             updateQType(idx, type) {
+                this.saveState();
                 const q = this.testData.questions[idx];
                 q.type = type;
-                if (type === 'multiple_select' && !Array.isArray(q.correctAnswer)) {
-                    q.correctAnswer = q.correctAnswer ? [q.correctAnswer] : [];
+
+                // Sanitize / Reset correct answer on type switch
+                if (type === 'numerical') {
+                    delete q.options;
+                    q.correctAnswer = typeof q.correctAnswer === 'string' ? q.correctAnswer : '';
+                } else {
+                    if (!q.options || q.options.length === 0) {
+                        q.options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
+                    }
+                    if (type === 'multiple_select' && !Array.isArray(q.correctAnswer)) {
+                        q.correctAnswer = q.correctAnswer ? [q.correctAnswer] : ['Option 1'];
+                    } else if (type === 'mcq' && Array.isArray(q.correctAnswer)) {
+                        q.correctAnswer = q.correctAnswer[0] || q.options[0];
+                    }
                 }
                 this.renderQuestions();
             }
 
             addOption(qIdx) {
+                this.saveState();
                 const q = this.testData.questions[qIdx];
                 if (!q.options) q.options = [];
                 q.options.push(`Option ${q.options.length + 1}`);
@@ -664,11 +970,20 @@ Answer: A, C"></textarea>
             }
 
             removeOption(qIdx, oIdx) {
-                this.testData.questions[qIdx].options.splice(oIdx, 1);
+                this.saveState();
+                const q = this.testData.questions[qIdx];
+                const removed = q.options.splice(oIdx, 1)[0];
+
+                if (q.type === 'mcq' && q.correctAnswer === removed) {
+                    q.correctAnswer = q.options[0] || '';
+                } else if (q.type === 'multiple_select' && Array.isArray(q.correctAnswer)) {
+                    q.correctAnswer = q.correctAnswer.filter(ans => ans !== removed);
+                }
                 this.renderQuestions();
             }
 
             handleImageUrl(idx, url) {
+                this.saveState();
                 if (url.trim() === '') {
                     this.removeImage(idx);
                     return;
@@ -679,6 +994,7 @@ Answer: A, C"></textarea>
 
             handleImageFileUpload(idx, input) {
                 if (!input.files || !input.files[0]) return;
+                this.saveState();
                 const file = input.files[0];
                 const reader = new FileReader();
                 reader.onload = (e) => {
@@ -694,10 +1010,87 @@ Answer: A, C"></textarea>
             }
 
             removeImage(idx) {
+                this.saveState();
                 this.testData.questions[idx].media = null;
                 this.renderQuestions();
             }
 
+            // --- Batch Operations & Selection ---
+            toggleSelectQuestion(id, isSelected) {
+                if (isSelected) {
+                    this.selectedQuestionIds.add(id);
+                } else {
+                    this.selectedQuestionIds.delete(id);
+                }
+                this.renderQuestions();
+            }
+
+            toggleSelectAll(isChecked) {
+                if (isChecked) {
+                    this.testData.questions.forEach(q => this.selectedQuestionIds.add(q.id));
+                } else {
+                    this.selectedQuestionIds.clear();
+                }
+                this.renderQuestions();
+            }
+
+            updateBatchBarUI() {
+                const count = this.selectedQuestionIds.size;
+                const total = this.testData.questions.length;
+                document.getElementById('batch-count').innerText = `(${count} selected)`;
+
+                const allCheckbox = document.getElementById('select-all-checkbox');
+                if (allCheckbox) {
+                    allCheckbox.checked = total > 0 && count === total;
+                }
+
+                const batchContainer = document.getElementById('batch-actions-container');
+                if (batchContainer) {
+                    if (count > 0) {
+                        batchContainer.classList.remove('opacity-50', 'pointer-events-none');
+                    } else {
+                        batchContainer.classList.add('opacity-50', 'pointer-events-none');
+                    }
+                }
+            }
+
+            batchDelete() {
+                if (this.selectedQuestionIds.size === 0) return;
+                if (confirm(`Are you sure you want to delete ${this.selectedQuestionIds.size} selected question(s)?`)) {
+                    this.saveState();
+                    this.testData.questions = this.testData.questions.filter(q => !this.selectedQuestionIds.has(q.id));
+                    this.selectedQuestionIds.clear();
+                    this.renderQuestions();
+                    this.showToast("Selected questions deleted", "trash-2");
+                }
+            }
+
+            batchChangeMarks() {
+                if (this.selectedQuestionIds.size === 0) return;
+                const posStr = prompt("Enter new Positive Marks for selected questions:", "4");
+                if (posStr === null) return;
+                const negStr = prompt("Enter new Negative Marks for selected questions:", "1");
+                if (negStr === null) return;
+
+                const pos = parseFloat(posStr) || 0;
+                const neg = parseFloat(negStr) || 0;
+
+                this.saveState();
+                this.testData.questions.forEach(q => {
+                    if (this.selectedQuestionIds.has(q.id)) {
+                        q.positiveMarks = pos;
+                        q.negativeMarks = neg;
+                    }
+                });
+                this.renderQuestions();
+                this.showToast("Batch marks updated", "edit-3");
+            }
+
+            handleSearchFilter() {
+                this.renderQuestions();
+            }
+
+            // --- Summary & Export Processing ---
             updateSummary() {
                 const questions = this.testData.questions || [];
                 let maxScore = 0;
@@ -747,7 +1140,7 @@ Answer: A, C"></textarea>
             saveDraft() {
                 const exportData = this.normalizeExportData();
                 localStorage.setItem('sprk_studio_draft', JSON.stringify(exportData));
-                alert("Test draft successfully saved to local browser storage!");
+                this.showToast("Draft saved to browser storage!", "save");
             }
 
             exportFile() {
@@ -766,10 +1159,12 @@ Answer: A, C"></textarea>
                 a.download = `${safeName}.sprk`;
                 a.click();
                 URL.revokeObjectURL(url);
+                this.showToast(".sprk test file exported!", "download");
             }
 
             clearAll() {
                 if (confirm("Are you sure you want to clear all test settings and questions?")) {
+                    this.saveState();
                     this.testData = {
                         title: "Untitled Test",
                         description: "",
@@ -778,13 +1173,30 @@ Answer: A, C"></textarea>
                         defaultNegativeMarks: 1,
                         questions: []
                     };
+                    this.selectedQuestionIds.clear();
                     localStorage.removeItem('sprk_studio_draft');
-                    this.syncFormWithData();
+                    this.syncFormWithData(false);
+                    this.showToast("Studio cleared", "rotate-ccw");
                 }
             }
 
+            // Correct resetToNew Bug
             resetToNew() {
-                this.syncFormWithData();
+                if (confirm("Start a new test project? Unsaved changes will be cleared.")) {
+                    this.saveState();
+                    this.testData = {
+                        title: "Untitled Test",
+                        description: "",
+                        timeLimitMinutes: 180,
+                        defaultPositiveMarks: 4,
+                        defaultNegativeMarks: 1,
+                        questions: []
+                    };
+                    this.selectedQuestionIds.clear();
+                    this.addQuestion(false);
+                    this.syncFormWithData(false);
+                    this.showToast("Started new test project", "sparkles");
+                }
             }
 
             // Modal Controls
@@ -803,75 +1215,18 @@ Answer: A, C"></textarea>
                 try {
                     const parsed = JSON.parse(document.getElementById('json-textarea').value);
                     if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error("Missing questions array");
+                    this.saveState();
                     this.testData = parsed;
-                    this.syncFormWithData();
+                    this.syncFormWithData(false);
                     this.closeJsonModal();
+                    this.showToast("JSON changes applied!", "code");
                 } catch(e) {
                     alert("Invalid JSON format: " + e.message);
                 }
             }
-
-            openBulkModal() {
-                document.getElementById('bulk-modal').classList.remove('hidden');
-            }
-
-            closeBulkModal() {
-                document.getElementById('bulk-modal').classList.add('hidden');
-            }
-
-            processBulkImport() {
-                const text = document.getElementById('bulk-textarea').value;
-                const blocks = text.split(/\n\s*\n/);
-                const pos = parseFloat(document.getElementById('meta-default-pos').value) ?? 4;
-                const neg = parseFloat(document.getElementById('meta-default-neg').value) ?? 1;
-
-                blocks.forEach(block => {
-                    const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-                    if (lines.length === 0) return;
-
-                    let statement = '';
-                    let options = [];
-                    let answer = '';
-
-                    lines.forEach(line => {
-                        if (/^[A-D]\)/i.test(line) || /^[A-D]\./i.test(line)) {
-                            options.push(line.replace(/^[A-D][\.\)]\s*/i, ''));
-                        } else if (/^Answer:/i.test(line)) {
-                            answer = line.replace(/^Answer:\s*/i, '');
-                        } else {
-                            statement += (statement ? ' ' : '') + line.replace(/^Q\d+[\.\)]\s*/i, '');
-                        }
-                    });
-
-                    let type = 'mcq';
-                    if (answer.includes(',')) type = 'multiple_select';
-                    if (options.length === 0) type = 'numerical';
-
-                    let finalAnswer = answer;
-                    if (type === 'mcq' && answer.length === 1 && /[A-D]/i.test(answer)) {
-                        const idx = answer.toUpperCase().charCodeAt(0) - 65;
-                        if (options[idx]) finalAnswer = options[idx];
-                    }
-
-                    this.testData.questions.push({
-                        id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                        text: statement,
-                        type: type,
-                        options: options.length ? options : ['Option 1', 'Option 2', 'Option 3', 'Option 4'],
-                        correctAnswer: finalAnswer || 'Option 1',
-                        positiveMarks: pos,
-                        negativeMarks: neg,
-                        hint: '',
-                        explanation: '',
-                        media: null
-                    });
-                });
-
-                this.renderQuestions();
-                this.closeBulkModal();
-            }
         }
 
+        // Initialize Application
         let studio;
         window.addEventListener('DOMContentLoaded', () => {
             studio = new SprkStudio();
