@@ -93,7 +93,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-bold">Load Test</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Upload a local .sprk or .json test file from your device to run the test launcher.</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Upload a local .sprk test file from your device to run the test launcher.</p>
                     </div>
                 </div>
                 <div class="mt-6 flex items-center text-xs font-semibold text-brand-purple">
@@ -162,8 +162,12 @@
         // Launch Existing Test Redirect Handler
         function launchExistingTest(e) {
             e.preventDefault();
-            const testName = document.getElementById('test-name-input').value.trim();
+            let testName = document.getElementById('test-name-input').value.trim();
             if (testName) {
+                // Ensure filename ends with .sprk if not typed explicitly
+                if (!testName.endsWith('.sprk')) {
+                    testName += '.sprk';
+                }
                 window.location.href = `https://sprk-web.github.io/test/live/?path=${encodeURIComponent(testName)}`;
             }
         }
@@ -174,13 +178,13 @@
             const gridEl = document.getElementById('test-grid');
 
             try {
-                // Fetch the HTML page or GitHub API repository list
+                // Fetch the HTML page or directory structure
                 const response = await fetch('https://sprk-web.github.io/test/tests/');
                 if (!response.ok) throw new Error('Failed to fetch test listing');
 
                 const htmlText = await response.text();
                 
-                // Parse HTML to extract links ending in .json or .sprk (or directories)
+                // Parse HTML to extract links ending in .sprk
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
                 const links = Array.from(doc.querySelectorAll('a'));
@@ -190,10 +194,10 @@
                     const href = link.getAttribute('href');
                     const text = link.innerText.trim();
                     
-                    // Filter out parent directory links or non-test files
-                    if (href && !href.startsWith('?') && !href.startsWith('/') && href !== '../' && text !== 'Parent Directory') {
-                        // Clean title by removing extension if applicable
-                        const cleanName = text.replace(/\.(json|sprk)$/i, '');
+                    // Filter specifically for .sprk files
+                    if (href && href.toLowerCase().endsWith('.sprk')) {
+                        // Clean title by stripping off .sprk
+                        const cleanName = text.replace(/\.sprk$/i, '');
                         tests.push({ name: cleanName, path: href });
                     }
                 });
@@ -202,7 +206,7 @@
                 gridEl.classList.remove('hidden');
 
                 if (tests.length === 0) {
-                    gridEl.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-4">No tests found in directory.</p>`;
+                    gridEl.innerHTML = `<p class="col-span-full text-center text-xs text-slate-500 py-4">No .sprk test files found in directory.</p>`;
                     return;
                 }
 
@@ -211,8 +215,9 @@
                     <div class="flex items-center justify-between p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-800/40 hover:border-brand-cyan transition">
                         <div class="truncate mr-2">
                             <h5 class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate" title="${test.name}">${test.name}</h5>
+                            <span class="text-[10px] text-slate-400 uppercase tracking-wide">.sprk</span>
                         </div>
-                        <a href="https://sprk-web.github.io/test/live/?path=${encodeURIComponent(test.name)}" class="px-3 py-1.5 bg-gradient-to-r from-brand-blue to-brand-purple text-white text-[10px] font-semibold rounded-md hover:opacity-90 transition flex items-center gap-1 shrink-0">
+                        <a href="https://sprk-web.github.io/test/live/?path=${encodeURIComponent(test.path)}" class="px-3 py-1.5 bg-gradient-to-r from-brand-blue to-brand-purple text-white text-[10px] font-semibold rounded-md hover:opacity-90 transition flex items-center gap-1 shrink-0">
                             Start <i data-lucide="play" class="w-2.5 h-2.5"></i>
                         </a>
                     </div>
