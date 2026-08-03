@@ -24,7 +24,7 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body);"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" onload="window.katexLoaded = true;"></script>
 
     <style>
         .brand-main {
@@ -61,8 +61,11 @@
                 <div class="logo-underline"></div>
             </div>
             
-            <div id="exam-header-controls" class="hidden flex items-center gap-4">
-                <button onclick="runner.togglePauseTest()" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <div id="exam-header-controls" class="hidden flex items-center gap-2 md:gap-4">
+                <button onclick="runner.toggleGuideModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-brand-blue"></i> <span class="hidden sm:inline">LaTeX Guide</span>
+                </button>
+                <button onclick="runner.togglePauseTest()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i data-lucide="pause" class="w-4 h-4"></i> Pause Test
                 </button>
             </div>
@@ -80,7 +83,7 @@
         <section id="view-dashboard" class="view-section w-full max-w-2xl flex flex-col gap-6 my-auto">
             <div class="text-center space-y-2">
                 <h1 class="text-3xl font-extrabold tracking-tight">SPRK Test Runner</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-sm">Load your assigned test file or choose a local file to execute.</p>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Load your assigned test file, merge multiple tests, or choose a local file to execute.</p>
             </div>
 
             <div id="loading-spinner" class="hidden flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-4">
@@ -101,6 +104,12 @@
                 <p class="text-xs text-slate-400 mt-1">Choose a file manually to begin testing</p>
                 <input type="file" id="file-input" accept=".sprk,.json" class="hidden" />
             </div>
+
+            <div class="flex items-center justify-center gap-3">
+                <button onclick="runner.openMergeModal()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-semibold text-xs bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i data-lucide="layers" class="w-4 h-4 text-brand-purple"></i> Merge Secondary Test File
+                </button>
+            </div>
         </section>
 
         <section id="view-exam" class="view-section view-hidden w-full flex flex-col gap-4">
@@ -109,9 +118,14 @@
                     <h2 id="exam-title-display" class="font-bold text-lg">Exam Title</h2>
                     <span id="exam-status-badge" class="inline-block mt-0.5 text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">Test Active</span>
                 </div>
-                <div class="flex items-center gap-3 font-mono text-xl font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
-                    <i data-lucide="clock" class="w-5 h-5 text-brand-blue"></i>
-                    <span id="timer-display">00:00:00</span>
+                <div class="flex items-center justify-between md:justify-end gap-3">
+                    <button onclick="runner.togglePaletteMobile()" class="lg:hidden px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center gap-2">
+                        <i data-lucide="grid" class="w-4 h-4"></i> Palette
+                    </button>
+                    <div class="flex items-center gap-3 font-mono text-xl font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
+                        <i data-lucide="clock" class="w-5 h-5 text-brand-blue"></i>
+                        <span id="timer-display">00:00:00</span>
+                    </div>
                 </div>
             </div>
 
@@ -144,6 +158,9 @@
                                 </button>
                             </div>
                             <div class="flex items-center gap-2">
+                                <button onclick="runner.previousQuestion()" class="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                    Previous
+                                </button>
                                 <button onclick="runner.examSaveAndNext()" class="px-5 py-2 rounded-lg text-xs font-semibold bg-brand-blue text-white hover:opacity-90 transition">
                                     Save & Next
                                 </button>
@@ -152,7 +169,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4">
+                <div id="palette-container" class="hidden lg:flex bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex-col justify-between gap-4">
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold tracking-wide uppercase text-slate-400">Palette</h3>
@@ -209,7 +226,10 @@
 
             <div id="res-questions-review" class="space-y-4"></div>
 
-            <div class="flex justify-center">
+            <div class="flex justify-center gap-4">
+                <button onclick="runner.exportMergedFile()" class="px-6 py-2.5 rounded-xl border border-brand-blue text-brand-blue font-medium text-sm hover:bg-brand-blue/10 transition">
+                    Export Test JSON
+                </button>
                 <button onclick="runner.showHome()" class="px-6 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     Return to Home
                 </button>
@@ -217,6 +237,69 @@
         </section>
 
     </main>
+
+    <div id="modal-merge" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4">
+            <h3 class="text-xl font-bold">Merge Test Files</h3>
+            <p class="text-xs text-slate-400">Upload a secondary <code class="text-brand-blue">.sprk</code> or <code class="text-brand-blue">.json</code> test file to append its questions to your currently loaded dataset.</p>
+            <input type="file" id="merge-file-input" accept=".sprk,.json" class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-brand-blue/10 file:text-brand-blue hover:file:bg-brand-blue/20" />
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="runner.closeMergeModal()" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                <button onclick="runner.processMergeFile()" class="px-4 py-2 text-xs font-semibold rounded-lg bg-brand-blue text-white hover:opacity-90">Merge & Combine</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-guide" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-2">
+                <h3 class="text-lg font-bold flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 text-brand-blue"></i> Math & Chemistry Guide</h3>
+                <button onclick="runner.toggleGuideModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            
+            <div class="space-y-4 text-xs">
+                <p class="text-slate-500 dark:text-slate-400">Use standard LaTeX formatting. Enclose inline math with <code class="text-brand-blue">$...$</code> and block math with <code class="text-brand-blue">$$...$$</code>.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse border border-slate-200 dark:border-slate-800">
+                        <thead>
+                            <tr class="bg-slate-100 dark:bg-slate-800">
+                                <th class="p-2 border border-slate-200 dark:border-slate-700">Category</th>
+                                <th class="p-2 border border-slate-200 dark:border-slate-700">LaTeX Code</th>
+                                <th class="p-2 border border-slate-200 dark:border-slate-700">Rendered Output</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-semibold">Subscript / Power</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-mono">x^2, H_2O</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800">$x^2$, $H_2O$</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-semibold">Fractions</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-mono">\frac{a}{b}</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800">$\frac{a}{b}$</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-semibold">Roots</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-mono">\sqrt{x}, \sqrt[n]{x}</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800">$\sqrt{x}$, $\sqrt[n]{x}$</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-semibold">Reactions & Arrows</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-mono">A \rightarrow B, \rightleftharpoons</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800">$A \rightarrow B$, $\rightleftharpoons$</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-semibold">Greek Symbols</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800 font-mono">\alpha, \beta, \theta, \pi</td>
+                                <td class="p-2 border border-slate-200 dark:border-slate-800">$\alpha, \beta, \theta, \pi$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="modal-pause" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4">
@@ -277,6 +360,7 @@
 
                 this.initTheme();
                 this.bindEvents();
+                this.bindKeyboardShortcuts();
                 this.handleInitialLoad();
             }
 
@@ -289,6 +373,23 @@
                     themeIcon.setAttribute('data-lucide', isDark ? 'sun' : 'moon');
                     lucide.createIcons();
                 });
+            }
+
+            safeRenderMath(element) {
+                if (!element) return;
+                try {
+                    if (window.renderMathInElement) {
+                        renderMathInElement(element, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false}
+                            ],
+                            throwOnError: false
+                        });
+                    }
+                } catch (e) {
+                    console.warn("KaTeX re-rendering error caught dynamically:", e);
+                }
             }
 
             switchView(viewId) {
@@ -326,6 +427,26 @@
                 });
             }
 
+            bindKeyboardShortcuts() {
+                document.addEventListener('keydown', (e) => {
+                    const activeView = document.getElementById('view-exam');
+                    if (!activeView || activeView.classList.contains('view-hidden') || this.examState.isPaused) return;
+
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+                    if (e.key === 'ArrowRight' || e.key === 'Enter') {
+                        e.preventDefault();
+                        this.examSaveAndNext();
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.previousQuestion();
+                    } else if (e.key.toLowerCase() === 'm') {
+                        e.preventDefault();
+                        this.examMarkForReview();
+                    }
+                });
+            }
+
             async handleInitialLoad() {
                 const params = new URLSearchParams(window.location.search);
                 const testName = params.get('testName');
@@ -343,7 +464,7 @@
                             const res = await fetch(url);
                             if (res.ok) {
                                 const data = await res.json();
-                                this.quiz = data;
+                                this.quiz = this.normalizeQuizData(data);
                                 loaded = true;
                                 this.startExam();
                                 break;
@@ -358,6 +479,29 @@
                         this.showError(`Failed to fetch test '${testName}'. Upload file manually.`);
                     }
                 }
+            }
+
+            normalizeQuizData(parsed) {
+                let questions = parsed.questions || [];
+                const seenIds = new Set();
+
+                questions = questions.map((q, idx) => {
+                    let uniqueId = q.id !== undefined && q.id !== null ? String(q.id) : `q_${idx + 1}`;
+                    if (seenIds.has(uniqueId)) {
+                        uniqueId = `${uniqueId}_dup${idx + 1}`;
+                    }
+                    seenIds.add(uniqueId);
+                    return { ...q, id: uniqueId };
+                });
+
+                let parsedTime = parseInt(parsed.timeLimitMinutes, 10);
+                if (isNaN(parsedTime) || parsedTime <= 0) parsedTime = 30;
+
+                return {
+                    title: parsed.title || "SPRK Test",
+                    timeLimitMinutes: parsedTime,
+                    questions: questions
+                };
             }
 
             showLoading(visible, message = "") {
@@ -387,7 +531,7 @@
                     try {
                         const parsed = JSON.parse(e.target.result);
                         if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error("Invalid format");
-                        this.quiz = parsed;
+                        this.quiz = this.normalizeQuizData(parsed);
                         this.startExam();
                     } catch (err) {
                         alert("Error loading file: " + err.message);
@@ -396,12 +540,87 @@
                 reader.readAsText(file);
             }
 
+            openMergeModal() {
+                document.getElementById('modal-merge').classList.remove('hidden');
+            }
+
+            closeMergeModal() {
+                document.getElementById('modal-merge').classList.add('hidden');
+                document.getElementById('merge-file-input').value = '';
+            }
+
+            processMergeFile() {
+                const input = document.getElementById('merge-file-input');
+                if (!input.files.length) {
+                    alert("Please select a file to merge.");
+                    return;
+                }
+                const file = input.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const secondary = JSON.parse(e.target.result);
+                        if (!secondary.questions || !Array.isArray(secondary.questions)) {
+                            throw new Error("Invalid file structure.");
+                        }
+                        
+                        const secondaryNormalized = this.normalizeQuizData(secondary);
+                        this.quiz.questions = [...this.quiz.questions, ...secondaryNormalized.questions];
+                        this.quiz = this.normalizeQuizData(this.quiz);
+
+                        alert(`Successfully merged ${secondaryNormalized.questions.length} questions. Total questions: ${this.quiz.questions.length}`);
+                        this.closeMergeModal();
+
+                        const examView = document.getElementById('view-exam');
+                        if (!examView.classList.contains('view-hidden')) {
+                            this.quiz.questions.forEach(q => {
+                                if (!this.examState.status[q.id]) {
+                                    this.examState.status[q.id] = 'unvisited';
+                                }
+                            });
+                            this.renderExamQuestion();
+                            this.renderPalette();
+                        }
+                    } catch (err) {
+                        alert("Merge failed: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            toggleGuideModal() {
+                const modal = document.getElementById('modal-guide');
+                modal.classList.toggle('hidden');
+                if (!modal.classList.contains('hidden')) {
+                    this.safeRenderMath(modal);
+                }
+            }
+
+            togglePaletteMobile() {
+                const container = document.getElementById('palette-container');
+                container.classList.toggle('hidden');
+                container.classList.toggle('flex');
+            }
+
+            exportMergedFile() {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(this.quiz, null, 2));
+                const dlAnchorElem = document.createElement('a');
+                dlAnchorElem.setAttribute("href", dataStr);
+                dlAnchorElem.setAttribute("download", `${(this.quiz.title || 'test').toLowerCase().replace(/\s+/g, '_')}_export.sprk`);
+                document.body.appendChild(dlAnchorElem);
+                dlAnchorElem.click();
+                dlAnchorElem.remove();
+            }
+
             startExam() {
+                let minutes = parseInt(this.quiz.timeLimitMinutes, 10);
+                if (isNaN(minutes) || minutes <= 0) minutes = 30;
+
                 this.examState = {
                     currentIndex: 0,
                     responses: {},
                     status: {},
-                    secondsRemaining: (this.quiz.timeLimitMinutes || 30) * 60,
+                    secondsRemaining: minutes * 60,
                     timerId: null,
                     isPaused: false,
                     startTime: new Date(),
@@ -427,6 +646,10 @@
                 const timerDisplay = document.getElementById('timer-display');
                 const update = () => {
                     if (this.examState.isPaused) return;
+
+                    if (isNaN(this.examState.secondsRemaining) || this.examState.secondsRemaining < 0) {
+                        this.examState.secondsRemaining = 0;
+                    }
                     
                     const h = Math.floor(this.examState.secondsRemaining / 3600);
                     const m = Math.floor((this.examState.secondsRemaining % 3600) / 60);
@@ -502,6 +725,7 @@
                             <input type="checkbox" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue rounded">
                             <span class="text-sm font-medium">${opt}</span>
                         `;
+                        label.querySelector('input').addEventListener('change', () => this.captureCurrentResponse());
                         optionsContainer.appendChild(label);
                     });
                 } else {
@@ -513,13 +737,12 @@
                             <input type="radio" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue">
                             <span class="text-sm font-medium">${opt}</span>
                         `;
+                        label.querySelector('input').addEventListener('change', () => this.captureCurrentResponse());
                         optionsContainer.appendChild(label);
                     });
                 }
 
-                if (window.renderMathInElement) {
-                    renderMathInElement(document.getElementById('view-exam'));
-                }
+                this.safeRenderMath(document.getElementById('view-exam'));
             }
 
             captureCurrentResponse() {
@@ -540,12 +763,20 @@
                     if (selected) this.examState.responses[q.id] = selected.value;
                     else delete this.examState.responses[q.id];
                 }
+
+                const currentStatus = this.examState.status[q.id];
+                const hasResponse = this.examState.responses[q.id] !== undefined;
+
+                if (currentStatus === 'marked' || currentStatus === 'marked_answered') {
+                    this.examState.status[q.id] = hasResponse ? 'marked_answered' : 'marked';
+                } else {
+                    this.examState.status[q.id] = hasResponse ? 'answered' : 'unanswered';
+                }
+                this.renderPalette();
             }
 
             examSaveAndNext() {
                 this.captureCurrentResponse();
-                const qId = this.quiz.questions[this.examState.currentIndex].id;
-                this.examState.status[qId] = this.examState.responses[qId] ? 'answered' : 'unanswered';
                 this.nextQuestion();
             }
 
@@ -560,6 +791,19 @@
                 const qId = this.quiz.questions[this.examState.currentIndex].id;
                 delete this.examState.responses[qId];
                 this.examState.status[qId] = 'unanswered';
+                this.renderExamQuestion();
+                this.renderPalette();
+            }
+
+            previousQuestion() {
+                this.captureCurrentResponse();
+                if (this.examState.currentIndex > 0) {
+                    this.examState.currentIndex--;
+                    const prevQId = this.quiz.questions[this.examState.currentIndex].id;
+                    if (this.examState.status[prevQId] === 'unvisited') {
+                        this.examState.status[prevQId] = 'unanswered';
+                    }
+                }
                 this.renderExamQuestion();
                 this.renderPalette();
             }
@@ -711,9 +955,7 @@
                 document.getElementById('res-count').innerText = `${totalCorrect}/${totalQ}`;
 
                 this.switchView('view-results');
-                if (window.renderMathInElement) {
-                    renderMathInElement(document.getElementById('view-results'));
-                }
+                this.safeRenderMath(document.getElementById('view-results'));
             }
         }
 
