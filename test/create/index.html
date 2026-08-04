@@ -73,9 +73,19 @@
 
                 <div class="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-0.5 hidden sm:block"></div>
 
+                <button onclick="studio.duplicateTestCopy()" title="Create a quick duplicate copy of current test" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i data-lucide="copy-plus" class="w-4 h-4 text-brand-blue"></i>
+                    <span class="hidden md:inline">Save Copy As</span>
+                </button>
+
+                <button onclick="studio.openBulkImportModal()" title="Paste text/Markdown to generate questions" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
+                    <i data-lucide="file-text" class="w-4 h-4 text-brand-cyan"></i>
+                    <span class="hidden md:inline">Bulk Text Import</span>
+                </button>
+
                 <button onclick="studio.triggerMergePicker()" title="Merge questions from another .sprk/.json file" class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5">
                     <i data-lucide="git-merge" class="w-4 h-4 text-brand-cyan"></i>
-                    <span class="hidden md:inline">Merge Test File</span>
+                    <span class="hidden md:inline">Merge Test</span>
                 </button>
                 <input type="file" id="merge-file-input" accept=".sprk,.json" multiple class="hidden" />
 
@@ -126,36 +136,59 @@
 
                 <div class="space-y-3">
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Test Title</label>
+                        <label for="meta-title" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Test Title</label>
                         <input type="text" id="meta-title" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-brand-blue outline-none" placeholder="e.g. JEE Advanced Physics Mock Test">
                     </div>
 
                     <div>
-                        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Description</label>
+                        <label for="meta-test-type" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Test Type Format</label>
+                        <select id="meta-test-type" onchange="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none font-medium">
+                            <option value="quiz">Quiz (Practice Mode)</option>
+                            <option value="exam">Exam (Formal Assessment)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="meta-desc" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Description</label>
                         <textarea id="meta-desc" rows="2" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Brief test guidelines or instructions..."></textarea>
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                         <div>
-                            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Duration (m)</label>
+                            <label for="meta-time" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Duration (m)</label>
                             <input type="text" id="meta-time" oninput="studio.updateMeta()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="180 or 'none'">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Default +Marks</label>
+                            <label for="meta-default-pos" class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Default +Marks</label>
                             <input type="number" id="meta-default-pos" step="any" oninput="studio.applyGlobalMarksDefaults()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="4">
                         </div>
                         <div>
-                            <label class="text-[10px] font-bold text-red-500 uppercase tracking-wider">Default -Marks</label>
+                            <label for="meta-default-neg" class="text-[10px] font-bold text-red-500 uppercase tracking-wider">Default -Marks</label>
                             <input type="number" id="meta-default-neg" step="any" oninput="studio.applyGlobalMarksDefaults()" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-red-500 outline-none" placeholder="1">
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Randomization & Delivery</label>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-600 dark:text-slate-300">Shuffle Questions</span>
+                            <input type="checkbox" id="meta-shuffle-q" onchange="studio.updateMeta()" class="w-4 h-4 text-brand-blue rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-600 dark:text-slate-300">Shuffle Choice Options</span>
+                            <input type="checkbox" id="meta-shuffle-opt" onchange="studio.updateMeta()" class="w-4 h-4 text-brand-blue rounded cursor-pointer">
                         </div>
                     </div>
                 </div>
             </div>
 
             <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white to-slate-100 dark:from-slate-900 dark:to-slate-900/80 space-y-4 shadow-sm sticky top-20">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                    <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-purple"></i> Live Test Summary
-                </h3>
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-brand-purple"></i> Live Test Summary
+                    </h3>
+                    <span id="summary-test-type-tag" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-brand-blue/10 text-brand-blue border border-brand-blue/20">Quiz</span>
+                </div>
 
                 <div class="grid grid-cols-3 gap-2 text-center">
                     <div class="p-3 bg-slate-100/80 dark:bg-slate-800/50 rounded-xl">
@@ -254,6 +287,38 @@
 
     </main>
 
+    <div id="bulk-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
+            <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                <h3 class="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-brand-cyan"></i> Bulk Text/Markdown Import
+                </h3>
+                <button onclick="studio.closeBulkImportModal()" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+            <div class="p-4 flex-1 overflow-hidden flex flex-col space-y-3">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Paste formatted questions. Separate questions with blank lines. Mark options with <b>A), B), 1., -</b> and indicate correct option with <b>*</b> or <b>Answer: B</b>.
+                </p>
+                <textarea id="bulk-textarea" class="w-full flex-1 font-mono text-xs p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl outline-none custom-scrollbar resize-none" placeholder="1. What is the acceleration due to gravity on Earth?
+A) 8.8 m/s²
+*B) 9.8 m/s²
+C) 10.8 m/s²
+D) 12.0 m/s²
+
+2. Which elements are noble gases?
+*A) Helium
+*B) Argon
+C) Chlorine
+D) Oxygen
+Answer: A, B"></textarea>
+            </div>
+            <div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-2 bg-slate-50/50 dark:bg-slate-900/50">
+                <button onclick="studio.closeBulkImportModal()" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-800">Cancel</button>
+                <button onclick="studio.processBulkImport()" class="px-4 py-1.5 rounded-xl text-xs font-semibold bg-brand-blue text-white">Convert & Append</button>
+            </div>
+        </div>
+    </div>
+
     <div id="json-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-3xl flex flex-col max-h-[85vh] shadow-2xl overflow-hidden">
             <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -341,10 +406,13 @@
             constructor() {
                 this.testData = {
                     title: "Untitled Test",
+                    testType: "quiz",
                     description: "",
                     timeLimitMinutes: 180,
                     defaultPositiveMarks: 4,
                     defaultNegativeMarks: 1,
+                    shuffleQuestions: false,
+                    shuffleOptions: false,
                     questions: []
                 };
 
@@ -371,7 +439,7 @@
                     this.undoStack.shift();
                 }
                 this.undoStack.push(JSON.stringify(this.testData));
-                this.redoStack = []; // Reset redo on new action
+                this.redoStack = []; 
                 this.updateUndoRedoUI();
             }
 
@@ -495,16 +563,19 @@
 
                             if (!isMerge && processed === 0 && this.testData.questions.length === 0) {
                                 this.testData.title = parsed.title || "Loaded Test";
+                                this.testData.testType = parsed.testType || "quiz";
                                 this.testData.description = parsed.description || "";
                                 this.testData.timeLimitMinutes = parsed.timeLimitMinutes ?? 180;
                                 this.testData.defaultPositiveMarks = parsed.defaultPositiveMarks ?? 4;
                                 this.testData.defaultNegativeMarks = parsed.defaultNegativeMarks ?? 1;
+                                this.testData.shuffleQuestions = !!parsed.shuffleQuestions;
+                                this.testData.shuffleOptions = !!parsed.shuffleOptions;
                             }
 
                             if (isMerge) this.saveState();
 
                             parsed.questions.forEach(q => {
-                                const newQ = JSON.parse(JSON.stringify(q));
+                                const newQ = this.sanitizeQuestionObject(q);
                                 newQ.id = 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
                                 this.testData.questions.push(newQ);
                                 mergedQuestionCount++;
@@ -528,11 +599,29 @@
                 });
             }
 
+            sanitizeQuestionObject(q) {
+                const pos = this.testData.defaultPositiveMarks ?? 4;
+                const neg = this.testData.defaultNegativeMarks ?? 1;
+                return {
+                    id: q.id || ('q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+                    text: q.text || '',
+                    type: ['mcq', 'multiple_select', 'numerical'].includes(q.type) ? q.type : 'mcq',
+                    options: Array.isArray(q.options) ? q.options : (q.type === 'numerical' ? undefined : ['Option 1', 'Option 2', 'Option 3', 'Option 4']),
+                    correctAnswer: q.correctAnswer !== undefined ? q.correctAnswer : '',
+                    positiveMarks: q.positiveMarks ?? pos,
+                    negativeMarks: q.negativeMarks ?? neg,
+                    hint: q.hint || '',
+                    explanation: q.explanation || '',
+                    media: q.media || null
+                };
+            }
+
             loadDraftOnStart() {
                 const draft = localStorage.getItem('sprk_studio_draft');
                 if (draft) {
                     try {
-                        this.testData = JSON.parse(draft);
+                        const parsed = JSON.parse(draft);
+                        this.testData = parsed;
                     } catch(e) {
                         this.addQuestion(false);
                     }
@@ -546,6 +635,7 @@
                 if (recordHistory) this.saveState();
 
                 document.getElementById('meta-title').value = this.testData.title || '';
+                document.getElementById('meta-test-type').value = this.testData.testType || 'quiz';
                 document.getElementById('meta-desc').value = this.testData.description || '';
                 
                 const time = this.testData.timeLimitMinutes;
@@ -554,13 +644,19 @@
                 document.getElementById('meta-default-pos').value = this.testData.defaultPositiveMarks ?? 4;
                 document.getElementById('meta-default-neg').value = this.testData.defaultNegativeMarks ?? 1;
                 
+                document.getElementById('meta-shuffle-q').checked = !!this.testData.shuffleQuestions;
+                document.getElementById('meta-shuffle-opt').checked = !!this.testData.shuffleOptions;
+
                 this.renderQuestions();
             }
 
             updateMeta() {
                 this.saveState();
                 this.testData.title = document.getElementById('meta-title').value || "Untitled Test";
+                this.testData.testType = document.getElementById('meta-test-type').value || "quiz";
                 this.testData.description = document.getElementById('meta-desc').value;
+                this.testData.shuffleQuestions = document.getElementById('meta-shuffle-q').checked;
+                this.testData.shuffleOptions = document.getElementById('meta-shuffle-opt').checked;
                 
                 const rawTime = document.getElementById('meta-time').value.trim().toLowerCase();
                 if (rawTime === 'none' || rawTime === '0' || rawTime === '') {
@@ -585,6 +681,15 @@
                     q.negativeMarks = neg;
                 });
                 this.renderQuestions();
+            }
+
+            duplicateTestCopy() {
+                this.saveState();
+                const copy = JSON.parse(JSON.stringify(this.testData));
+                copy.title = (copy.title || "Untitled Test") + " (Copy)";
+                this.testData = copy;
+                this.syncFormWithData(false);
+                this.showToast("Duplicate test copy created in studio!", "copy-plus");
             }
 
             // --- Question Lifecycle Management ---
@@ -653,7 +758,7 @@
                 const target = oIdx + dir;
                 if (!q.options || target < 0 || target >= q.options.length) return;
 
-                this.saveState();
+                this.saveState(); // Ensure undo state captured prior to option reordering
                 const temp = q.options[oIdx];
                 q.options[oIdx] = q.options[target];
                 q.options[target] = temp;
@@ -676,7 +781,6 @@
                 input.selectionStart = input.selectionEnd = start + snippet.length;
                 input.focus();
 
-                // Trigger input event to update underlying state
                 input.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
@@ -686,6 +790,99 @@
 
             closeKatexModal() {
                 document.getElementById('katex-modal').classList.add('hidden');
+            }
+
+            // --- Bulk Import Modal ---
+            openBulkImportModal() {
+                document.getElementById('bulk-modal').classList.remove('hidden');
+            }
+
+            closeBulkImportModal() {
+                document.getElementById('bulk-modal').classList.add('hidden');
+            }
+
+            processBulkImport() {
+                const text = document.getElementById('bulk-textarea').value.trim();
+                if (!text) {
+                    this.closeBulkImportModal();
+                    return;
+                }
+
+                this.saveState();
+                const blocks = text.split(/\n\s*\n/);
+                let importedCount = 0;
+
+                const pos = parseFloat(document.getElementById('meta-default-pos').value) ?? 4;
+                const neg = parseFloat(document.getElementById('meta-default-neg').value) ?? 1;
+
+                blocks.forEach(block => {
+                    const lines = block.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+                    if (lines.length === 0) return;
+
+                    let qText = '';
+                    const options = [];
+                    const correctList = [];
+                    let explicitAnsLine = '';
+
+                    lines.forEach(line => {
+                        if (/^(Answer|Ans):/i.test(line)) {
+                            explicitAnsLine = line.replace(/^(Answer|Ans):/i, '').trim();
+                        } else if (/^(\*|\([A-Za-z0-9]\)|[A-Za-z0-9][\.\)])\s*/.test(line)) {
+                            let isMarked = line.startsWith('*');
+                            let clean = line.replace(/^[\*\s]+/, '').replace(/^(\([A-Za-z0-9]\)|[A-Za-z0-9][\.\)])\s*/, '').trim();
+                            options.push(clean);
+                            if (isMarked) correctList.push(clean);
+                        } else {
+                            if (qText) qText += ' ';
+                            qText += line.replace(/^[0-9]+[\.\)]\s*/, '');
+                        }
+                    });
+
+                    if (explicitAnsLine && options.length > 0) {
+                        const tokens = explicitAnsLine.split(/[,;\s]+/).map(t => t.trim().toUpperCase());
+                        tokens.forEach(tok => {
+                            let idx = tok.charCodeAt(0) - 65; // A -> 0, B -> 1
+                            if (isNaN(idx) || idx < 0 || idx >= options.length) {
+                                idx = parseInt(tok) - 1;
+                            }
+                            if (idx >= 0 && idx < options.length && !correctList.includes(options[idx])) {
+                                correctList.push(options[idx]);
+                            }
+                        });
+                    }
+
+                    const type = correctList.length > 1 ? 'multiple_select' : 'mcq';
+                    const answer = type === 'multiple_select' ? correctList : (correctList[0] || options[0] || '');
+
+                    this.testData.questions.push({
+                        id: 'q_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                        text: qText || 'Imported Question',
+                        type: options.length === 0 ? 'numerical' : type,
+                        options: options.length > 0 ? options : undefined,
+                        correctAnswer: answer,
+                        positiveMarks: pos,
+                        negativeMarks: neg,
+                        hint: '',
+                        explanation: '',
+                        media: null
+                    });
+                    importedCount++;
+                });
+
+                this.renderQuestions();
+                this.closeBulkImportModal();
+                this.showToast(`Converted & imported ${importedCount} question(s)!`, "file-text");
+            }
+
+            // --- Status Helper ---
+            hasValidAnswer(q) {
+                if (q.type === 'numerical') {
+                    return q.correctAnswer !== undefined && q.correctAnswer !== null && String(q.correctAnswer).trim() !== '';
+                }
+                if (q.type === 'multiple_select') {
+                    return Array.isArray(q.correctAnswer) && q.correctAnswer.length > 0;
+                }
+                return q.correctAnswer !== undefined && q.correctAnswer !== null && String(q.correctAnswer).trim() !== '';
             }
 
             // --- Render Question Cards ---
@@ -715,9 +912,10 @@
                 visibleQuestions.forEach((q) => {
                     const idx = this.testData.questions.findIndex(item => item.id === q.id);
                     const isChecked = this.selectedQuestionIds.has(q.id);
+                    const isAnswerSet = this.hasValidAnswer(q);
 
                     const qCard = document.createElement('div');
-                    qCard.className = `p-5 rounded-2xl border ${isChecked ? 'border-brand-blue ring-1 ring-brand-blue' : 'border-slate-200 dark:border-slate-800'} bg-white dark:bg-slate-900 space-y-4 shadow-sm relative group transition`;
+                    qCard.className = `p-5 rounded-2xl border ${isChecked ? 'border-brand-blue ring-1 ring-brand-blue' : 'border-slate-200 dark:border-slate-800'} bg-white dark:bg-slate-900 space-y-4 shadow-sm relative group transition hover:border-slate-300 dark:hover:border-slate-700`;
                     qCard.setAttribute('draggable', 'true');
                     qCard.dataset.index = idx;
 
@@ -743,38 +941,46 @@
                     });
 
                     qCard.innerHTML = `
-                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
+                        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2 flex-wrap">
                             <div class="flex items-center gap-2">
-                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="studio.toggleSelectQuestion('${q.id}', this.checked)" class="w-4 h-4 text-brand-blue rounded cursor-pointer mr-1">
+                                <input type="checkbox" aria-label="Select Question ${idx + 1}" ${isChecked ? 'checked' : ''} onchange="studio.toggleSelectQuestion('${q.id}', this.checked)" class="w-4 h-4 text-brand-blue rounded cursor-pointer mr-1">
                                 <i data-lucide="grip-vertical" class="w-4 h-4 text-slate-400 cursor-grab"></i>
                                 <span class="font-extrabold text-xs text-brand-blue uppercase tracking-wider">Question ${idx + 1}</span>
                                 <span class="text-[10px] text-slate-400">#</span>
-                                <input type="number" min="1" max="${this.testData.questions.length}" value="${idx + 1}" onchange="studio.jumpToPosition(${idx}, this.value)" class="w-10 text-center bg-slate-100 dark:bg-slate-800 rounded px-1 text-[11px] font-bold outline-none">
+                                <input type="number" aria-label="Jump to Question Position" min="1" max="${this.testData.questions.length}" value="${idx + 1}" onchange="studio.jumpToPosition(${idx}, this.value)" class="w-10 text-center bg-slate-100 dark:bg-slate-800 rounded px-1 text-[11px] font-bold outline-none">
                             </div>
-                            <div class="flex items-center gap-1">
-                                <button onclick="studio.moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move Up" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="studio.moveQuestion(${idx}, 1)" ${idx === this.testData.questions.length - 1 ? 'disabled' : ''} title="Move Down" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="studio.duplicateQuestion(${idx})" title="Duplicate Question" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
-                                <button onclick="studio.deleteQuestion(${idx})" title="Delete Question" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 ${isAnswerSet ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'}">
+                                    <i data-lucide="${isAnswerSet ? 'check-circle-2' : 'alert-circle'}" class="w-3 h-3"></i>
+                                    ${isAnswerSet ? 'Answer Configured' : 'Answer Missing'}
+                                </span>
+
+                                <div class="flex items-center gap-1">
+                                    <button onclick="studio.moveQuestion(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} title="Move Up" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-up" class="w-3.5 h-3.5"></i></button>
+                                    <button onclick="studio.moveQuestion(${idx}, 1)" ${idx === this.testData.questions.length - 1 ? 'disabled' : ''} title="Move Down" class="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-25 transition"><i data-lucide="arrow-down" class="w-3.5 h-3.5"></i></button>
+                                    <button onclick="studio.duplicateQuestion(${idx})" title="Duplicate Question" class="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                                    <button onclick="studio.deleteQuestion(${idx})" title="Delete Question" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                                </div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-12 gap-3">
                             <div class="sm:col-span-6">
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Question Type</label>
-                                <select onchange="studio.updateQType(${idx}, this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none font-medium">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Question Type</label>
+                                <select onchange="studio.updateQType(${idx}, this.value)" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-brand-blue outline-none font-medium">
                                     <option value="mcq" ${q.type === 'mcq' ? 'selected' : ''}>MCQ (Single Select)</option>
                                     <option value="multiple_select" ${q.type === 'multiple_select' ? 'selected' : ''}>Multiple Select</option>
                                     <option value="numerical" ${q.type === 'numerical' ? 'selected' : ''}>Numerical Answer</option>
                                 </select>
                             </div>
                             <div class="sm:col-span-3">
-                                <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">+ Marks</label>
-                                <input type="number" step="any" value="${q.positiveMarks ?? 4}" oninput="studio.updateQField(${idx}, 'positiveMarks', parseFloat(this.value))" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-emerald-600 dark:text-emerald-400">
+                                <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider block mb-1">+ Marks</label>
+                                <input type="number" step="any" value="${q.positiveMarks ?? 4}" oninput="studio.updateQField(${idx}, 'positiveMarks', parseFloat(this.value))" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-bold text-emerald-600 dark:text-emerald-400">
                             </div>
                             <div class="sm:col-span-3">
-                                <label class="text-[10px] font-bold text-red-500 uppercase tracking-wider">- Marks</label>
-                                <input type="number" step="any" value="${q.negativeMarks ?? 1}" oninput="studio.updateQField(${idx}, 'negativeMarks', parseFloat(this.value))" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600 dark:text-red-400">
+                                <label class="text-[10px] font-bold text-red-500 uppercase tracking-wider block mb-1">- Marks</label>
+                                <input type="number" step="any" value="${q.negativeMarks ?? 1}" oninput="studio.updateQField(${idx}, 'negativeMarks', parseFloat(this.value))" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-red-500 outline-none font-bold text-red-600 dark:text-red-400">
                             </div>
                         </div>
 
@@ -795,8 +1001,8 @@
                         </div>
 
                         <div>
-                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Question Statement</label>
-                            <textarea rows="2" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'text', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Enter question statement here...">${q.text || ''}</textarea>
+                            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Question Statement</label>
+                            <textarea rows="2" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'text', this.value)" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-brand-blue outline-none custom-scrollbar" placeholder="Enter question statement here...">${q.text || ''}</textarea>
                         </div>
 
                         <div class="p-3 bg-slate-50/70 dark:bg-slate-800/30 rounded-xl border border-slate-200/60 dark:border-slate-800 space-y-2">
@@ -806,12 +1012,12 @@
                             <div class="flex flex-col sm:flex-row items-center gap-3">
                                 <input type="text" value="${q.media && q.media.type === 'url' ? q.media.url : ''}" onchange="studio.handleImageUrl(${idx}, this.value)" placeholder="https://example.com/image.png" class="flex-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none">
                                 <span class="text-[10px] text-slate-400 font-bold uppercase">OR</span>
-                                <input type="file" accept="image/*" onchange="studio.handleImageFileUpload(${idx}, this)" class="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-brand-blue/10 file:text-brand-blue hover:file:bg-brand-blue/20 cursor-pointer">
+                                <input type="file" accept="image/*" aria-label="Upload Image File for Question ${idx + 1}" onchange="studio.handleImageFileUpload(${idx}, this)" class="text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-brand-blue/10 file:text-brand-blue hover:file:bg-brand-blue/20 cursor-pointer">
                             </div>
                             ${q.media ? `
                                 <div class="mt-2 flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200 dark:border-slate-800">
                                     <div class="flex items-center gap-2 overflow-hidden">
-                                        <img src="${q.media.type === 'url' ? q.media.url : `data:${q.media.mimeType};base64,${q.media.data}`}" class="w-10 h-10 object-cover rounded border">
+                                        <img src="${q.media.type === 'url' ? q.media.url : `data:${q.media.mimeType};base64,${q.media.data}`}" alt="Question Image Attachment" class="w-10 h-10 object-cover rounded border">
                                         <span class="text-[11px] text-emerald-500 font-semibold truncate">Image attached (${q.media.type})</span>
                                     </div>
                                     <button onclick="studio.removeImage(${idx})" class="text-[11px] text-red-500 hover:underline font-semibold">Remove</button>
@@ -833,14 +1039,14 @@
                                         return `
                                         <div class="flex items-center gap-2">
                                             <div class="flex flex-col text-slate-400">
-                                                <button onclick="studio.moveOption(${idx}, ${oIdx}, -1)" ${oIdx === 0 ? 'disabled' : ''} class="hover:text-brand-blue disabled:opacity-20"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
-                                                <button onclick="studio.moveOption(${idx}, ${oIdx}, 1)" ${oIdx === (q.options.length - 1) ? 'disabled' : ''} class="hover:text-brand-blue disabled:opacity-20"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
+                                                <button onclick="studio.moveOption(${idx}, ${oIdx}, -1)" ${oIdx === 0 ? 'disabled' : ''} aria-label="Move option up" class="hover:text-brand-blue disabled:opacity-20"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
+                                                <button onclick="studio.moveOption(${idx}, ${oIdx}, 1)" ${oIdx === (q.options.length - 1) ? 'disabled' : ''} aria-label="Move option down" class="hover:text-brand-blue disabled:opacity-20"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
                                             </div>
 
-                                            <input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" name="q_opt_${idx}" ${isSelected ? 'checked' : ''} onchange="studio.toggleOptionSelection(${idx}, ${oIdx})" class="w-4 h-4 text-brand-blue cursor-pointer">
+                                            <input type="${q.type === 'mcq' ? 'radio' : 'checkbox'}" aria-label="Option choice ${oIdx + 1}" name="q_opt_${idx}" ${isSelected ? 'checked' : ''} onchange="studio.toggleOptionSelection(${idx}, ${oIdx})" class="w-4 h-4 text-brand-blue cursor-pointer">
                                             <span class="text-xs font-bold text-slate-400 w-4">${oIdx + 1}.</span>
                                             <input type="text" value="${opt}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateOptionText(${idx}, ${oIdx}, this.value)" class="flex-1 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Option Text">
-                                            <button onclick="studio.removeOption(${idx}, ${oIdx})" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                                            <button onclick="studio.removeOption(${idx}, ${oIdx})" aria-label="Remove option" class="p-1.5 text-slate-400 hover:text-red-500"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
                                         </div>
                                     `}).join('')}
                                 </div>
@@ -848,20 +1054,20 @@
                         ` : ''}
 
                         <div>
-                            <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">
+                            <label class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider block mb-1">
                                 Correct Answer ${q.type === 'multiple_select' ? '(Comma Separated Options / Numbers)' : q.type === 'mcq' ? '(Option Text or Option Number)' : ''}
                             </label>
-                            <input type="text" value="${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : (q.correctAnswer || '')}" oninput="studio.updateQAnswerInput(${idx}, this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-emerald-600 dark:text-emerald-400" placeholder="${q.type === 'numerical' ? 'e.g. 2.5' : 'e.g. 1 or Option Text'}">
+                            <input type="text" value="${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : (q.correctAnswer || '')}" oninput="studio.updateQAnswerInput(${idx}, this.value)" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-emerald-600 dark:text-emerald-400" placeholder="${q.type === 'numerical' ? 'e.g. 2.5' : 'e.g. 1 or Option Text'}">
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hint (Optional)</label>
-                                <input type="text" value="${q.hint || ''}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'hint', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Short hint for test-taker">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Hint (Optional)</label>
+                                <input type="text" value="${q.hint || ''}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'hint', this.value)" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Short hint for test-taker">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Solution Explanation</label>
-                                <input type="text" value="${q.explanation || ''}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'explanation', this.value)" class="mt-1 w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Detailed step-by-step solution">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Solution Explanation</label>
+                                <input type="text" value="${q.explanation || ''}" onfocus="studio.lastFocusedInput = this" oninput="studio.updateQField(${idx}, 'explanation', this.value)" class="w-full bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-brand-blue outline-none" placeholder="Detailed step-by-step solution">
                             </div>
                         </div>
                     `;
@@ -898,7 +1104,7 @@
                     let current = Array.isArray(q.correctAnswer) ? [...q.correctAnswer] : (q.correctAnswer ? [q.correctAnswer] : []);
                     const resolved = current.map(c => {
                         const idx = parseInt(c) - 1;
-                        return (idx >= 0 && q.options[idx]) ? q.options[idx] : c;
+                        return (!isNaN(idx) && q.options[idx]) ? q.options[idx] : c;
                     });
 
                     const existIndex = resolved.indexOf(optText);
@@ -917,7 +1123,6 @@
                 const oldText = q.options[oIdx];
                 q.options[oIdx] = val;
 
-                // Update correct answer seamlessly to prevent orphaned string references
                 if (q.type === 'mcq' && q.correctAnswer === oldText) {
                     q.correctAnswer = val;
                 } else if (q.type === 'multiple_select' && Array.isArray(q.correctAnswer)) {
@@ -944,7 +1149,6 @@
                 const q = this.testData.questions[idx];
                 q.type = type;
 
-                // Sanitize / Reset correct answer on type switch
                 if (type === 'numerical') {
                     delete q.options;
                     q.correctAnswer = typeof q.correctAnswer === 'string' ? q.correctAnswer : '';
@@ -978,6 +1182,12 @@
                     q.correctAnswer = q.options[0] || '';
                 } else if (q.type === 'multiple_select' && Array.isArray(q.correctAnswer)) {
                     q.correctAnswer = q.correctAnswer.filter(ans => ans !== removed);
+                    // Sync option index numbers if stored numerically
+                    q.correctAnswer = q.correctAnswer.map(ans => {
+                        const num = parseInt(ans);
+                        if (!isNaN(num) && num > (oIdx + 1)) return String(num - 1);
+                        return ans;
+                    });
                 }
                 this.renderQuestions();
             }
@@ -1114,6 +1324,12 @@
                 document.getElementById('summary-count-mcq').innerText = mcqCount;
                 document.getElementById('summary-count-msq').innerText = msqCount;
                 document.getElementById('summary-count-num').innerText = numCount;
+
+                const typeTag = document.getElementById('summary-test-type-tag');
+                if (typeTag) {
+                    const currentType = (this.testData.testType || 'quiz').toUpperCase();
+                    typeTag.innerText = currentType;
+                }
             }
 
             normalizeExportData() {
@@ -1167,10 +1383,13 @@
                     this.saveState();
                     this.testData = {
                         title: "Untitled Test",
+                        testType: "quiz",
                         description: "",
                         timeLimitMinutes: 180,
                         defaultPositiveMarks: 4,
                         defaultNegativeMarks: 1,
+                        shuffleQuestions: false,
+                        shuffleOptions: false,
                         questions: []
                     };
                     this.selectedQuestionIds.clear();
@@ -1180,16 +1399,18 @@
                 }
             }
 
-            // Correct resetToNew Bug
             resetToNew() {
                 if (confirm("Start a new test project? Unsaved changes will be cleared.")) {
                     this.saveState();
                     this.testData = {
                         title: "Untitled Test",
+                        testType: "quiz",
                         description: "",
                         timeLimitMinutes: 180,
                         defaultPositiveMarks: 4,
                         defaultNegativeMarks: 1,
+                        shuffleQuestions: false,
+                        shuffleOptions: false,
                         questions: []
                     };
                     this.selectedQuestionIds.clear();
@@ -1215,7 +1436,14 @@
                 try {
                     const parsed = JSON.parse(document.getElementById('json-textarea').value);
                     if (!parsed.questions || !Array.isArray(parsed.questions)) throw new Error("Missing questions array");
+                    
                     this.saveState();
+                    
+                    parsed.testType = parsed.testType || "quiz";
+                    parsed.shuffleQuestions = !!parsed.shuffleQuestions;
+                    parsed.shuffleOptions = !!parsed.shuffleOptions;
+                    parsed.questions = parsed.questions.map(q => this.sanitizeQuestionObject(q));
+
                     this.testData = parsed;
                     this.syncFormWithData(false);
                     this.closeJsonModal();
