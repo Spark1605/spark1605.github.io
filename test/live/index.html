@@ -50,7 +50,7 @@
         .view-hidden { display: none !important; opacity: 0; transform: translateY(6px); }
 
         @media print {
-            header, #exam-header-controls, .print\:hidden { display: none !important; }
+            header, #exam-header-controls, .print\:hidden, #top-progress-bar { display: none !important; }
             body { background: white !important; color: black !important; }
             .view-section { display: block !important; opacity: 1 !important; transform: none !important; }
         }
@@ -58,7 +58,11 @@
 </head>
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased">
 
-    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full print:hidden">
+    <div id="top-progress-bar-container" class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 fixed top-0 left-0 z-50 hidden">
+        <div id="top-progress-bar" class="bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple h-full w-0 transition-all duration-300"></div>
+    </div>
+
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full print:hidden mt-1.5">
         <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center w-full">
             <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="runner.showHome()">
                 <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
@@ -78,6 +82,9 @@
             </div>
 
             <div class="flex items-center gap-3">
+                <button id="sound-toggle" title="Toggle Sound FX" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                    <i id="sound-icon" data-lucide="volume-x" class="w-4 h-4"></i>
+                </button>
                 <button id="theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
                 </button>
@@ -160,14 +167,22 @@
                             <div id="exam-q-media" class="hidden my-2 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden max-w-lg"></div>
 
                             <div id="exam-q-options" class="space-y-2 mt-4"></div>
+
+                            <div id="quiz-feedback-panel" class="hidden mt-4 p-4 rounded-xl border transition-all">
+                                <div id="quiz-feedback-header" class="font-bold text-sm flex items-center gap-2"></div>
+                                <div id="quiz-explanation-box" class="text-xs mt-2 text-slate-600 dark:text-slate-300 space-y-1"></div>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 flex-wrap gap-2">
                             <div class="flex items-center gap-2">
-                                <button onclick="runner.examMarkForReview()" class="px-3 py-2 rounded-lg text-xs font-medium border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 hover:bg-purple-100 transition">
+                                <button id="btn-quiz-hint" onclick="runner.toggleQuizHint()" class="hidden px-3 py-2 rounded-lg text-xs font-medium border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 hover:bg-amber-100 transition">
+                                    💡 Show Hint
+                                </button>
+                                <button id="btn-mark-review" onclick="runner.examMarkForReview()" class="px-3 py-2 rounded-lg text-xs font-medium border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 hover:bg-purple-100 transition">
                                     Mark for Review & Next [M]
                                 </button>
-                                <button onclick="runner.examClearResponse()" class="px-3 py-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <button id="btn-clear-resp" onclick="runner.examClearResponse()" class="px-3 py-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                                     Clear Response [C]
                                 </button>
                             </div>
@@ -180,6 +195,7 @@
                                 </button>
                             </div>
                         </div>
+                        <div id="quiz-hint-panel" class="hidden mt-3 p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 text-xs rounded-xl"></div>
                     </div>
                 </div>
 
@@ -187,22 +203,30 @@
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xs font-bold tracking-wide uppercase text-slate-400">Palette</h3>
-                            <select id="palette-filter" onchange="runner.renderPalette()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-2 py-1 outline-none">
-                                <option value="all">All</option>
-                                <option value="unanswered">Unanswered</option>
-                                <option value="marked">Marked</option>
-                                <option value="answered">Answered</option>
-                            </select>
+                            <div class="flex items-center gap-2">
+                                <button onclick="runner.togglePaletteCollapse()" class="lg:hidden text-xs text-brand-blue font-semibold">Toggle</button>
+                                <select id="palette-filter" onchange="runner.renderPalette()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-2 py-1 outline-none">
+                                    <option value="all">All</option>
+                                    <option value="unanswered">Unanswered</option>
+                                    <option value="marked">Marked</option>
+                                    <option value="answered">Answered</option>
+                                </select>
+                            </div>
                         </div>
                         <div id="exam-palette-grid" class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-1"></div>
                     </div>
 
                     <div class="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-3">
-                        <div class="text-[10px] grid grid-cols-2 gap-1.5 text-slate-500">
+                        <div id="palette-legend-standard" class="text-[10px] grid grid-cols-2 gap-1.5 text-slate-500">
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-slate-700"></span> Unvisited</div>
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-red-500"></span> Unanswered</div>
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Answered</div>
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Marked</div>
+                        </div>
+                        <div id="palette-legend-quiz" class="hidden text-[10px] grid grid-cols-2 gap-1.5 text-slate-500">
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-slate-200 dark:bg-slate-700"></span> Unattempted</div>
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Correct</div>
+                            <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-red-500"></span> Incorrect</div>
                         </div>
 
                         <button onclick="runner.openSubmissionModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition">
@@ -236,6 +260,26 @@
                     <span class="text-xs font-semibold text-slate-400 uppercase">Correct Ratio</span>
                     <p id="res-count" class="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-1">0/0</p>
                 </div>
+            </div>
+
+            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+                <div class="flex justify-between text-xs font-bold text-slate-500">
+                    <span>Performance Breakdown</span>
+                    <span id="res-breakdown-text">0 Correct, 0 Incorrect, 0 Skipped</span>
+                </div>
+                <div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full flex overflow-hidden">
+                    <div id="bar-correct" class="bg-emerald-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    <div id="bar-incorrect" class="bg-red-500 h-full transition-all duration-500" style="width: 0%"></div>
+                    <div id="bar-skipped" class="bg-slate-300 dark:bg-slate-600 h-full transition-all duration-500" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+                <h3 class="text-sm font-bold">Solutions & Review</h3>
+                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold select-none">
+                    <input type="checkbox" id="toggle-mistakes-only" onchange="runner.toggleMistakesOnlyView()" class="rounded text-brand-blue">
+                    <span>Review Only Mistakes</span>
+                </label>
             </div>
 
             <div id="res-questions-review" class="space-y-4"></div>
@@ -301,6 +345,8 @@
         class SprkTestRunner {
             constructor() {
                 this.quiz = { id: "default_test", title: "Test", timeLimitMinutes: 30, questions: [] };
+                this.isQuizMode = false;
+                this.soundEnabled = false;
                 this.examState = {
                     currentIndex: 0,
                     responses: {},
@@ -311,30 +357,86 @@
                     timerId: null,
                     isPaused: false,
                     startTime: null,
-                    endTime: null
+                    endTime: null,
+                    lastTickTimestamp: null
                 };
 
+                this.audioCtx = null;
                 this.initTheme();
+                this.initSound();
                 this.bindEvents();
                 this.bindKeyboardShortcuts();
                 this.handleInitialLoad();
             }
 
-            renderMath(element) {
-                if (window.renderMathInElement && element) {
-                    try {
-                        renderMathInElement(element, {
-                            delimiters: [
-                                { left: '$$', right: '$$', display: true },
-                                { left: '\\[', right: '\\]', display: true },
-                                { left: '$', right: '$', display: false },
-                                { left: '\\(', right: '\\)', display: false }
-                            ],
-                            throwOnError: false
-                        });
-                    } catch (e) {
-                        console.error("KaTeX rendering error:", e);
+            // Web Audio Synthesizer for Subtle SFX
+            initSound() {
+                const soundBtn = document.getElementById('sound-toggle');
+                const soundIcon = document.getElementById('sound-icon');
+                soundBtn.addEventListener('click', () => {
+                    this.soundEnabled = !this.soundEnabled;
+                    soundIcon.setAttribute('data-lucide', this.soundEnabled ? 'volume-2' : 'volume-x');
+                    lucide.createIcons();
+                    if (this.soundEnabled && !this.audioCtx) {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     }
+                });
+            }
+
+            playSound(type) {
+                if (!this.soundEnabled) return;
+                try {
+                    if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const ctx = this.audioCtx;
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+
+                    if (type === 'select') {
+                        osc.frequency.setValueAtTime(400, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+                        osc.start(); osc.stop(ctx.currentTime + 0.05);
+                    } else if (type === 'correct') {
+                        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.08);
+                        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                        osc.start(); osc.stop(ctx.currentTime + 0.25);
+                    } else if (type === 'incorrect') {
+                        osc.frequency.setValueAtTime(220, ctx.currentTime);
+                        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+                        osc.start(); osc.stop(ctx.currentTime + 0.15);
+                    }
+                } catch(e) {}
+            }
+
+            // Safe Math Rendering Engine
+            renderMath(element) {
+                if (!element) return;
+                const doRender = () => {
+                    if (window.renderMathInElement) {
+                        try {
+                            renderMathInElement(element, {
+                                delimiters: [
+                                    { left: '$$', right: '$$', display: true },
+                                    { left: '\\[', right: '\\]', display: true },
+                                    { left: '$', right: '$', display: false },
+                                    { left: '\\(', right: '\\)', display: false }
+                                ],
+                                throwOnError: false
+                            });
+                        } catch (e) {
+                            console.error("KaTeX rendering error:", e);
+                        }
+                    }
+                };
+                if (window.renderMathInElement) {
+                    doRender();
+                } else {
+                    setTimeout(doRender, 300);
                 }
             }
 
@@ -355,10 +457,14 @@
                 if (active) active.classList.remove('view-hidden');
 
                 const headerControls = document.getElementById('exam-header-controls');
+                const progressBarContainer = document.getElementById('top-progress-bar-container');
+
                 if (viewId === 'view-exam') {
                     headerControls.classList.remove('hidden');
+                    progressBarContainer.classList.remove('hidden');
                 } else {
                     headerControls.classList.add('hidden');
+                    progressBarContainer.classList.add('hidden');
                 }
             }
 
@@ -390,11 +496,12 @@
                     const examView = document.getElementById('view-exam');
                     if (examView.classList.contains('view-hidden') || this.examState.isPaused) return;
 
-                    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                    const activeTag = document.activeElement ? document.activeElement.tagName : '';
+                    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(activeTag)) {
                         if (e.key === 'Enter') {
                             this.examSaveAndNext();
                         }
-                        return;
+                        return; // Prevent hotkeys while typing
                     }
 
                     if (e.key === 'ArrowRight' || e.key === 'Enter') {
@@ -406,13 +513,14 @@
                     } else if (['1', '2', '3', '4'].includes(e.key)) {
                         const optIdx = parseInt(e.key) - 1;
                         const radios = document.querySelectorAll('input[name="exam-opt"]');
-                        if (radios[optIdx]) {
+                        if (radios[optIdx] && !radios[optIdx].disabled) {
                             radios[optIdx].checked = true;
+                            radios[optIdx].dispatchEvent(new Event('change'));
                         }
-                    } else if (e.key.toLowerCase() === 'm') {
+                    } else if (e.key.toLowerCase() === 'm' && !this.isQuizMode) {
                         e.preventDefault();
                         this.examMarkForReview();
-                    } else if (e.key.toLowerCase() === 'c') {
+                    } else if (e.key.toLowerCase() === 'c' && !this.isQuizMode) {
                         e.preventDefault();
                         this.examClearResponse();
                     }
@@ -447,7 +555,8 @@
                     status: this.examState.status,
                     secondsRemaining: this.examState.secondsRemaining,
                     secondsElapsed: this.examState.secondsElapsed,
-                    startTime: this.examState.startTime
+                    startTime: this.examState.startTime,
+                    lastSaveTimestamp: Date.now()
                 };
                 localStorage.setItem(this.getStorageKey(), JSON.stringify(stateToSave));
             }
@@ -572,21 +681,33 @@
             }
 
             startExam(isResume = false, resumeData = null) {
+                this.isQuizMode = (this.quiz.testType === "quiz" || this.quiz.type === "quiz");
+                
+                // Toggle Quiz vs Exam elements
+                document.getElementById('btn-mark-review').style.display = this.isQuizMode ? 'none' : 'block';
+                document.getElementById('btn-clear-resp').style.display = this.isQuizMode ? 'none' : 'block';
+                document.getElementById('palette-legend-standard').classList.toggle('hidden', this.isQuizMode);
+                document.getElementById('palette-legend-quiz').classList.toggle('hidden', !this.isQuizMode);
+
                 const timeLimit = Number(this.quiz.timeLimitMinutes);
                 const isUnlimited = !timeLimit || timeLimit <= 0 || isNaN(timeLimit);
 
                 if (isResume && resumeData) {
+                    const elapsedReal = Math.floor((Date.now() - (resumeData.lastSaveTimestamp || Date.now())) / 1000);
+                    const calcRemaining = isUnlimited ? 0 : Math.max(0, (resumeData.secondsRemaining || 0) - elapsedReal);
+                    
                     this.examState = {
                         currentIndex: resumeData.currentIndex || 0,
                         responses: resumeData.responses || {},
                         status: resumeData.status || {},
-                        secondsRemaining: resumeData.secondsRemaining || 0,
-                        secondsElapsed: resumeData.secondsElapsed || 0,
+                        secondsRemaining: calcRemaining,
+                        secondsElapsed: (resumeData.secondsElapsed || 0) + elapsedReal,
                         isUnlimited: isUnlimited,
                         timerId: null,
                         isPaused: false,
                         startTime: new Date(resumeData.startTime || Date.now()),
-                        endTime: null
+                        endTime: null,
+                        lastTickTimestamp: Date.now()
                     };
                 } else {
                     this.examState = {
@@ -599,7 +720,8 @@
                         timerId: null,
                         isPaused: false,
                         startTime: new Date(),
-                        endTime: null
+                        endTime: null,
+                        lastTickTimestamp: Date.now()
                     };
 
                     this.quiz.questions.forEach(q => {
@@ -619,43 +741,63 @@
                 this.startTimer();
                 this.renderExamQuestion();
                 this.renderPalette();
+                this.updateProgressBar();
                 this.switchView('view-exam');
                 lucide.createIcons();
                 this.saveToLocalStorage();
             }
 
+            // Real-World Timestamp-Based Timer Fix
             startTimer() {
                 const timerDisplay = document.getElementById('timer-display');
                 
                 if (this.examState.isUnlimited) {
                     timerDisplay.innerText = "No Time Limit";
                     if (this.examState.timerId) clearInterval(this.examState.timerId);
+                    this.examState.lastTickTimestamp = Date.now();
                     this.examState.timerId = setInterval(() => {
                         if (!this.examState.isPaused) {
-                            this.examState.secondsElapsed++;
-                            this.saveToLocalStorage();
+                            const now = Date.now();
+                            const delta = Math.floor((now - this.examState.lastTickTimestamp) / 1000);
+                            if (delta >= 1) {
+                                this.examState.secondsElapsed += delta;
+                                this.examState.lastTickTimestamp = now;
+                                this.saveToLocalStorage();
+                            }
                         }
                     }, 1000);
                     return;
                 }
 
+                this.examState.lastTickTimestamp = Date.now();
                 const update = () => {
-                    if (this.examState.isPaused) return;
-
-                    const h = Math.floor(this.examState.secondsRemaining / 3600);
-                    const m = Math.floor((this.examState.secondsRemaining % 3600) / 60);
-                    const s = this.examState.secondsRemaining % 60;
-                    timerDisplay.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-
-                    if (this.examState.secondsRemaining <= 0) {
-                        clearInterval(this.examState.timerId);
-                        alert("Time expired! Automatically submitting your responses.");
-                        this.confirmSubmit();
+                    if (this.examState.isPaused) {
+                        this.examState.lastTickTimestamp = Date.now();
                         return;
                     }
-                    this.examState.secondsRemaining--;
-                    this.examState.secondsElapsed++;
-                    this.saveToLocalStorage();
+
+                    const now = Date.now();
+                    const delta = Math.floor((now - this.examState.lastTickTimestamp) / 1000);
+
+                    if (delta >= 1) {
+                        this.examState.secondsRemaining -= delta;
+                        this.examState.secondsElapsed += delta;
+                        this.examState.lastTickTimestamp = now;
+
+                        if (this.examState.secondsRemaining <= 0) {
+                            this.examState.secondsRemaining = 0;
+                            clearInterval(this.examState.timerId);
+                            alert("Time expired! Automatically submitting your responses.");
+                            this.confirmSubmit();
+                            return;
+                        }
+                        this.saveToLocalStorage();
+                    }
+
+                    const h = Math.floor(Math.max(0, this.examState.secondsRemaining) / 3600);
+                    const m = Math.floor((Math.max(0, this.examState.secondsRemaining) % 3600) / 60);
+                    const s = Math.max(0, this.examState.secondsRemaining) % 60;
+                    timerDisplay.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
                 };
 
                 update();
@@ -670,7 +812,33 @@
                 if (this.examState.isPaused) {
                     modal.classList.remove('hidden');
                 } else {
+                    this.examState.lastTickTimestamp = Date.now();
                     modal.classList.add('hidden');
+                }
+            }
+
+            updateProgressBar() {
+                const total = this.quiz.questions.length;
+                if (!total) return;
+                let answered = Object.values(this.examState.status).filter(st => st === 'answered' || st === 'marked_answered' || st === 'quiz_correct' || st === 'quiz_incorrect').length;
+                const percentage = Math.round((answered / total) * 100);
+                document.getElementById('top-progress-bar').style.width = `${percentage}%`;
+            }
+
+            toggleQuizHint() {
+                const hintPanel = document.getElementById('quiz-hint-panel');
+                hintPanel.classList.toggle('hidden');
+            }
+
+            checkAnswerCorrectness(q, userVal) {
+                if (userVal === undefined || userVal === null) return false;
+                const correctVal = q.correctAnswer;
+                if (q.type === 'multiple_select') {
+                    const uArr = Array.isArray(userVal) ? [...userVal].sort() : [];
+                    const cArr = Array.isArray(correctVal) ? [...correctVal].sort() : [];
+                    return JSON.stringify(uArr) === JSON.stringify(cArr);
+                } else {
+                    return String(userVal).trim().toLowerCase() === String(correctVal).trim().toLowerCase();
                 }
             }
 
@@ -704,20 +872,47 @@
                 optionsContainer.innerHTML = '';
                 const currentResp = this.examState.responses[q.id];
 
+                // Hint setup
+                const hintBtn = document.getElementById('btn-quiz-hint');
+                const hintPanel = document.getElementById('quiz-hint-panel');
+                if (this.isQuizMode && q.hint) {
+                    hintBtn.classList.remove('hidden');
+                    hintPanel.innerHTML = `<strong>Hint:</strong> ${q.hint}`;
+                    hintPanel.classList.add('hidden');
+                } else {
+                    hintBtn.classList.add('hidden');
+                    hintPanel.classList.add('hidden');
+                }
+
+                const isAnsweredInQuiz = this.isQuizMode && currentResp !== undefined;
+
                 if (q.type === 'numerical') {
                     optionsContainer.innerHTML = `
-                        <input type="number" step="any" id="opt-numerical" value="${currentResp || ''}" 
-                        class="w-full md:w-1/2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none" 
-                        placeholder="Enter numerical response...">
+                        <div class="flex gap-2 items-center">
+                            <input type="number" step="any" id="opt-numerical" value="${currentResp || ''}" ${isAnsweredInQuiz ? 'disabled' : ''}
+                            class="w-full md:w-1/2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none disabled:opacity-70" 
+                            placeholder="Enter numerical response...">
+                            ${this.isQuizMode && !isAnsweredInQuiz ? `<button onclick="runner.submitQuizNumerical()" class="px-4 py-3 bg-brand-blue text-white rounded-xl font-bold text-xs">Submit</button>` : ''}
+                        </div>
                     `;
                 } else if (q.type === 'multiple_select') {
                     const selectedArr = Array.isArray(currentResp) ? currentResp : [];
                     (q.options || []).forEach((opt) => {
                         const isChecked = selectedArr.includes(opt);
                         const label = document.createElement('label');
-                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${isChecked ? 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
+                        
+                        let optionStyle = 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50';
+                        if (isChecked) optionStyle = 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30';
+                        
+                        if (isAnsweredInQuiz) {
+                            const isCorrectOpt = Array.isArray(q.correctAnswer) ? q.correctAnswer.includes(opt) : q.correctAnswer === opt;
+                            if (isCorrectOpt) optionStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300';
+                            else if (isChecked) optionStyle = 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300';
+                        }
+
+                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${optionStyle}`;
                         label.innerHTML = `
-                            <input type="checkbox" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue rounded">
+                            <input type="checkbox" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} ${isAnsweredInQuiz ? 'disabled' : ''} class="w-4 h-4 text-brand-blue rounded">
                             <span class="text-sm font-medium">${opt}</span>
                         `;
                         optionsContainer.appendChild(label);
@@ -726,16 +921,78 @@
                     (q.options || []).forEach((opt) => {
                         const isChecked = currentResp === opt;
                         const label = document.createElement('label');
-                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${isChecked ? 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50'}`;
+                        
+                        let optionStyle = 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50';
+                        if (isChecked) optionStyle = 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30';
+
+                        if (isAnsweredInQuiz) {
+                            const isCorrectOpt = String(opt).trim().toLowerCase() === String(q.correctAnswer).trim().toLowerCase();
+                            if (isCorrectOpt) optionStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold';
+                            else if (isChecked) optionStyle = 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300';
+                        }
+
+                        label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${optionStyle}`;
                         label.innerHTML = `
-                            <input type="radio" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-brand-blue">
+                            <input type="radio" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} ${isAnsweredInQuiz ? 'disabled' : ''} class="w-4 h-4 text-brand-blue">
                             <span class="text-sm font-medium">${opt}</span>
                         `;
                         optionsContainer.appendChild(label);
                     });
                 }
 
+                // Bind instant quiz mode option selection
+                if (this.isQuizMode && !isAnsweredInQuiz && q.type !== 'numerical') {
+                    optionsContainer.querySelectorAll('input[name="exam-opt"]').forEach(inp => {
+                        inp.addEventListener('change', () => {
+                            this.captureCurrentResponse();
+                            this.processQuizInstantFeedback(q);
+                        });
+                    });
+                }
+
+                // Render Feedback Panel if in Quiz Mode and answered
+                const feedbackPanel = document.getElementById('quiz-feedback-panel');
+                if (this.isQuizMode && isAnsweredInQuiz) {
+                    const isCorrect = this.checkAnswerCorrectness(q, currentResp);
+                    feedbackPanel.classList.remove('hidden', 'bg-emerald-500/10', 'border-emerald-500/20', 'bg-red-500/10', 'border-red-500/20');
+                    if (isCorrect) {
+                        feedbackPanel.classList.add('bg-emerald-500/10', 'border-emerald-500/20', 'text-emerald-600', 'dark:text-emerald-400');
+                        document.getElementById('quiz-feedback-header').innerHTML = `<i data-lucide="check-circle" class="w-5 h-5"></i> Correct Answer!`;
+                    } else {
+                        feedbackPanel.classList.add('bg-red-500/10', 'border-red-500/20', 'text-red-600', 'dark:text-red-400');
+                        document.getElementById('quiz-feedback-header').innerHTML = `<i data-lucide="x-circle" class="w-5 h-5"></i> Incorrect Answer`;
+                    }
+                    
+                    document.getElementById('quiz-explanation-box').innerHTML = `
+                        <p class="font-semibold text-slate-800 dark:text-slate-100">Correct Answer: ${Array.isArray(q.correctAnswer) ? q.correctAnswer.join(', ') : q.correctAnswer}</p>
+                        ${q.explanation ? `<p class="mt-1">${q.explanation}</p>` : ''}
+                    `;
+                    feedbackPanel.classList.remove('hidden');
+                } else {
+                    feedbackPanel.classList.add('hidden');
+                }
+
                 this.renderMath(document.getElementById('view-exam'));
+                lucide.createIcons();
+            }
+
+            submitQuizNumerical() {
+                const q = this.quiz.questions[this.examState.currentIndex];
+                this.captureCurrentResponse();
+                if (this.examState.responses[q.id] !== undefined) {
+                    this.processQuizInstantFeedback(q);
+                }
+            }
+
+            processQuizInstantFeedback(q) {
+                const userVal = this.examState.responses[q.id];
+                const isCorrect = this.checkAnswerCorrectness(q, userVal);
+                this.examState.status[q.id] = isCorrect ? 'quiz_correct' : 'quiz_incorrect';
+                this.playSound(isCorrect ? 'correct' : 'incorrect');
+                this.renderExamQuestion();
+                this.renderPalette();
+                this.updateProgressBar();
+                this.saveToLocalStorage();
             }
 
             captureCurrentResponse() {
@@ -746,27 +1003,36 @@
                     const input = document.getElementById('opt-numerical');
                     if (input && input.value.trim() !== '') {
                         this.examState.responses[q.id] = input.value.trim();
+                        this.playSound('select');
                     } else delete this.examState.responses[q.id];
                 } else if (q.type === 'multiple_select') {
                     const checked = Array.from(document.querySelectorAll('input[name="exam-opt"]:checked')).map(el => el.value);
-                    if (checked.length) this.examState.responses[q.id] = checked;
-                    else delete this.examState.responses[q.id];
+                    if (checked.length) {
+                        this.examState.responses[q.id] = checked;
+                        this.playSound('select');
+                    } else delete this.examState.responses[q.id];
                 } else {
                     const selected = document.querySelector('input[name="exam-opt"]:checked');
-                    if (selected) this.examState.responses[q.id] = selected.value;
-                    else delete this.examState.responses[q.id];
+                    if (selected) {
+                        this.examState.responses[q.id] = selected.value;
+                        this.playSound('select');
+                    } else delete this.examState.responses[q.id];
                 }
+                this.updateProgressBar();
                 this.saveToLocalStorage();
             }
 
             examSaveAndNext() {
-                this.captureCurrentResponse();
-                const qId = this.quiz.questions[this.examState.currentIndex].id;
-                this.examState.status[qId] = this.examState.responses[qId] ? 'answered' : 'unanswered';
+                if (!this.isQuizMode) {
+                    this.captureCurrentResponse();
+                    const qId = this.quiz.questions[this.examState.currentIndex].id;
+                    this.examState.status[qId] = this.examState.responses[qId] ? 'answered' : 'unanswered';
+                }
                 this.nextQuestion();
             }
 
             examMarkForReview() {
+                if (this.isQuizMode) return;
                 this.captureCurrentResponse();
                 const qId = this.quiz.questions[this.examState.currentIndex].id;
                 this.examState.status[qId] = this.examState.responses[qId] ? 'marked_answered' : 'marked';
@@ -774,16 +1040,18 @@
             }
 
             examClearResponse() {
+                if (this.isQuizMode) return;
                 const qId = this.quiz.questions[this.examState.currentIndex].id;
                 delete this.examState.responses[qId];
                 this.examState.status[qId] = 'unanswered';
                 this.renderExamQuestion();
                 this.renderPalette();
+                this.updateProgressBar();
                 this.saveToLocalStorage();
             }
 
             previousQuestion() {
-                this.captureCurrentResponse();
+                if (!this.isQuizMode) this.captureCurrentResponse();
                 if (this.examState.currentIndex > 0) {
                     this.examState.currentIndex--;
                     const prevQId = this.quiz.questions[this.examState.currentIndex].id;
@@ -810,7 +1078,7 @@
             }
 
             jumpToQuestion(idx) {
-                this.captureCurrentResponse();
+                if (!this.isQuizMode) this.captureCurrentResponse();
                 this.examState.currentIndex = idx;
                 const qId = this.quiz.questions[idx].id;
                 if (this.examState.status[qId] === 'unvisited') {
@@ -819,6 +1087,11 @@
                 this.renderExamQuestion();
                 this.renderPalette();
                 this.saveToLocalStorage();
+            }
+
+            togglePaletteCollapse() {
+                const paletteGrid = document.getElementById('exam-palette-grid');
+                paletteGrid.classList.toggle('hidden');
             }
 
             renderPalette() {
@@ -831,13 +1104,15 @@
 
                     if (filter === 'unanswered' && status !== 'unanswered') return;
                     if (filter === 'marked' && !status.includes('marked')) return;
-                    if (filter === 'answered' && !status.includes('answered')) return;
+                    if (filter === 'answered' && !status.includes('answered') && !status.includes('quiz_')) return;
 
                     const btn = document.createElement('button');
                     btn.onclick = () => this.jumpToQuestion(idx);
                     
-                    let baseClasses = "w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center relative ";
+                    let baseClasses = "w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center relative group ";
                     if (idx === this.examState.currentIndex) baseClasses += "ring-2 ring-offset-2 ring-brand-blue ";
+
+                    let tooltipText = `Q${idx + 1}: ${status}`;
 
                     switch (status) {
                         case 'unvisited': baseClasses += "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300"; break;
@@ -848,20 +1123,23 @@
                             baseClasses += "bg-purple-500 text-white";
                             btn.innerHTML = `${idx + 1}<span class="absolute right-0.5 bottom-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>`;
                             break;
+                        case 'quiz_correct': baseClasses += "bg-emerald-500 text-white"; tooltipText = `Q${idx + 1}: Correct`; break;
+                        case 'quiz_incorrect': baseClasses += "bg-red-500 text-white"; tooltipText = `Q${idx + 1}: Incorrect`; break;
                     }
 
                     if (status !== 'marked_answered') btn.innerText = idx + 1;
                     btn.className = baseClasses;
+                    btn.title = tooltipText; // Sleek native tooltip
                     grid.appendChild(btn);
                 });
             }
 
             openSubmissionModal() {
-                this.captureCurrentResponse();
+                if (!this.isQuizMode) this.captureCurrentResponse();
                 let answered = 0, unanswered = 0, marked = 0;
 
                 Object.values(this.examState.status).forEach(st => {
-                    if (st === 'answered' || st === 'marked_answered') answered++;
+                    if (st === 'answered' || st === 'marked_answered' || st === 'quiz_correct' || st === 'quiz_incorrect') answered++;
                     else if (st === 'marked') marked++;
                     else unanswered++;
                 });
@@ -887,9 +1165,10 @@
                 let score = 0;
                 let maxScore = 0;
                 let totalCorrect = 0;
+                let totalIncorrect = 0;
+                let totalSkipped = 0;
 
-                const reviewContainer = document.getElementById('res-questions-review');
-                reviewContainer.innerHTML = '';
+                this.reviewCardsData = [];
 
                 this.quiz.questions.forEach((q, idx) => {
                     const pos = q.positiveMarks ?? 4;
@@ -898,25 +1177,61 @@
 
                     const userVal = this.examState.responses[q.id];
                     const correctVal = q.correctAnswer;
-                    let isCorrect = false;
                     let isAttempted = userVal !== undefined;
-
-                    if (isAttempted) {
-                        if (q.type === 'multiple_select') {
-                            const uArr = Array.isArray(userVal) ? [...userVal].sort() : [];
-                            const cArr = Array.isArray(correctVal) ? [...correctVal].sort() : [];
-                            isCorrect = JSON.stringify(uArr) === JSON.stringify(cArr);
-                        } else {
-                            isCorrect = String(userVal).trim().toLowerCase() === String(correctVal).trim().toLowerCase();
-                        }
-                    }
+                    let isCorrect = this.checkAnswerCorrectness(q, userVal);
 
                     if (isCorrect) {
                         score += pos;
                         totalCorrect++;
                     } else if (isAttempted) {
                         score -= neg;
+                        totalIncorrect++;
+                    } else {
+                        totalSkipped++;
                     }
+
+                    this.reviewCardsData.push({
+                        q, idx, pos, neg, userVal, correctVal, isCorrect, isAttempted
+                    });
+                });
+
+                const totalQ = this.quiz.questions.length;
+                const accuracy = totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0;
+                
+                const totalSeconds = this.examState.secondsElapsed || Math.floor((this.examState.endTime - this.examState.startTime) / 1000);
+                const timeStr = `${Math.floor(totalSeconds / 60)}m ${totalSeconds % 60}s`;
+
+                this.lastCalculatedResults = {
+                    score, maxScore, accuracy, totalCorrect, totalQuestions: totalQ,
+                    timeElapsedSeconds: totalSeconds, responses: this.examState.responses
+                };
+
+                document.getElementById('res-score').innerText = `${score}/${maxScore}`;
+                document.getElementById('res-accuracy').innerText = `${accuracy}%`;
+                document.getElementById('res-time').innerText = timeStr;
+                document.getElementById('res-count').innerText = `${totalCorrect}/${totalQ}`;
+
+                // Render Visual Breakdown Bar
+                document.getElementById('res-breakdown-text').innerText = `${totalCorrect} Correct, ${totalIncorrect} Incorrect, ${totalSkipped} Skipped`;
+                document.getElementById('bar-correct').style.width = `${(totalCorrect / totalQ) * 100}%`;
+                document.getElementById('bar-incorrect').style.width = `${(totalIncorrect / totalQ) * 100}%`;
+                document.getElementById('bar-skipped').style.width = `${(totalSkipped / totalQ) * 100}%`;
+
+                this.renderResultsReview();
+                this.switchView('view-results');
+            }
+
+            toggleMistakesOnlyView() {
+                this.renderResultsReview();
+            }
+
+            renderResultsReview() {
+                const reviewContainer = document.getElementById('res-questions-review');
+                reviewContainer.innerHTML = '';
+                const mistakesOnly = document.getElementById('toggle-mistakes-only').checked;
+
+                this.reviewCardsData.forEach(({ q, idx, pos, neg, userVal, correctVal, isCorrect, isAttempted }) => {
+                    if (mistakesOnly && isCorrect) return;
 
                     const card = document.createElement('div');
                     card.className = `p-5 rounded-xl border bg-white dark:bg-slate-900 ${isCorrect ? 'border-emerald-200 dark:border-emerald-900/50' : (isAttempted ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-slate-800')}`;
@@ -929,35 +1244,13 @@
                         <div class="text-xs space-y-1 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
                             <p><strong>Your Answer:</strong> ${userVal ? (Array.isArray(userVal) ? userVal.join(', ') : userVal) : '<span class="italic text-slate-400">None</span>'}</p>
                             <p class="text-emerald-600 dark:text-emerald-400"><strong>Correct Answer:</strong> ${Array.isArray(correctVal) ? correctVal.join(', ') : correctVal}</p>
-                            ${q.hint ? `<p class="text-purple-500 mt-2"><strong>Hint:</strong> ${q.hint}</p>` : ''}
+                            ${q.hint ? `<p class="text-amber-500 mt-2"><strong>Hint:</strong> ${q.hint}</p>` : ''}
                             ${q.explanation ? `<p class="text-slate-500 dark:text-slate-400 mt-1"><strong>Explanation:</strong> ${q.explanation}</p>` : ''}
                         </div>
                     `;
                     reviewContainer.appendChild(card);
                 });
 
-                const totalQ = this.quiz.questions.length;
-                const accuracy = totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0;
-                
-                const totalSeconds = this.examState.secondsElapsed || Math.floor((this.examState.endTime - this.examState.startTime) / 1000);
-                const timeStr = `${Math.floor(totalSeconds / 60)}m ${totalSeconds % 60}s`;
-
-                this.lastCalculatedResults = {
-                    score,
-                    maxScore,
-                    accuracy,
-                    totalCorrect,
-                    totalQuestions: totalQ,
-                    timeElapsedSeconds: totalSeconds,
-                    responses: this.examState.responses
-                };
-
-                document.getElementById('res-score').innerText = `${score}/${maxScore}`;
-                document.getElementById('res-accuracy').innerText = `${accuracy}%`;
-                document.getElementById('res-time').innerText = timeStr;
-                document.getElementById('res-count').innerText = `${totalCorrect}/${totalQ}`;
-
-                this.switchView('view-results');
                 this.renderMath(document.getElementById('view-results'));
             }
 
