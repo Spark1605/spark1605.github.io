@@ -50,20 +50,26 @@
         .view-hidden { display: none !important; opacity: 0; transform: translateY(6px); }
 
         @media print {
-            header, #exam-header-controls, .print\:hidden, #top-progress-bar { display: none !important; }
+            header, #exam-header-controls, .print\:hidden, #top-progress-bar-container { display: none !important; }
             body { background: white !important; color: black !important; }
             .view-section { display: block !important; opacity: 1 !important; transform: none !important; }
         }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.4); }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50 transition-colors duration-300 min-h-screen flex flex-col antialiased selection:bg-brand-blue selection:text-white">
 
     <div id="top-progress-bar-container" class="w-full bg-slate-200 dark:bg-slate-800 h-1.5 fixed top-0 left-0 z-50 hidden">
         <div id="top-progress-bar" class="bg-gradient-to-r from-brand-cyan via-brand-blue to-brand-purple h-full w-0 transition-all duration-300"></div>
     </div>
 
-    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full print:hidden mt-1.5">
-        <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center w-full">
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40 w-full print:hidden shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center w-full">
             <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="runner.showHome()">
                 <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
                     <span class="brand-main">Sprk</span>
@@ -72,79 +78,82 @@
                 <div class="logo-underline"></div>
             </div>
             
-            <div id="exam-header-controls" class="hidden flex items-center gap-2 md:gap-4">
+            <div id="exam-header-controls" class="hidden flex items-center gap-2 md:gap-3">
                 <button id="pause-btn" onclick="runner.togglePauseTest()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                    <i data-lucide="pause" class="w-4 h-4"></i> Pause Test
+                    <i data-lucide="pause" class="w-4 h-4 text-amber-500"></i> <span class="hidden sm:inline">Pause</span>
                 </button>
                 <button onclick="runner.toggleFullscreen()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                     <i id="fullscreen-icon" data-lucide="maximize" class="w-4 h-4"></i> <span class="hidden sm:inline">Fullscreen</span>
                 </button>
             </div>
 
-            <div class="flex items-center gap-3">
-                <button id="sound-toggle" title="Toggle Sound FX" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <div class="flex items-center gap-2.5">
+                <button id="sound-toggle" title="Toggle SFX" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-sm">
                     <i id="sound-icon" data-lucide="volume-x" class="w-4 h-4"></i>
                 </button>
-                <button id="theme-toggle" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <button id="theme-toggle" title="Toggle Theme" class="p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-sm">
                     <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-6 py-6 flex flex-col items-center">
+    <main id="main-content" class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col items-center">
 
         <section id="view-dashboard" class="view-section w-full max-w-2xl flex flex-col gap-6 my-auto">
             <div class="text-center space-y-2">
-                <h1 class="text-3xl font-extrabold tracking-tight">SPRK Test Runner</h1>
-                <p class="text-slate-500 dark:text-slate-400 text-sm">Load your assigned test file or choose a local file to execute.</p>
+                <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">SPRK Test Runner</h1>
+                <p class="text-slate-500 dark:text-slate-400 text-sm">Load an assigned test file, URL parameter, or select a local test file to begin.</p>
             </div>
 
-            <div id="resume-banner" class="hidden p-4 rounded-xl bg-brand-blue/10 border border-brand-blue/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div id="resume-banner" class="hidden p-4 rounded-xl bg-brand-blue/10 border border-brand-blue/30 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
                 <div class="flex items-center gap-3">
                     <i data-lucide="rotate-ccw" class="w-6 h-6 text-brand-blue flex-shrink-0"></i>
                     <div>
-                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saved Session Detected</h4>
-                        <p id="resume-info" class="text-xs text-slate-500 dark:text-slate-400">You have an unfinished exam session saved.</p>
+                        <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100">Saved Exam Session Detected</h4>
+                        <p id="resume-info" class="text-xs text-slate-500 dark:text-slate-400">You have an active unfinished session saved locally.</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    <button onclick="runner.discardSavedSession()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <button onclick="runner.discardSavedSession()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
                         Discard
                     </button>
                     <button onclick="runner.resumeSession()" class="px-4 py-1.5 text-xs font-semibold rounded-lg bg-brand-blue text-white hover:opacity-90 transition shadow-sm">
-                        Resume
+                        Resume Session
                     </button>
                 </div>
             </div>
 
             <div id="loading-spinner" class="hidden flex-col items-center justify-center p-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm space-y-4">
                 <div class="w-10 h-10 border-4 border-brand-blue border-t-transparent rounded-full animate-spin"></div>
-                <p id="loading-text" class="text-sm font-medium text-slate-600 dark:text-slate-300">Fetching remote test environment...</p>
+                <p id="loading-text" class="text-sm font-medium text-slate-600 dark:text-slate-300">Loading remote test environment...</p>
             </div>
 
-            <div id="fetch-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm space-y-2">
-                <div class="flex items-center gap-2 font-semibold"><i data-lucide="alert-circle" class="w-4 h-4"></i> Unable to load requested remote test.</div>
+            <div id="fetch-error" class="hidden p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm space-y-1">
+                <div class="flex items-center gap-2 font-semibold"><i data-lucide="alert-circle" class="w-4 h-4"></i> Remote Test Loading Failed</div>
                 <p id="error-message-text" class="text-xs opacity-90"></p>
             </div>
 
-            <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl p-8 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 cursor-pointer transition group">
+            <div id="drop-zone" class="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-brand-blue dark:hover:border-brand-cyan rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center bg-white dark:bg-slate-900/50 cursor-pointer transition group shadow-sm">
                 <div class="p-4 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition">
-                    <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+                    <i data-lucide="upload-cloud" class="w-10 h-10 text-brand-blue"></i>
                 </div>
-                <p class="mt-4 text-base font-semibold">Select or Drop <span class="text-brand-blue dark:text-brand-cyan font-bold">.sprk</span> file</p>
-                <p class="text-xs text-slate-400 mt-1">Choose a file manually to begin testing</p>
+                <p class="mt-4 text-base font-semibold">Select or Drop <span class="text-brand-blue dark:text-brand-cyan font-bold">.sprk</span> or <span class="text-brand-blue dark:text-brand-cyan font-bold">.json</span> file</p>
+                <p class="text-xs text-slate-400 mt-1">Supports multi-select, numerical inputs, dynamic schema fallbacks & inline LaTeX</p>
                 <input type="file" id="file-input" accept=".sprk,.json" class="hidden" />
             </div>
         </section>
 
         <section id="view-exam" class="view-section view-hidden w-full flex flex-col gap-4">
-            <div class="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 gap-4">
+            <div class="flex flex-col md:flex-row md:items-center justify-between bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 gap-4 shadow-sm">
                 <div>
-                    <h2 id="exam-title-display" class="font-bold text-lg">Exam Title</h2>
-                    <span id="exam-status-badge" class="inline-block mt-0.5 text-xs px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-medium">Test Active</span>
+                    <div class="flex items-center gap-2">
+                        <h2 id="exam-title-display" class="font-bold text-lg">Exam Title</h2>
+                        <span id="exam-status-badge" class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold">Exam Mode</span>
+                    </div>
+                    <p id="exam-desc-display" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 hidden"></p>
                 </div>
-                <div class="flex items-center gap-3 font-mono text-xl font-bold bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
+                <div class="flex items-center gap-3 font-mono text-xl font-bold bg-slate-100 dark:bg-slate-800/80 px-4 py-2 rounded-xl w-fit">
                     <i data-lucide="clock" class="w-5 h-5 text-brand-blue"></i>
                     <span id="timer-display">--:--:--</span>
                 </div>
@@ -152,13 +161,18 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <div class="lg:col-span-3 flex flex-col gap-4">
-                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 min-h-[420px] flex flex-col justify-between">
+                    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 min-h-[440px] flex flex-col justify-between shadow-sm">
                         <div class="space-y-4">
                             <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-                                <span id="exam-q-num" class="font-bold text-brand-blue">Question 1</span>
                                 <div class="flex items-center gap-2">
-                                    <span id="exam-q-marks" class="text-xs font-semibold px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">+4 / 0 Marks</span>
-                                    <span id="exam-q-type" class="text-xs uppercase tracking-wider px-2 py-1 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">MCQ</span>
+                                    <span id="exam-q-num" class="font-bold text-brand-blue text-base">Question 1</span>
+                                    <button id="btn-bookmark" onclick="runner.toggleBookmark()" title="Bookmark Question [Hotkey: B]" class="p-1 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                        <i id="icon-bookmark" data-lucide="bookmark" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span id="exam-q-marks" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">+4 / -0 Marks</span>
+                                    <span id="exam-q-type" class="text-xs uppercase tracking-wider px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold">MCQ</span>
                                 </div>
                             </div>
 
@@ -166,31 +180,31 @@
 
                             <div id="exam-q-media" class="hidden my-2 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden max-w-lg"></div>
 
-                            <div id="exam-q-options" class="space-y-2 mt-4"></div>
+                            <div id="exam-q-options" class="space-y-2.5 mt-4"></div>
 
                             <div id="quiz-feedback-panel" class="hidden mt-4 p-4 rounded-xl border transition-all">
                                 <div id="quiz-feedback-header" class="font-bold text-sm flex items-center gap-2"></div>
-                                <div id="quiz-explanation-box" class="text-xs mt-2 text-slate-600 dark:text-slate-300 space-y-1"></div>
+                                <div id="quiz-explanation-box" class="text-xs mt-2 space-y-1"></div>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 flex-wrap gap-2">
                             <div class="flex items-center gap-2">
                                 <button id="btn-quiz-hint" onclick="runner.toggleQuizHint()" class="hidden px-3 py-2 rounded-lg text-xs font-medium border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-300 hover:bg-amber-100 transition">
-                                    💡 Show Hint
+                                    💡 Hint
                                 </button>
-                                <button id="btn-mark-review" onclick="runner.examMarkForReview()" class="px-3 py-2 rounded-lg text-xs font-medium border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 hover:bg-purple-100 transition">
-                                    Mark for Review & Next [M]
+                                <button id="btn-mark-review" onclick="runner.examMarkForReview()" class="px-3 py-2 rounded-lg text-xs font-medium border border-purple-300 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40 transition">
+                                    Mark for Review [M]
                                 </button>
-                                <button id="btn-clear-resp" onclick="runner.examClearResponse()" class="px-3 py-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-                                    Clear Response [C]
+                                <button id="btn-clear-resp" onclick="runner.examClearResponse()" class="px-3 py-2 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
+                                    Clear [C]
                                 </button>
                             </div>
                             <div class="flex items-center gap-2">
                                 <button onclick="runner.previousQuestion()" class="px-4 py-2 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
                                     Previous [←]
                                 </button>
-                                <button onclick="runner.examSaveAndNext()" class="px-5 py-2 rounded-lg text-xs font-semibold bg-brand-blue text-white hover:opacity-90 transition">
+                                <button onclick="runner.examSaveAndNext()" class="px-5 py-2 rounded-lg text-xs font-semibold bg-brand-blue text-white hover:opacity-90 transition shadow-sm">
                                     Save & Next [→/Enter]
                                 </button>
                             </div>
@@ -199,21 +213,22 @@
                     </div>
                 </div>
 
-                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4">
+                <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col justify-between gap-4 shadow-sm">
                     <div class="space-y-3">
                         <div class="flex items-center justify-between">
-                            <h3 class="text-xs font-bold tracking-wide uppercase text-slate-400">Palette</h3>
+                            <h3 class="text-xs font-bold tracking-wide uppercase text-slate-400">Question Palette</h3>
                             <div class="flex items-center gap-2">
                                 <button onclick="runner.togglePaletteCollapse()" class="lg:hidden text-xs text-brand-blue font-semibold">Toggle</button>
-                                <select id="palette-filter" onchange="runner.renderPalette()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-2 py-1 outline-none">
-                                    <option value="all">All</option>
+                                <select id="palette-filter" onchange="runner.renderPalette()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-lg px-2 py-1 outline-none text-slate-700 dark:text-slate-300">
+                                    <option value="all">All Questions</option>
                                     <option value="unanswered">Unanswered</option>
                                     <option value="marked">Marked</option>
                                     <option value="answered">Answered</option>
+                                    <option value="bookmarked">Bookmarked</option>
                                 </select>
                             </div>
                         </div>
-                        <div id="exam-palette-grid" class="grid grid-cols-5 gap-2 max-h-64 overflow-y-auto pr-1"></div>
+                        <div id="exam-palette-grid" class="grid grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-1"></div>
                     </div>
 
                     <div class="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-3">
@@ -229,8 +244,8 @@
                             <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded bg-red-500"></span> Incorrect</div>
                         </div>
 
-                        <button onclick="runner.openSubmissionModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition">
-                            Submit Test
+                        <button onclick="runner.openSubmissionModal()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition shadow-sm">
+                            Submit Examination
                         </button>
                     </div>
                 </div>
@@ -239,32 +254,32 @@
 
         <section id="view-results" class="view-section view-hidden w-full max-w-4xl space-y-6">
             <div class="text-center space-y-2 print:space-y-1">
-                <h2 class="text-3xl font-extrabold">Performance Overview</h2>
-                <p class="text-xs text-slate-400">Comprehensive score analysis & solutions breakdown.</p>
+                <h2 class="text-3xl font-extrabold">Performance Analytics</h2>
+                <p class="text-xs text-slate-400">Comprehensive diagnostic score analysis & full solution key.</p>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Final Score</span>
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Final Score</span>
                     <p id="res-score" class="text-2xl font-bold text-brand-blue mt-1">0/0</p>
                 </div>
-                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Accuracy</span>
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accuracy</span>
                     <p id="res-accuracy" class="text-2xl font-bold text-emerald-500 mt-1">0%</p>
                 </div>
-                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Time Elapsed</span>
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Time Elapsed</span>
                     <p id="res-time" class="text-2xl font-bold text-purple-500 mt-1">00:00</p>
                 </div>
-                <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center">
-                    <span class="text-xs font-semibold text-slate-400 uppercase">Correct Ratio</span>
-                    <p id="res-count" class="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-1">0/0</p>
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-center shadow-sm">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avg Time / Q</span>
+                    <p id="res-avg-time" class="text-2xl font-bold text-amber-500 mt-1">0s</p>
                 </div>
             </div>
 
-            <div class="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2 shadow-sm">
                 <div class="flex justify-between text-xs font-bold text-slate-500">
-                    <span>Performance Breakdown</span>
+                    <span>Breakdown</span>
                     <span id="res-breakdown-text">0 Correct, 0 Incorrect, 0 Skipped</span>
                 </div>
                 <div class="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full flex overflow-hidden">
@@ -274,25 +289,30 @@
                 </div>
             </div>
 
-            <div class="flex items-center justify-between pt-2">
-                <h3 class="text-sm font-bold">Solutions & Review</h3>
-                <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold select-none">
-                    <input type="checkbox" id="toggle-mistakes-only" onchange="runner.toggleMistakesOnlyView()" class="rounded text-brand-blue">
-                    <span>Review Only Mistakes</span>
-                </label>
+            <div class="flex items-center justify-between pt-2 flex-wrap gap-2">
+                <h3 class="text-sm font-bold">Solutions & Explanations</h3>
+                <div class="flex items-center gap-3">
+                    <select id="res-filter-select" onchange="runner.renderResultsReview()" class="text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 outline-none">
+                        <option value="all">Show All Questions</option>
+                        <option value="correct">Correct Only</option>
+                        <option value="incorrect">Incorrect Only</option>
+                        <option value="skipped">Skipped Only</option>
+                        <option value="bookmarked">Bookmarked Only</option>
+                    </select>
+                </div>
             </div>
 
             <div id="res-questions-review" class="space-y-4"></div>
 
-            <div class="flex items-center justify-center gap-3 print:hidden">
+            <div class="flex items-center justify-center gap-3 print:hidden pt-4">
                 <button onclick="window.print()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
                     <i data-lucide="printer" class="w-4 h-4"></i> Print PDF
                 </button>
                 <button onclick="runner.exportJSONResults()" class="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 font-medium text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-2">
                     <i data-lucide="download" class="w-4 h-4"></i> Export JSON
                 </button>
-                <button onclick="runner.showHome()" class="px-6 py-2.5 rounded-xl bg-brand-blue text-white font-medium text-sm hover:opacity-90 transition">
-                    Return to Home
+                <button onclick="runner.showHome()" class="px-6 py-2.5 rounded-xl bg-brand-blue text-white font-medium text-sm hover:opacity-90 transition shadow-sm">
+                    Return Home
                 </button>
             </div>
         </section>
@@ -300,11 +320,11 @@
     </main>
 
     <div id="modal-pause" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl">
             <div class="p-3 bg-brand-blue/10 text-brand-blue w-fit rounded-full mx-auto">
                 <i data-lucide="pause-circle" class="w-8 h-8"></i>
             </div>
-            <h3 class="text-xl font-bold">Test Paused</h3>
+            <h3 class="text-xl font-bold">Examination Paused</h3>
             <p class="text-xs text-slate-400">The timer is temporarily frozen. Questions are hidden until resumed.</p>
             <button onclick="runner.togglePauseTest()" class="w-full py-2.5 bg-brand-blue text-white font-semibold text-xs uppercase tracking-wider rounded-xl hover:opacity-90 transition">
                 Resume Examination
@@ -313,7 +333,7 @@
     </div>
 
     <div id="modal-submit" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5">
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-xl">
             <h3 class="text-xl font-bold">Submit Examination?</h3>
             
             <div class="grid grid-cols-3 gap-2 text-center text-xs">
@@ -328,7 +348,7 @@
                 </div>
             </div>
 
-            <p class="text-xs text-slate-400">Are you sure you wish to end the exam? You will not be able to change your answers after submission.</p>
+            <p class="text-xs text-slate-400">Are you sure you wish to end the exam? Your answers will be graded immediately.</p>
 
             <div class="flex items-center justify-end gap-3 pt-2">
                 <button onclick="runner.closeSubmissionModal()" class="px-4 py-2 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
@@ -342,15 +362,28 @@
     </div>
 
     <script>
+        // Fisher-Yates Shuffle helper
+        function fisherYatesShuffle(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
         class SprkTestRunner {
             constructor() {
-                this.quiz = { id: "default_test", title: "Test", timeLimitMinutes: 30, questions: [] };
+                this.quiz = { id: "default_test", title: "SPRK Test", timeLimitMinutes: 30, questions: [] };
                 this.isQuizMode = false;
                 this.soundEnabled = false;
+                this.activeQuestions = []; // Active list of questions (shuffled or original)
                 this.examState = {
                     currentIndex: 0,
                     responses: {},
                     status: {},
+                    bookmarks: {},
+                    timeSpentPerQuestion: {},
                     secondsRemaining: 0,
                     secondsElapsed: 0,
                     isUnlimited: false,
@@ -369,7 +402,6 @@
                 this.handleInitialLoad();
             }
 
-            // Web Audio Synthesizer for Subtle SFX
             initSound() {
                 const soundBtn = document.getElementById('sound-toggle');
                 const soundIcon = document.getElementById('sound-icon');
@@ -413,7 +445,6 @@
                 } catch(e) {}
             }
 
-            // Safe Math Rendering Engine
             renderMath(element) {
                 if (!element) return;
                 const doRender = () => {
@@ -433,11 +464,8 @@
                         }
                     }
                 };
-                if (window.renderMathInElement) {
-                    doRender();
-                } else {
-                    setTimeout(doRender, 300);
-                }
+                if (window.renderMathInElement) doRender();
+                else setTimeout(doRender, 300);
             }
 
             initTheme() {
@@ -501,7 +529,7 @@
                         if (e.key === 'Enter') {
                             this.examSaveAndNext();
                         }
-                        return; // Prevent hotkeys while typing
+                        return;
                     }
 
                     if (e.key === 'ArrowRight' || e.key === 'Enter') {
@@ -510,12 +538,12 @@
                     } else if (e.key === 'ArrowLeft') {
                         e.preventDefault();
                         this.previousQuestion();
-                    } else if (['1', '2', '3', '4'].includes(e.key)) {
+                    } else if (['1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
                         const optIdx = parseInt(e.key) - 1;
-                        const radios = document.querySelectorAll('input[name="exam-opt"]');
-                        if (radios[optIdx] && !radios[optIdx].disabled) {
-                            radios[optIdx].checked = true;
-                            radios[optIdx].dispatchEvent(new Event('change'));
+                        const options = document.querySelectorAll('input[name="exam-opt"]');
+                        if (options[optIdx] && !options[optIdx].disabled) {
+                            options[optIdx].checked = !options[optIdx].checked;
+                            options[optIdx].dispatchEvent(new Event('change'));
                         }
                     } else if (e.key.toLowerCase() === 'm' && !this.isQuizMode) {
                         e.preventDefault();
@@ -523,6 +551,9 @@
                     } else if (e.key.toLowerCase() === 'c' && !this.isQuizMode) {
                         e.preventDefault();
                         this.examClearResponse();
+                    } else if (e.key.toLowerCase() === 'b') {
+                        e.preventDefault();
+                        this.toggleBookmark();
                     }
                 });
             }
@@ -547,12 +578,15 @@
             }
 
             saveToLocalStorage() {
-                if (!this.quiz || !this.quiz.questions.length) return;
+                if (!this.quiz || !this.activeQuestions.length) return;
                 const stateToSave = {
                     quiz: this.quiz,
+                    activeQuestions: this.activeQuestions,
                     currentIndex: this.examState.currentIndex,
                     responses: this.examState.responses,
                     status: this.examState.status,
+                    bookmarks: this.examState.bookmarks,
+                    timeSpentPerQuestion: this.examState.timeSpentPerQuestion,
                     secondsRemaining: this.examState.secondsRemaining,
                     secondsElapsed: this.examState.secondsElapsed,
                     startTime: this.examState.startTime,
@@ -607,7 +641,6 @@
 
                 if (testPath) {
                     this.showLoading(true, "Fetching test configuration...");
-                    
                     let filename = testPath;
                     let urls = [];
 
@@ -683,7 +716,36 @@
             startExam(isResume = false, resumeData = null) {
                 this.isQuizMode = (this.quiz.testType === "quiz" || this.quiz.type === "quiz");
                 
-                // Toggle Quiz vs Exam elements
+                // Set Up Questions (Handle Shuffling)
+                if (isResume && resumeData && resumeData.activeQuestions) {
+                    this.activeQuestions = resumeData.activeQuestions;
+                } else {
+                    let questionsCopy = this.quiz.questions.map((q, idx) => {
+                        let clone = { ...q, id: q.id || `q_${idx + 1}` };
+                        // Normalize question type
+                        if (clone.type === 'single_select') clone.type = 'mcq';
+                        if (!clone.type) clone.type = 'mcq';
+
+                        // Option shuffling
+                        if (this.quiz.shuffleOptions && Array.isArray(clone.options) && clone.type !== 'numerical') {
+                            clone.options = fisherYatesShuffle(clone.options);
+                        }
+                        return clone;
+                    });
+
+                    if (this.quiz.shuffleQuestions) {
+                        questionsCopy = fisherYatesShuffle(questionsCopy);
+                    }
+                    this.activeQuestions = questionsCopy;
+                }
+
+                // Header Badges & UI
+                const statusBadge = document.getElementById('exam-status-badge');
+                statusBadge.innerText = this.isQuizMode ? "Quiz Mode" : "Exam Mode";
+                statusBadge.className = this.isQuizMode ? 
+                    "text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-brand-blue/20 text-brand-blue font-bold" : 
+                    "text-[10px] uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 font-bold";
+
                 document.getElementById('btn-mark-review').style.display = this.isQuizMode ? 'none' : 'block';
                 document.getElementById('btn-clear-resp').style.display = this.isQuizMode ? 'none' : 'block';
                 document.getElementById('palette-legend-standard').classList.toggle('hidden', this.isQuizMode);
@@ -700,6 +762,8 @@
                         currentIndex: resumeData.currentIndex || 0,
                         responses: resumeData.responses || {},
                         status: resumeData.status || {},
+                        bookmarks: resumeData.bookmarks || {},
+                        timeSpentPerQuestion: resumeData.timeSpentPerQuestion || {},
                         secondsRemaining: calcRemaining,
                         secondsElapsed: (resumeData.secondsElapsed || 0) + elapsedReal,
                         isUnlimited: isUnlimited,
@@ -714,6 +778,8 @@
                         currentIndex: 0,
                         responses: {},
                         status: {},
+                        bookmarks: {},
+                        timeSpentPerQuestion: {},
                         secondsRemaining: isUnlimited ? 0 : timeLimit * 60,
                         secondsElapsed: 0,
                         isUnlimited: isUnlimited,
@@ -724,17 +790,24 @@
                         lastTickTimestamp: Date.now()
                     };
 
-                    this.quiz.questions.forEach(q => {
+                    this.activeQuestions.forEach(q => {
                         this.examState.status[q.id] = 'unvisited';
+                        this.examState.timeSpentPerQuestion[q.id] = 0;
                     });
-                    if (this.quiz.questions.length > 0) {
-                        this.examState.status[this.quiz.questions[0].id] = 'unanswered';
+                    if (this.activeQuestions.length > 0) {
+                        this.examState.status[this.activeQuestions[0].id] = 'unanswered';
                     }
                 }
 
                 document.getElementById('resume-banner').classList.add('hidden');
                 document.getElementById('exam-title-display').innerText = this.quiz.title || "SPRK Test";
                 
+                const descEl = document.getElementById('exam-desc-display');
+                if (this.quiz.description) {
+                    descEl.innerText = this.quiz.description;
+                    descEl.classList.remove('hidden');
+                } else descEl.classList.add('hidden');
+
                 const pauseBtn = document.getElementById('pause-btn');
                 if (pauseBtn) pauseBtn.style.display = isUnlimited ? 'none' : 'flex';
 
@@ -747,12 +820,11 @@
                 this.saveToLocalStorage();
             }
 
-            // Real-World Timestamp-Based Timer Fix
             startTimer() {
                 const timerDisplay = document.getElementById('timer-display');
                 
                 if (this.examState.isUnlimited) {
-                    timerDisplay.innerText = "No Time Limit";
+                    timerDisplay.innerText = "No Limit";
                     if (this.examState.timerId) clearInterval(this.examState.timerId);
                     this.examState.lastTickTimestamp = Date.now();
                     this.examState.timerId = setInterval(() => {
@@ -761,6 +833,10 @@
                             const delta = Math.floor((now - this.examState.lastTickTimestamp) / 1000);
                             if (delta >= 1) {
                                 this.examState.secondsElapsed += delta;
+                                const currentQId = this.activeQuestions[this.examState.currentIndex]?.id;
+                                if (currentQId) {
+                                    this.examState.timeSpentPerQuestion[currentQId] = (this.examState.timeSpentPerQuestion[currentQId] || 0) + delta;
+                                }
                                 this.examState.lastTickTimestamp = now;
                                 this.saveToLocalStorage();
                             }
@@ -782,6 +858,12 @@
                     if (delta >= 1) {
                         this.examState.secondsRemaining -= delta;
                         this.examState.secondsElapsed += delta;
+
+                        const currentQId = this.activeQuestions[this.examState.currentIndex]?.id;
+                        if (currentQId) {
+                            this.examState.timeSpentPerQuestion[currentQId] = (this.examState.timeSpentPerQuestion[currentQId] || 0) + delta;
+                        }
+
                         this.examState.lastTickTimestamp = now;
 
                         if (this.examState.secondsRemaining <= 0) {
@@ -818,20 +900,48 @@
             }
 
             updateProgressBar() {
-                const total = this.quiz.questions.length;
+                const total = this.activeQuestions.length;
                 if (!total) return;
                 let answered = Object.values(this.examState.status).filter(st => st === 'answered' || st === 'marked_answered' || st === 'quiz_correct' || st === 'quiz_incorrect').length;
                 const percentage = Math.round((answered / total) * 100);
                 document.getElementById('top-progress-bar').style.width = `${percentage}%`;
             }
 
+            toggleBookmark() {
+                const q = this.activeQuestions[this.examState.currentIndex];
+                if (!q) return;
+                this.examState.bookmarks[q.id] = !this.examState.bookmarks[q.id];
+                this.updateBookmarkIcon();
+                this.renderPalette();
+                this.saveToLocalStorage();
+            }
+
+            updateBookmarkIcon() {
+                const q = this.activeQuestions[this.examState.currentIndex];
+                const isBookmarked = q && this.examState.bookmarks[q.id];
+                const btn = document.getElementById('btn-bookmark');
+                const icon = document.getElementById('icon-bookmark');
+                
+                if (isBookmarked) {
+                    btn.className = "p-1 rounded-lg text-amber-500 bg-amber-50 dark:bg-amber-950/50 transition";
+                    icon.setAttribute('data-lucide', 'bookmark-check');
+                } else {
+                    btn.className = "p-1 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition";
+                    icon.setAttribute('data-lucide', 'bookmark');
+                }
+                lucide.createIcons();
+            }
+
             toggleQuizHint() {
                 const hintPanel = document.getElementById('quiz-hint-panel');
                 hintPanel.classList.toggle('hidden');
+                if (!hintPanel.classList.contains('hidden')) {
+                    this.renderMath(hintPanel);
+                }
             }
 
             checkAnswerCorrectness(q, userVal) {
-                if (userVal === undefined || userVal === null) return false;
+                if (userVal === undefined || userVal === null || userVal === "") return false;
                 const correctVal = q.correctAnswer;
                 if (q.type === 'multiple_select') {
                     const uArr = Array.isArray(userVal) ? [...userVal].sort() : [];
@@ -843,15 +953,18 @@
             }
 
             renderExamQuestion() {
-                const q = this.quiz.questions[this.examState.currentIndex];
+                const q = this.activeQuestions[this.examState.currentIndex];
                 if (!q) return;
 
-                document.getElementById('exam-q-num').innerText = `Question ${this.examState.currentIndex + 1} of ${this.quiz.questions.length}`;
+                document.getElementById('exam-q-num').innerText = `Question ${this.examState.currentIndex + 1} of ${this.activeQuestions.length}`;
                 document.getElementById('exam-q-type').innerText = q.type ? q.type.replace('_', ' ') : 'MCQ';
                 
-                const posMarks = q.positiveMarks ?? 4;
-                const negMarks = q.negativeMarks ?? 0;
+                // Fallback Marks Evaluation
+                const posMarks = q.positiveMarks ?? this.quiz.defaultPositiveMarks ?? 4;
+                const negMarks = q.negativeMarks ?? this.quiz.defaultNegativeMarks ?? 0;
                 document.getElementById('exam-q-marks').innerText = `+${posMarks} / -${negMarks} Marks`;
+
+                this.updateBookmarkIcon();
 
                 const textEl = document.getElementById('exam-q-text');
                 textEl.innerHTML = q.text || '';
@@ -872,7 +985,7 @@
                 optionsContainer.innerHTML = '';
                 const currentResp = this.examState.responses[q.id];
 
-                // Hint setup
+                // Hint panel setup
                 const hintBtn = document.getElementById('btn-quiz-hint');
                 const hintPanel = document.getElementById('quiz-hint-panel');
                 if (this.isQuizMode && q.hint) {
@@ -887,42 +1000,52 @@
                 const isAnsweredInQuiz = this.isQuizMode && currentResp !== undefined;
 
                 if (q.type === 'numerical') {
+                    const numVal = currentResp || '';
                     optionsContainer.innerHTML = `
-                        <div class="flex gap-2 items-center">
-                            <input type="number" step="any" id="opt-numerical" value="${currentResp || ''}" ${isAnsweredInQuiz ? 'disabled' : ''}
-                            class="w-full md:w-1/2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none disabled:opacity-70" 
-                            placeholder="Enter numerical response...">
-                            ${this.isQuizMode && !isAnsweredInQuiz ? `<button onclick="runner.submitQuizNumerical()" class="px-4 py-3 bg-brand-blue text-white rounded-xl font-bold text-xs">Submit</button>` : ''}
+                        <div class="flex flex-col gap-3">
+                            <div class="flex gap-2 items-center">
+                                <input type="number" step="any" id="opt-numerical" value="${numVal}" ${isAnsweredInQuiz ? 'disabled' : ''}
+                                class="w-full md:w-1/2 p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-blue outline-none disabled:opacity-70 font-mono text-sm" 
+                                placeholder="Type numerical value...">
+                                ${this.isQuizMode && !isAnsweredInQuiz ? `<button onclick="runner.submitQuizNumerical()" class="px-4 py-3 bg-brand-blue text-white rounded-xl font-bold text-xs shadow-sm">Submit</button>` : ''}
+                            </div>
+                            ${!isAnsweredInQuiz ? `
+                            <div class="flex gap-1.5 flex-wrap">
+                                <button type="button" onclick="runner.appendNumericalInput('-')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-mono">-</button>
+                                <button type="button" onclick="runner.appendNumericalInput('.')" class="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-xs font-mono">.</button>
+                                <button type="button" onclick="runner.clearNumericalInput()" class="px-2.5 py-1 bg-red-100 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-200 rounded-lg text-xs font-mono">Clear</button>
+                            </div>` : ''}
                         </div>
                     `;
                 } else if (q.type === 'multiple_select') {
                     const selectedArr = Array.isArray(currentResp) ? currentResp : [];
-                    (q.options || []).forEach((opt) => {
+                    (q.options || []).forEach((opt, optIdx) => {
                         const isChecked = selectedArr.includes(opt);
                         const label = document.createElement('label');
                         
-                        let optionStyle = 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50';
+                        let optionStyle = 'border-slate-200 dark:border-slate-800 hover:border-brand-blue/50 hover:bg-slate-50 dark:hover:bg-slate-800/50';
                         if (isChecked) optionStyle = 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30';
                         
                         if (isAnsweredInQuiz) {
                             const isCorrectOpt = Array.isArray(q.correctAnswer) ? q.correctAnswer.includes(opt) : q.correctAnswer === opt;
-                            if (isCorrectOpt) optionStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300';
+                            if (isCorrectOpt) optionStyle = 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold';
                             else if (isChecked) optionStyle = 'border-red-500 bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300';
                         }
 
                         label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${optionStyle}`;
                         label.innerHTML = `
+                            <span class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500 flex-shrink-0">${optIdx + 1}</span>
                             <input type="checkbox" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} ${isAnsweredInQuiz ? 'disabled' : ''} class="w-4 h-4 text-brand-blue rounded">
-                            <span class="text-sm font-medium">${opt}</span>
+                            <span class="text-sm font-medium flex-1">${opt}</span>
                         `;
                         optionsContainer.appendChild(label);
                     });
                 } else {
-                    (q.options || []).forEach((opt) => {
+                    (q.options || []).forEach((opt, optIdx) => {
                         const isChecked = currentResp === opt;
                         const label = document.createElement('label');
                         
-                        let optionStyle = 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50';
+                        let optionStyle = 'border-slate-200 dark:border-slate-800 hover:border-brand-blue/50 hover:bg-slate-50 dark:hover:bg-slate-800/50';
                         if (isChecked) optionStyle = 'border-brand-blue bg-blue-50/50 dark:bg-blue-950/30';
 
                         if (isAnsweredInQuiz) {
@@ -933,14 +1056,15 @@
 
                         label.className = `flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition ${optionStyle}`;
                         label.innerHTML = `
+                            <span class="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-[10px] font-bold text-slate-500 flex-shrink-0">${optIdx + 1}</span>
                             <input type="radio" name="exam-opt" value="${opt}" ${isChecked ? 'checked' : ''} ${isAnsweredInQuiz ? 'disabled' : ''} class="w-4 h-4 text-brand-blue">
-                            <span class="text-sm font-medium">${opt}</span>
+                            <span class="text-sm font-medium flex-1">${opt}</span>
                         `;
                         optionsContainer.appendChild(label);
                     });
                 }
 
-                // Bind instant quiz mode option selection
+                // Instant Quiz Event Listeners
                 if (this.isQuizMode && !isAnsweredInQuiz && q.type !== 'numerical') {
                     optionsContainer.querySelectorAll('input[name="exam-opt"]').forEach(inp => {
                         inp.addEventListener('change', () => {
@@ -950,7 +1074,7 @@
                     });
                 }
 
-                // Render Feedback Panel if in Quiz Mode and answered
+                // Quiz Feedback Display
                 const feedbackPanel = document.getElementById('quiz-feedback-panel');
                 if (this.isQuizMode && isAnsweredInQuiz) {
                     const isCorrect = this.checkAnswerCorrectness(q, currentResp);
@@ -968,6 +1092,7 @@
                         ${q.explanation ? `<p class="mt-1">${q.explanation}</p>` : ''}
                     `;
                     feedbackPanel.classList.remove('hidden');
+                    this.renderMath(feedbackPanel);
                 } else {
                     feedbackPanel.classList.add('hidden');
                 }
@@ -976,8 +1101,30 @@
                 lucide.createIcons();
             }
 
+            appendNumericalInput(char) {
+                const input = document.getElementById('opt-numerical');
+                if (input && !input.disabled) {
+                    if (char === '-' && input.value.startsWith('-')) {
+                        input.value = input.value.substring(1);
+                    } else if (char === '-' && !input.value.startsWith('-')) {
+                        input.value = '-' + input.value;
+                    } else if (char === '.' && !input.value.includes('.')) {
+                        input.value += '.';
+                    }
+                    input.focus();
+                }
+            }
+
+            clearNumericalInput() {
+                const input = document.getElementById('opt-numerical');
+                if (input && !input.disabled) {
+                    input.value = '';
+                    input.focus();
+                }
+            }
+
             submitQuizNumerical() {
-                const q = this.quiz.questions[this.examState.currentIndex];
+                const q = this.activeQuestions[this.examState.currentIndex];
                 this.captureCurrentResponse();
                 if (this.examState.responses[q.id] !== undefined) {
                     this.processQuizInstantFeedback(q);
@@ -996,7 +1143,7 @@
             }
 
             captureCurrentResponse() {
-                const q = this.quiz.questions[this.examState.currentIndex];
+                const q = this.activeQuestions[this.examState.currentIndex];
                 if (!q) return;
 
                 if (q.type === 'numerical') {
@@ -1025,7 +1172,7 @@
             examSaveAndNext() {
                 if (!this.isQuizMode) {
                     this.captureCurrentResponse();
-                    const qId = this.quiz.questions[this.examState.currentIndex].id;
+                    const qId = this.activeQuestions[this.examState.currentIndex].id;
                     this.examState.status[qId] = this.examState.responses[qId] ? 'answered' : 'unanswered';
                 }
                 this.nextQuestion();
@@ -1034,14 +1181,14 @@
             examMarkForReview() {
                 if (this.isQuizMode) return;
                 this.captureCurrentResponse();
-                const qId = this.quiz.questions[this.examState.currentIndex].id;
+                const qId = this.activeQuestions[this.examState.currentIndex].id;
                 this.examState.status[qId] = this.examState.responses[qId] ? 'marked_answered' : 'marked';
                 this.nextQuestion();
             }
 
             examClearResponse() {
                 if (this.isQuizMode) return;
-                const qId = this.quiz.questions[this.examState.currentIndex].id;
+                const qId = this.activeQuestions[this.examState.currentIndex].id;
                 delete this.examState.responses[qId];
                 this.examState.status[qId] = 'unanswered';
                 this.renderExamQuestion();
@@ -1054,7 +1201,7 @@
                 if (!this.isQuizMode) this.captureCurrentResponse();
                 if (this.examState.currentIndex > 0) {
                     this.examState.currentIndex--;
-                    const prevQId = this.quiz.questions[this.examState.currentIndex].id;
+                    const prevQId = this.activeQuestions[this.examState.currentIndex].id;
                     if (this.examState.status[prevQId] === 'unvisited') {
                         this.examState.status[prevQId] = 'unanswered';
                     }
@@ -1065,9 +1212,9 @@
             }
 
             nextQuestion() {
-                if (this.examState.currentIndex < this.quiz.questions.length - 1) {
+                if (this.examState.currentIndex < this.activeQuestions.length - 1) {
                     this.examState.currentIndex++;
-                    const nextQId = this.quiz.questions[this.examState.currentIndex].id;
+                    const nextQId = this.activeQuestions[this.examState.currentIndex].id;
                     if (this.examState.status[nextQId] === 'unvisited') {
                         this.examState.status[nextQId] = 'unanswered';
                     }
@@ -1080,7 +1227,7 @@
             jumpToQuestion(idx) {
                 if (!this.isQuizMode) this.captureCurrentResponse();
                 this.examState.currentIndex = idx;
-                const qId = this.quiz.questions[idx].id;
+                const qId = this.activeQuestions[idx].id;
                 if (this.examState.status[qId] === 'unvisited') {
                     this.examState.status[qId] = 'unanswered';
                 }
@@ -1099,20 +1246,22 @@
                 const filter = document.getElementById('palette-filter').value;
                 grid.innerHTML = '';
 
-                this.quiz.questions.forEach((q, idx) => {
+                this.activeQuestions.forEach((q, idx) => {
                     const status = this.examState.status[q.id] || 'unvisited';
+                    const isBookmarked = !!this.examState.bookmarks[q.id];
 
                     if (filter === 'unanswered' && status !== 'unanswered') return;
                     if (filter === 'marked' && !status.includes('marked')) return;
                     if (filter === 'answered' && !status.includes('answered') && !status.includes('quiz_')) return;
+                    if (filter === 'bookmarked' && !isBookmarked) return;
 
                     const btn = document.createElement('button');
                     btn.onclick = () => this.jumpToQuestion(idx);
                     
-                    let baseClasses = "w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center relative group ";
-                    if (idx === this.examState.currentIndex) baseClasses += "ring-2 ring-offset-2 ring-brand-blue ";
-
-                    let tooltipText = `Q${idx + 1}: ${status}`;
+                    let baseClasses = "w-8 h-8 rounded-lg text-xs font-bold transition flex items-center justify-center relative ";
+                    if (idx === this.examState.currentIndex) {
+                        baseClasses += "ring-2 ring-offset-2 ring-brand-blue dark:ring-offset-slate-900 z-10 ";
+                    }
 
                     switch (status) {
                         case 'unvisited': baseClasses += "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300"; break;
@@ -1123,13 +1272,21 @@
                             baseClasses += "bg-purple-500 text-white";
                             btn.innerHTML = `${idx + 1}<span class="absolute right-0.5 bottom-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>`;
                             break;
-                        case 'quiz_correct': baseClasses += "bg-emerald-500 text-white"; tooltipText = `Q${idx + 1}: Correct`; break;
-                        case 'quiz_incorrect': baseClasses += "bg-red-500 text-white"; tooltipText = `Q${idx + 1}: Incorrect`; break;
+                        case 'quiz_correct': baseClasses += "bg-emerald-500 text-white"; break;
+                        case 'quiz_incorrect': baseClasses += "bg-red-500 text-white"; break;
                     }
 
                     if (status !== 'marked_answered') btn.innerText = idx + 1;
+
+                    // Add Bookmark Indicator Badge
+                    if (isBookmarked) {
+                        const bDot = document.createElement('span');
+                        bDot.className = "absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 border-2 border-white dark:border-slate-900 rounded-full";
+                        btn.appendChild(bDot);
+                    }
+
                     btn.className = baseClasses;
-                    btn.title = tooltipText; // Sleek native tooltip
+                    btn.title = `Q${idx + 1}: ${status}${isBookmarked ? ' (Bookmarked)' : ''}`;
                     grid.appendChild(btn);
                 });
             }
@@ -1170,14 +1327,14 @@
 
                 this.reviewCardsData = [];
 
-                this.quiz.questions.forEach((q, idx) => {
-                    const pos = q.positiveMarks ?? 4;
-                    const neg = q.negativeMarks ?? 0;
+                this.activeQuestions.forEach((q, idx) => {
+                    const pos = q.positiveMarks ?? this.quiz.defaultPositiveMarks ?? 4;
+                    const neg = q.negativeMarks ?? this.quiz.defaultNegativeMarks ?? 0;
                     maxScore += pos;
 
                     const userVal = this.examState.responses[q.id];
                     const correctVal = q.correctAnswer;
-                    let isAttempted = userVal !== undefined;
+                    let isAttempted = userVal !== undefined && userVal !== "";
                     let isCorrect = this.checkAnswerCorrectness(q, userVal);
 
                     if (isCorrect) {
@@ -1191,14 +1348,17 @@
                     }
 
                     this.reviewCardsData.push({
-                        q, idx, pos, neg, userVal, correctVal, isCorrect, isAttempted
+                        q, idx, pos, neg, userVal, correctVal, isCorrect, isAttempted,
+                        timeSpent: this.examState.timeSpentPerQuestion[q.id] || 0,
+                        isBookmarked: !!this.examState.bookmarks[q.id]
                     });
                 });
 
-                const totalQ = this.quiz.questions.length;
+                const totalQ = this.activeQuestions.length;
                 const accuracy = totalQ > 0 ? Math.round((totalCorrect / totalQ) * 100) : 0;
-                
                 const totalSeconds = this.examState.secondsElapsed || Math.floor((this.examState.endTime - this.examState.startTime) / 1000);
+                const avgSeconds = totalQ > 0 ? Math.round(totalSeconds / totalQ) : 0;
+
                 const timeStr = `${Math.floor(totalSeconds / 60)}m ${totalSeconds % 60}s`;
 
                 this.lastCalculatedResults = {
@@ -1209,9 +1369,9 @@
                 document.getElementById('res-score').innerText = `${score}/${maxScore}`;
                 document.getElementById('res-accuracy').innerText = `${accuracy}%`;
                 document.getElementById('res-time').innerText = timeStr;
-                document.getElementById('res-count').innerText = `${totalCorrect}/${totalQ}`;
+                document.getElementById('res-avg-time').innerText = `${avgSeconds}s`;
 
-                // Render Visual Breakdown Bar
+                // Render Breakdown Bar
                 document.getElementById('res-breakdown-text').innerText = `${totalCorrect} Correct, ${totalIncorrect} Incorrect, ${totalSkipped} Skipped`;
                 document.getElementById('bar-correct').style.width = `${(totalCorrect / totalQ) * 100}%`;
                 document.getElementById('bar-incorrect').style.width = `${(totalIncorrect / totalQ) * 100}%`;
@@ -1221,30 +1381,38 @@
                 this.switchView('view-results');
             }
 
-            toggleMistakesOnlyView() {
-                this.renderResultsReview();
-            }
-
             renderResultsReview() {
                 const reviewContainer = document.getElementById('res-questions-review');
                 reviewContainer.innerHTML = '';
-                const mistakesOnly = document.getElementById('toggle-mistakes-only').checked;
+                const filter = document.getElementById('res-filter-select').value;
 
-                this.reviewCardsData.forEach(({ q, idx, pos, neg, userVal, correctVal, isCorrect, isAttempted }) => {
-                    if (mistakesOnly && isCorrect) return;
+                this.reviewCardsData.forEach(({ q, idx, pos, neg, userVal, correctVal, isCorrect, isAttempted, timeSpent, isBookmarked }) => {
+                    if (filter === 'correct' && !isCorrect) return;
+                    if (filter === 'incorrect' && (!isAttempted || isCorrect)) return;
+                    if (filter === 'skipped' && isAttempted) return;
+                    if (filter === 'bookmarked' && !isBookmarked) return;
 
                     const card = document.createElement('div');
-                    card.className = `p-5 rounded-xl border bg-white dark:bg-slate-900 ${isCorrect ? 'border-emerald-200 dark:border-emerald-900/50' : (isAttempted ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-slate-800')}`;
+                    card.className = `p-5 rounded-2xl border bg-white dark:bg-slate-900 shadow-sm ${isCorrect ? 'border-emerald-200 dark:border-emerald-900/50' : (isAttempted ? 'border-red-200 dark:border-red-900/50' : 'border-slate-200 dark:border-slate-800')}`;
+                    
                     card.innerHTML = `
                         <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
-                            <span class="text-xs font-bold ${isCorrect ? 'text-emerald-500' : (isAttempted ? 'text-red-500' : 'text-slate-400')} uppercase">Q${idx + 1} - ${isCorrect ? `Correct (+${pos})` : (isAttempted ? `Incorrect (-${neg})` : 'Unattempted (0)')}</span>
-                            <span class="text-xs text-slate-400 uppercase">${q.type || 'MCQ'}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold ${isCorrect ? 'text-emerald-500' : (isAttempted ? 'text-red-500' : 'text-slate-400')} uppercase">
+                                    Q${idx + 1} - ${isCorrect ? `Correct (+${pos})` : (isAttempted ? `Incorrect (-${neg})` : 'Skipped (0)')}
+                                </span>
+                                ${isBookmarked ? `<span class="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 text-[10px] font-bold">Bookmarked</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-3 text-xs text-slate-400">
+                                <span><i data-lucide="timer" class="w-3 h-3 inline mr-0.5"></i>${timeSpent}s</span>
+                                <span class="uppercase font-semibold">${q.type || 'MCQ'}</span>
+                            </div>
                         </div>
                         <div class="font-medium text-sm mb-3">${q.text}</div>
-                        <div class="text-xs space-y-1 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg">
+                        <div class="text-xs space-y-1.5 bg-slate-50 dark:bg-slate-800/50 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
                             <p><strong>Your Answer:</strong> ${userVal ? (Array.isArray(userVal) ? userVal.join(', ') : userVal) : '<span class="italic text-slate-400">None</span>'}</p>
                             <p class="text-emerald-600 dark:text-emerald-400"><strong>Correct Answer:</strong> ${Array.isArray(correctVal) ? correctVal.join(', ') : correctVal}</p>
-                            ${q.hint ? `<p class="text-amber-500 mt-2"><strong>Hint:</strong> ${q.hint}</p>` : ''}
+                            ${q.hint ? `<p class="text-amber-600 dark:text-amber-400 mt-2"><strong>Hint:</strong> ${q.hint}</p>` : ''}
                             ${q.explanation ? `<p class="text-slate-500 dark:text-slate-400 mt-1"><strong>Explanation:</strong> ${q.explanation}</p>` : ''}
                         </div>
                     `;
@@ -1252,6 +1420,7 @@
                 });
 
                 this.renderMath(document.getElementById('view-results'));
+                lucide.createIcons();
             }
 
             exportJSONResults() {
@@ -1259,7 +1428,7 @@
                     testTitle: this.quiz.title || "SPRK Test",
                     submittedAt: new Date().toISOString(),
                     results: this.lastCalculatedResults,
-                    questions: this.quiz.questions
+                    questions: this.activeQuestions
                 };
 
                 const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(report, null, 2));
