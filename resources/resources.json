@@ -65,6 +65,11 @@
     "path": "https://sprk-web.github.io/files/view/pdf/?path=Trigonometry[Half-Angle Formula].pdf"
   },
   {
+    "name": "Chemical Bonding ShortNotes",
+    "type": "pdf",
+    "path": "https://sprk-web.github.io/files/view/pdf/?path=Chemical Bonding ShortNotes.pdf"
+  },
+  {
     "name": "[JEE-PHY] Error & Measurements PYQs",
     "type": "pdf",
     "path": "https://sprk-web.github.io/files/view/pdf/?path=[JEE-PHY] Error & Measurements PYQs.pdf"
@@ -98,11 +103,6 @@
     "name": "CHEMQ-[AtmStructure]",
     "type": "media",
     "path": "https://sprk-web.github.io/files/media/CHEMQ-[Atm.Structure].png"
-  },
-  {
-    "name": "IMG20260717145358",
-    "type": "media",
-    "path": "https://sprk-web.github.io/files/media/IMG20260717145358.jpg"
   },
   {
     "name": "IMG-20260801-WA0003",
