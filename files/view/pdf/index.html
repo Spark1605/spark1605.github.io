@@ -7,6 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* Desktop Container Simulation */
+.force-desktop-iframe {
+    width: 200% !important;
+    height: 200% !important;
+    transform: scale(0.5);
+    transform-origin: 0 0;
+}
+        
         .brand-logo-container {
             position: relative;
             display: inline-flex;
@@ -151,6 +159,11 @@
         function loadPdfFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             const pdfPath = urlParams.get('path');
+            // Add inside your loadPdfFromUrl or init function
+if (window.innerWidth < 1024) {
+    // Forces iframe to render desktop dimensions then scales down to fit viewport
+    pdfViewer.classList.add('force-desktop-iframe');
+};
 
             if (pdfPath) {
                 rawPdfUrl = `${BASE_PDF_URL}${pdfPath}`;
