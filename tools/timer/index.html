@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraFocus — Minimalist & Sophisticated Workspace</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"Space Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              400: '#4ade80',
+              500: '#22c55e',
+              900: '#14532d',
+              accent: '#38bdf8'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+    
+    .brand-main {
+        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+    .brand-sub::after {
+        content: '';
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background-color: #00f2fe;
+        border-radius: 50%;
+        top: 25%;
+        right: -10px;
+        box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+        animation: pulse 2s infinite alternate;
+    }
+
+    .logo-underline {
+        width: 25px;
+        height: 3px;
+        background: linear-gradient(90deg, #00f2fe, #7f00ff);
+        margin-top: 2px;
+        border-radius: 2px;
+        box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .brand-logo-container:hover .logo-underline {
+        width: 100%;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.3); opacity: 1; }
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .glass-card {
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    }
+    
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .glass-input {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      border-color: rgba(56, 189, 248, 0.5);
+      outline: none;
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+    }
+
+    .flip-unit { position: relative; perspective: 300px; }
+    .flip-card-inner {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 10px 20px rgba(0,0,0,0.4);
+    }
+
+    .bg-overlay {
+      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.45) 0%, rgba(2, 6, 23, 0.88) 100%);
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      margin-top: -5px;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2px;
+    }
+
+    .zen-hidden {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: scale(0.95);
+      transition: all 0.5s ease-in-out;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen overflow-hidden font-sans text-slate-100 bg-slate-950 flex flex-col justify-between relative select-none">
+
+  <div id="bgLayer" class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105 z-0" 
+       style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80');">
+  </div>
+  
+  <div class="absolute inset-0 bg-overlay z-0 pointer-events-none"></div>
+  <canvas id="particleCanvas" class="absolute inset-0 pointer-events-none z-0"></canvas>
+
+  <header id="mainHeader" class="relative z-10 px-6 py-5 flex justify-between items-center max-w-7xl w-full mx-auto transition-all duration-500">
+    <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
+        <span class="brand-main">Sprk</span>
+        <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">-Web</span>
+      </div>
+      <div class="logo-underline"></div>
+    </div>
+    </div>
+
+    <div class="flex items-center gap-2 md:gap-3">
+      <button id="zenToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: F">
+        <i class="fa-solid fa-expand text-xs text-amber-400"></i>
+        <span class="hidden md:inline">Zen Mode</span>
+      </button>
+
+      <button id="mediaToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
+        <i class="fa-brands fa-spotify text-xs text-emerald-400"></i>
+        <span class="hidden md:inline">Stream</span>
+      </button>
+
+      <button id="quoteToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
+        <i class="fa-solid fa-quote-left text-xs text-sky-400"></i>
+        <span class="hidden md:inline">Motivation</span>
+      </button>
+
+      <button id="taskToggleBtn" class="glass-panel hover:bg-white/10 px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 relative">
+        <i class="fa-solid fa-list-check text-xs text-emerald-400"></i>
+        <span class="hidden md:inline">Tasks</span>
+        <span id="taskBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-[10px] font-bold text-slate-950 rounded-full flex items-center justify-center">0</span>
+      </button>
+
+      <button id="analyticsToggleBtn" class="glass-panel hover:bg-white/10 px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
+        <i class="fa-solid fa-chart-simple text-xs text-indigo-400"></i>
+        <span class="hidden md:inline">Analytics</span>
+      </button>
+
+      <button id="settingsToggleBtn" class="glass-panel hover:bg-white/10 w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 transition">
+        <i class="fa-solid fa-sliders text-xs"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="relative z-10 my-auto flex items-center justify-center p-4 w-full max-w-7xl mx-auto">
+    <div id="pomoCard" class="glass-card rounded-3xl p-8 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500">
+      
+      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div id="modeSelector" class="flex p-1 gap-1 glass-panel rounded-2xl mb-6 w-full max-w-xs justify-between transition-all duration-300">
+        <button id="modePomodoro" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm">Pomodoro</button>
+        <button id="modeCountdown" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white">Timer</button>
+        <button id="modeStopwatch" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white">Stopwatch</button>
+      </div>
+
+      <div id="pomodoroStatus" class="mb-4 flex gap-2 text-[11px] tracking-widest uppercase font-mono font-medium">
+        <span id="pomoWork" class="px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all">Focus Phase</span>
+        <span id="pomoBreak" class="px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all">Rest Phase</span>
+      </div>
+
+      <div id="dailyGoalContainer" class="mb-4 flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel border border-white/5 text-xs">
+        <div class="relative w-5 h-5 flex items-center justify-center">
+          <svg class="w-full h-full transform -rotate-90">
+            <circle cx="10" cy="10" r="8" class="stroke-white/10" stroke-width="2" fill="transparent" />
+            <circle id="goalRingCircle" cx="10" cy="10" r="8" class="stroke-emerald-400 transition-all duration-500" stroke-width="2" stroke-dasharray="50.2" stroke-dashoffset="50.2" stroke-linecap="round" fill="transparent" />
+          </svg>
+        </div>
+        <span id="goalProgressText" class="font-mono text-[11px] text-slate-300">0 of 8 blocks completed</span>
+      </div>
+
+      <div id="countdownInputGroup" class="mb-6 hidden flex items-center gap-2">
+        <input type="number" id="customMinutes" min="1" max="300" value="15" class="w-20 glass-input text-center py-1 rounded-xl text-white font-mono text-sm">
+        <span class="text-xs text-slate-400 font-mono">MIN</span>
+        <button id="setCountdownBtn" class="glass-panel hover:bg-white/10 px-3 py-1 rounded-xl text-xs font-semibold transition">Set</button>
+      </div>
+
+      <div id="clockContainer" class="my-2 min-h-[160px] flex items-center justify-center w-full">
+        <div id="displayMinimal" class="text-7xl md:text-8xl font-bold tracking-tight text-slate-100 font-mono drop-shadow-lg cursor-pointer select-none transition-transform active:scale-95" title="Click to edit duration">
+          25:00
+        </div>
+
+        <div id="displayRing" class="relative hidden flex items-center justify-center cursor-pointer select-none" title="Click center to edit duration">
+          <svg class="w-56 h-56 md:w-64 md:h-64 transform -rotate-90">
+            <circle cx="50%" cy="50%" r="42%" class="stroke-white/5" stroke-width="6" fill="transparent" />
+            <circle id="progressCircle" cx="50%" cy="50%" r="42%" class="stroke-sky-400 transition-all duration-300" stroke-width="6" stroke-dasharray="660" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" />
+          </svg>
+          <span id="ringTimeText" class="absolute text-4xl md:text-5xl font-bold font-mono text-slate-100">25:00</span>
+        </div>
+
+        <div id="displayFlip" class="hidden flex items-center gap-3 md:gap-4 font-mono cursor-pointer select-none" title="Click to edit duration">
+          <div class="flex gap-1.5">
+            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipM1">2</div></div>
+            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipM2">5</div></div>
+          </div>
+          <span class="text-3xl font-bold text-slate-600">:</span>
+          <div class="flex gap-1.5">
+            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipS1">0</div></div>
+            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipS2">0</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="quickEditModal" class="hidden my-2 flex items-center gap-2 bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30">
+        <span class="text-xs font-mono text-slate-400">Set (Mins):</span>
+        <input type="number" id="quickEditInput" min="1" max="180" class="w-16 glass-input text-center py-1 rounded-xl text-white font-mono text-sm">
+        <button id="quickEditSave" class="glass-panel hover:bg-sky-500/20 px-3 py-1 rounded-xl text-sky-400 text-xs font-bold transition">Save</button>
+        <button id="quickEditCancel" class="glass-panel hover:bg-white/10 px-2 py-1 rounded-xl text-slate-400 text-xs transition"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div id="activeTaskDisplay" class="mt-2 mb-4 text-xs text-slate-400 flex items-center gap-2 max-w-xs truncate">
+        <i class="fa-regular fa-circle-dot text-sky-400 text-[10px]"></i>
+        <span id="currentTaskLabel" class="italic truncate">No active task selected</span>
+      </div>
+
+      <div class="flex items-center gap-5 mt-2">
+        <button id="startBtn" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/40 border-sky-500/30 text-sky-300 w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 shadow-lg" title="Spacebar">
+          <i class="fa-solid fa-play ml-1"></i>
+        </button>
+        <button id="pauseBtn" class="glass-panel hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-300 w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 hidden" title="Spacebar">
+          <i class="fa-solid fa-pause"></i>
+        </button>
+        <button id="resetBtn" class="glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all transform active:scale-95" title="Press 'R'">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
+      </div>
+
+      <div id="keyboardTooltip" class="mt-6 flex items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">R</kbd> Reset</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen</span>
+      </div>
+    </div>
+  </main>
+
+  <div id="quoteContainer" class="relative z-10 max-w-xl mx-auto px-6 mb-2 text-center transition-all duration-500">
+    <p id="quoteText" class="text-xs text-slate-300 font-serif italic tracking-wide">"Deep work is the ability to focus without distraction on a cognitively demanding task."</p>
+    <p id="quoteAuthor" class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-mono">— Cal Newport</p>
+  </div>
+
+  <footer id="mainFooter" class="relative z-10 p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500">
+    <div class="glass-panel rounded-2xl px-6 py-3 flex items-center gap-6 flex-wrap justify-between w-full max-w-3xl">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-headphones text-sky-400 text-sm"></i>
+        <span class="text-xs font-semibold tracking-wide uppercase font-mono text-slate-300">Soundscape</span>
+      </div>
+
+      <div class="flex gap-1.5 overflow-x-auto py-1 max-w-md">
+        <button data-sound="none" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap">Off</button>
+        <button data-sound="alpha" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Binaural Alpha</button>
+        <button data-sound="campfire" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Campfire</button>
+        <button data-sound="waves" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Ocean Waves</button>
+        <button data-sound="rain" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Rain</button>
+        <button data-sound="forest" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Forest Pad</button>
+        <button data-sound="white" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">White Noise</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <i class="fa-solid fa-volume-low text-xs text-slate-400"></i>
+        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-20" title="Master Ambient Volume">
+      </div>
+    </div>
+  </footer>
+
+  <div id="settingsDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10">
+    <div class="overflow-y-auto pr-1 space-y-5">
+      <div class="flex justify-between items-center border-b border-white/10 pb-4">
+        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Workspace Settings</h3>
+        <button id="closeSettingsBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Display Aesthetic</label>
+        <select id="displaySelect" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+          <option value="minimal" class="bg-slate-900">Minimalist Monospace</option>
+          <option value="ring" class="bg-slate-900">Progress Vector Ring</option>
+          <option value="flip" class="bg-slate-900">Retro Flip Clock</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Ambient Scene</label>
+        <select id="bgSelect" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none mb-2">
+          <option value="beach" class="bg-slate-900">Serene Ocean Coast</option>
+          <option value="misty-forest" class="bg-slate-900">Misty Forest Canopy</option>
+          <option value="cosmic" class="bg-slate-900">Deep Cosmic Nebula</option>
+          <option value="minimal-dark" class="bg-slate-900">Minimal Architectural Dark</option>
+          <option value="rainy-city" class="bg-slate-900">Rainy Tokyo Window</option>
+          <option value="sakura" class="bg-slate-900">Kyoto Sakura Blossom</option>
+          <option value="cyberpunk" class="bg-slate-900">Cyberpunk Neon Alley</option>
+          <option value="desert" class="bg-slate-900">Dusk Sand Dunes</option>
+          <option value="mountains" class="bg-slate-900">Swiss Alpine Range</option>
+          <option value="aurora" class="bg-slate-900">Nordic Northern Lights</option>
+        </select>
+        <input type="text" id="customBgUrl" placeholder="Or enter custom image URL..." class="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500">
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Atmospheric Particle Engine</label>
+        <select id="particleSelect" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+          <option value="embers" class="bg-slate-900">Floating Golden Embers</option>
+          <option value="snow" class="bg-slate-900">Soft Nordic Snow</option>
+          <option value="stardust" class="bg-slate-900">Celestial Stardust (Twinkling)</option>
+          <option value="bubbles" class="bg-slate-900">Deep-Sea Bubbles (Oscillating)</option>
+          <option value="fireflies" class="bg-slate-900">Bioluminescence Fireflies</option>
+          <option value="off" class="bg-slate-900">Disabled (Performance Mode)</option>
+        </select>
+      </div>
+
+      <div class="glass-panel p-3 rounded-2xl space-y-3 border border-white/5">
+        <div class="flex justify-between items-center text-[11px] font-mono text-slate-300">
+          <span>Particle Density</span>
+          <span id="densityVal" class="text-sky-400">45</span>
+        </div>
+        <input type="range" id="particleDensitySlider" min="10" max="150" value="45" class="w-full">
+
+        <div class="flex justify-between items-center text-[11px] font-mono text-slate-300">
+          <span>Particle Speed</span>
+          <span id="speedVal" class="text-sky-400">1.0x</span>
+        </div>
+        <input type="range" id="particleSpeedSlider" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full">
+      </div>
+
+      <div class="border-t border-white/10 pt-4">
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono">Interval Preset Durations (Mins)</label>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <span class="text-[10px] text-slate-400 block mb-1">Focus</span>
+            <input type="number" id="settingPomoWork" value="25" min="1" max="120" class="w-full glass-input rounded-xl px-2 py-1.5 text-xs text-slate-200">
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block mb-1">Short Rest</span>
+            <input type="number" id="settingPomoBreak" value="5" min="1" max="60" class="w-full glass-input rounded-xl px-2 py-1.5 text-xs text-slate-200">
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-400 block mb-1">Long Rest</span>
+            <input type="number" id="settingPomoLongBreak" value="15" min="1" max="60" class="w-full glass-input rounded-xl px-2 py-1.5 text-xs text-slate-200">
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Daily Target Focus Blocks</label>
+        <input type="number" id="settingDailyGoal" value="8" min="1" max="24" class="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200">
+      </div>
+    </div>
+
+    <div class="text-[11px] text-slate-500 font-mono text-center pt-4 border-t border-white/10">
+      AuraFocus v3.5 • High Focus Workspace
+    </div>
+  </div>
+
+  <div id="taskDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10">
+    <div class="flex flex-col h-full">
+      <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-4">
+        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Focus Tasks</h3>
+        <button id="closeTaskBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form id="taskForm" class="flex flex-col gap-2 mb-4">
+        <input type="text" id="taskInput" placeholder="Enter objective..." required class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+        
+        <div class="flex items-center gap-2">
+          <select id="taskPrioritySelect" class="flex-1 glass-input rounded-xl px-2 py-1.5 text-xs text-slate-300">
+            <option value="high" class="bg-slate-900 text-rose-400">High Priority</option>
+            <option value="medium" class="bg-slate-900 text-amber-400" selected>Medium Priority</option>
+            <option value="low" class="bg-slate-900 text-emerald-400">Low Priority</option>
+          </select>
+
+          <button type="submit" class="glass-panel hover:bg-sky-500/20 px-4 py-1.5 rounded-xl text-sky-400 text-xs font-semibold transition flex items-center gap-1">
+            <i class="fa-solid fa-plus"></i> Add
+          </button>
+        </div>
+      </form>
+
+      <div id="taskList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+    </div>
+  </div>
+
+  <div id="mediaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
+      <button id="closeMediaBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      
+      <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200 mb-4 flex items-center gap-2">
+        <i class="fa-brands fa-spotify text-emerald-400"></i> Embedded Radio / Stream
+      </h3>
+
+      <p class="text-xs text-slate-400 mb-4">Paste a Spotify, SoundCloud, or custom iframe embed code/link below to keep your music docked inside AuraFocus.</p>
+
+      <div class="flex gap-2 mb-4">
+        <input type="text" id="mediaUrlInput" placeholder="Paste Spotify embed URL or iframe..." class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+        <button id="loadMediaBtn" class="glass-panel hover:bg-emerald-500/20 px-3 py-2 rounded-xl text-emerald-400 text-xs font-semibold transition">Load</button>
+      </div>
+
+      <div id="mediaEmbedContainer" class="w-full h-40 glass-panel rounded-2xl flex items-center justify-center text-slate-500 text-xs font-mono overflow-hidden">
+        No Stream Loaded
+      </div>
+    </div>
+  </div>
+
+  <div id="analyticsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
+      <button id="closeAnalyticsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      
+      <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200 mb-6 flex items-center gap-2">
+        <i class="fa-solid fa-chart-line text-indigo-400"></i> Performance Insights
+      </h3>
+
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="glass-panel rounded-2xl p-4 text-center">
+          <p class="text-[10px] uppercase font-mono text-slate-400 mb-1">Total Focused Time</p>
+          <p id="statTotalTime" class="text-2xl font-bold font-mono text-sky-400">0m</p>
+        </div>
+        <div class="glass-panel rounded-2xl p-4 text-center">
+          <p class="text-[10px] uppercase font-mono text-slate-400 mb-1">Completed Sessions</p>
+          <p id="statCompleted" class="text-2xl font-bold font-mono text-emerald-400">0</p>
+        </div>
+      </div>
+
+      <div class="glass-panel rounded-2xl p-4 mb-4">
+        <p class="text-[10px] uppercase font-mono text-slate-400 mb-2">Today's Focus Goal</p>
+        <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+          <div id="streakBar" class="bg-gradient-to-r from-sky-400 to-emerald-400 h-full w-0 transition-all duration-500"></div>
+        </div>
+        <p id="goalStatsLabel" class="text-[10px] text-slate-400 font-mono mt-2 text-right">0 / 8 Focus Blocks Completed</p>
+      </div>
+
+      <button id="resetStatsBtn" class="w-full glass-panel hover:bg-rose-500/20 text-rose-400 py-2 rounded-xl text-xs font-mono transition">
+        Reset Analytics Data
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // --- Wallpaper Presets ---
+    const wallpapers = {
+      'beach': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80',
+      'misty-forest': 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2000&q=80',
+      'cosmic': 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?auto=format&fit=crop&w=2000&q=80',
+      'minimal-dark': 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=2000&q=80',
+      'rainy-city': 'https://images.unsplash.com/photo-1519692933481-e162a57d6721?auto=format&fit=crop&w=2000&q=80',
+      'sakura': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=2000&q=80',
+      'cyberpunk': 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=2000&q=80',
+      'desert': 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=2000&q=80',
+      'mountains': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=80',
+      'aurora': 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=2000&q=80'
+    };
+
+    const quotes = [
+      { text: "Deep work is the ability to focus without distraction on a cognitively demanding task.", author: "Cal Newport" },
+      { text: "Simplicity is about subtracting the obvious and adding the meaningful.", author: "John Maeda" },
+      { text: "Focus is a muscle. The more you practice building it, the stronger it becomes.", author: "Unknown" },
+      { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca" },
+      { text: "Action gives output. Action with deep focus produces excellence.", author: "Anonymous" }
+    ];
+
+    // --- State Initialization with LocalStorage ---
+    let engineMode = 'pomodoro'; 
+    let timerState = 'idle'; 
+    let displayStyle = localStorage.getItem('aura_displayStyle') || 'minimal'; 
+    let activeSound = localStorage.getItem('aura_activeSound') || 'none';
+    let isZenMode = false;
+
+    let isWorkInterval = true;
+    let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || 25) * 60;
+    let breakDurationSecs = parseInt(localStorage.getItem('aura_breakMins') || 5) * 60;
+    let longBreakDurationSecs = parseInt(localStorage.getItem('aura_longBreakMins') || 15) * 60;
+    let sessionCycleCount = 0;
+    
+    let timeRemaining = workDurationSecs;
+    let totalDuration = workDurationSecs;
+    let stopwatchSeconds = 0;
+    let timerInterval = null;
+
+    let dailyGoalTarget = parseInt(localStorage.getItem('aura_dailyGoal') || 8);
+    let completedSessionsCount = parseInt(localStorage.getItem('aura_completedSessions') || 0);
+    let totalFocusSecondsCompleted = parseInt(localStorage.getItem('aura_focusSeconds') || 0);
+
+    let tasks = JSON.parse(localStorage.getItem('aura_tasks') || '[]');
+    let activeTaskId = localStorage.getItem('aura_activeTaskId') ? parseInt(localStorage.getItem('aura_activeTaskId')) : null;
+    let draggedTaskIndex = null;
+
+    let particleMode = localStorage.getItem('aura_particleMode') || 'embers';
+    let particleDensity = parseInt(localStorage.getItem('aura_particleDensity') || 45);
+    let particleSpeedMultiplier = parseFloat(localStorage.getItem('aura_particleSpeed') || 1.0);
+    let currentWallpaper = localStorage.getItem('aura_wallpaper') || 'beach';
+    let customWallpaperUrl = localStorage.getItem('aura_customBg') || '';
+
+    // --- Audio Web API Engine ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    let ambientGainNode = null;
+    let currentAmbientSource = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new AudioContext();
+        ambientGainNode = audioCtx.createGain();
+        const savedVol = localStorage.getItem('aura_volume') || '0.5';
+        document.getElementById('volumeControl').value = savedVol;
+        ambientGainNode.gain.value = parseFloat(savedVol);
+        ambientGainNode.connect(audioCtx.destination);
+      }
+    }
+
+    function playAlarmSound() {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.15); 
+      osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.30); 
+      osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.45); 
+
+      gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.8);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.8);
+    }
+
+    function stopAmbient() {
+      if (currentAmbientSource) {
+        if (currentAmbientSource.stop) currentAmbientSource.stop();
+        if (currentAmbientSource.disconnect) currentAmbientSource.disconnect();
+        currentAmbientSource = null;
+      }
+    }
+
+    function playAmbient(type) {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      stopAmbient();
+      if (type === 'none') return;
+
+      const sampleRate = audioCtx.sampleRate;
+      if (type === 'alpha') {
+        const oscL = audioCtx.createOscillator();
+        const oscR = audioCtx.createOscillator();
+        const merger = audioCtx.createChannelMerger(2);
+        oscL.type = 'sine'; oscL.frequency.value = 200;
+        oscR.type = 'sine'; oscR.frequency.value = 210;
+        oscL.connect(merger, 0, 0);
+        oscR.connect(merger, 0, 1);
+        merger.connect(ambientGainNode);
+        oscL.start(); oscR.start();
+        currentAmbientSource = {
+          stop: () => { oscL.stop(); oscR.stop(); },
+          disconnect: () => { oscL.disconnect(); oscR.disconnect(); merger.disconnect(); }
+        };
+      } else if (type === 'campfire') {
+        const bufferSize = sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = 1200;
+        filter.Q.value = 3.0;
+
+        const crackleGain = audioCtx.createGain();
+        crackleGain.gain.value = 0.08;
+
+        const lfo = audioCtx.createOscillator();
+        lfo.type = 'sawtooth';
+        lfo.frequency.value = 8;
+        const lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 0.05;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(crackleGain.gain);
+        noise.connect(filter);
+        filter.connect(crackleGain);
+        crackleGain.connect(ambientGainNode);
+
+        noise.start(); lfo.start();
+        currentAmbientSource = {
+          stop: () => { noise.stop(); lfo.stop(); },
+          disconnect: () => { noise.disconnect(); lfo.disconnect(); crackleGain.disconnect(); }
+        };
+      } else if (type === 'waves') {
+        const bufferSize = sampleRate * 3;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          let white = Math.random() * 2 - 1;
+          data[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = data[i];
+        }
+
+        const noise = audioCtx.createBufferSource();
+        noise.buffer = noiseBuffer;
+        noise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+
+        const waveGain = audioCtx.createGain();
+        waveGain.gain.value = 0.15;
+
+        const lfo = audioCtx.createOscillator();
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.125;
+        const lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 0.12;
+
+        lfo.connect(lfoGain);
+        lfoGain.connect(waveGain.gain);
+        noise.connect(filter);
+        filter.connect(waveGain);
+        waveGain.connect(ambientGainNode);
+
+        noise.start(); lfo.start();
+        currentAmbientSource = {
+          stop: () => { noise.stop(); lfo.stop(); },
+          disconnect: () => { noise.disconnect(); lfo.disconnect(); waveGain.disconnect(); }
+        };
+      } else if (type === 'rain' || type === 'white') {
+        const bufferSize = sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0;
+        for (let i = 0; i < bufferSize; i++) {
+          let white = Math.random() * 2 - 1;
+          if (type === 'white') {
+            output[i] = white * 0.05;
+          } else {
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            b3 = 0.86650 * b3 + white * 0.3104856;
+            b4 = 0.55000 * b4 + white * 0.5329522;
+            b5 = -0.7616 * b5 - white * 0.0168980;
+            output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+            b6 = white * 0.115926;
+          }
+        }
+        const whiteNoise = audioCtx.createBufferSource();
+        whiteNoise.buffer = noiseBuffer;
+        whiteNoise.loop = true;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = type === 'rain' ? 1000 : 3000;
+
+        whiteNoise.connect(filter);
+        filter.connect(ambientGainNode);
+        whiteNoise.start();
+        currentAmbientSource = whiteNoise;
+      } else if (type === 'forest') {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        osc1.type = 'sine'; osc2.type = 'sine';
+        osc1.frequency.value = 174;
+        osc2.frequency.value = 285;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 320;
+
+        const padGain = audioCtx.createGain();
+        padGain.gain.value = 0.1;
+
+        osc1.connect(filter); osc2.connect(filter);
+        filter.connect(padGain);
+        padGain.connect(ambientGainNode);
+
+        osc1.start(); osc2.start();
+        currentAmbientSource = {
+          stop: () => { osc1.stop(); osc2.stop(); },
+          disconnect: () => { osc1.disconnect(); osc2.disconnect(); padGain.disconnect(); }
+        };
+      }
+    }
+
+    // --- DOM Elements ---
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const modePomodoro = document.getElementById('modePomodoro');
+    const modeCountdown = document.getElementById('modeCountdown');
+    const modeStopwatch = document.getElementById('modeStopwatch');
+    const pomodoroStatus = document.getElementById('pomodoroStatus');
+    const countdownInputGroup = document.getElementById('countdownInputGroup');
+
+    const displayMinimal = document.getElementById('displayMinimal');
+    const displayRing = document.getElementById('displayRing');
+    const displayFlip = document.getElementById('displayFlip');
+    const ringTimeText = document.getElementById('ringTimeText');
+    const progressCircle = document.getElementById('progressCircle');
+
+    const quickEditModal = document.getElementById('quickEditModal');
+    const quickEditInput = document.getElementById('quickEditInput');
+
+    function formatTime(totalSecs) {
+      const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+      const s = Math.floor(totalSecs % 60).toString().padStart(2, '0');
+      return { m, s, formatted: `${m}:${s}` };
+    }
+
+    function updateDisplay() {
+      const timeObj = engineMode === 'stopwatch' ? formatTime(stopwatchSeconds) : formatTime(timeRemaining);
+      
+      displayMinimal.textContent = timeObj.formatted;
+      ringTimeText.textContent = timeObj.formatted;
+
+      if (engineMode !== 'stopwatch') {
+        const circumference = 660;
+        const offset = circumference - (timeRemaining / totalDuration) * circumference;
+        progressCircle.style.strokeDashoffset = isNaN(offset) ? 0 : offset;
+      } else {
+        progressCircle.style.strokeDashoffset = 0;
+      }
+
+      document.getElementById('flipM1').textContent = timeObj.m[0];
+      document.getElementById('flipM2').textContent = timeObj.m[1];
+      document.getElementById('flipS1').textContent = timeObj.s[0];
+      document.getElementById('flipS2').textContent = timeObj.s[1];
+
+      document.title = `${timeObj.formatted} — AuraFocus`;
+    }
+
+    function tick() {
+      if (engineMode === 'stopwatch') {
+        stopwatchSeconds++;
+      } else {
+        if (timeRemaining > 0) {
+          timeRemaining--;
+          if (engineMode === 'pomodoro' && isWorkInterval) {
+            totalFocusSecondsCompleted++;
+            localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
+            updateAnalytics();
+          }
+        } else {
+          playAlarmSound();
+          if (engineMode === 'pomodoro') {
+            if (isWorkInterval) {
+              completedSessionsCount++;
+              sessionCycleCount++;
+              localStorage.setItem('aura_completedSessions', completedSessionsCount);
+            }
+            isWorkInterval = !isWorkInterval;
+            switchPomoPhase();
+            updateAnalytics();
+          } else {
+            pauseTimer();
+          }
+        }
+      }
+      updateDisplay();
+    }
+
+    function startTimer() {
+      initAudio();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      timerState = 'running';
+      startBtn.classList.add('hidden');
+      pauseBtn.classList.remove('hidden');
+      if (!timerInterval) timerInterval = setInterval(tick, 1000);
+    }
+
+    function pauseTimer() {
+      timerState = 'paused';
+      pauseBtn.classList.add('hidden');
+      startBtn.classList.remove('hidden');
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      if (engineMode === 'pomodoro') {
+        timeRemaining = isWorkInterval ? workDurationSecs : breakDurationSecs;
+        totalDuration = timeRemaining;
+      } else if (engineMode === 'countdown') {
+        const mins = parseInt(document.getElementById('customMinutes').value) || 15;
+        timeRemaining = mins * 60;
+        totalDuration = timeRemaining;
+      } else if (engineMode === 'stopwatch') {
+        stopwatchSeconds = 0;
+      }
+      updateDisplay();
+    }
+
+    function switchPomoPhase() {
+      const workBadge = document.getElementById('pomoWork');
+      const breakBadge = document.getElementById('pomoBreak');
+      
+      if (isWorkInterval) {
+        timeRemaining = workDurationSecs;
+        workBadge.className = "px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all";
+        breakBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
+      } else {
+        // Automatically trigger long break after 4 focus blocks
+        const isLong = sessionCycleCount % 4 === 0 && sessionCycleCount > 0;
+        timeRemaining = isLong ? longBreakDurationSecs : breakDurationSecs;
+        breakBadge.textContent = isLong ? "Long Rest Phase" : "Rest Phase";
+        breakBadge.className = "px-3.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all";
+        workBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
+      }
+      totalDuration = timeRemaining;
+      updateDisplay();
+    }
+
+    function setEngineMode(mode) {
+      engineMode = mode;
+      [modePomodoro, modeCountdown, modeStopwatch].forEach(btn => {
+        btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white";
+      });
+
+      pomodoroStatus.classList.add('hidden');
+      countdownInputGroup.classList.add('hidden');
+
+      if (mode === 'pomodoro') {
+        modePomodoro.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
+        pomodoroStatus.classList.remove('hidden');
+        isWorkInterval = true;
+        switchPomoPhase();
+      } else if (mode === 'countdown') {
+        modeCountdown.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
+        countdownInputGroup.classList.remove('hidden');
+        const mins = parseInt(document.getElementById('customMinutes').value) || 15;
+        timeRemaining = mins * 60;
+        totalDuration = timeRemaining;
+      } else if (mode === 'stopwatch') {
+        modeStopwatch.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
+        stopwatchSeconds = 0;
+      }
+      resetTimer();
+    }
+
+    modePomodoro.addEventListener('click', () => setEngineMode('pomodoro'));
+    modeCountdown.addEventListener('click', () => setEngineMode('countdown'));
+    modeStopwatch.addEventListener('click', () => setEngineMode('stopwatch'));
+
+    document.getElementById('setCountdownBtn').addEventListener('click', () => {
+      const mins = parseInt(document.getElementById('customMinutes').value) || 1;
+      timeRemaining = mins * 60;
+      totalDuration = timeRemaining;
+      resetTimer();
+    });
+
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', pauseTimer);
+    resetBtn.addEventListener('click', resetTimer);
+
+    function triggerQuickEdit() {
+      if (engineMode === 'stopwatch') return;
+      quickEditInput.value = Math.ceil(timeRemaining / 60);
+      quickEditModal.classList.remove('hidden');
+    }
+
+    [displayMinimal, displayRing, displayFlip].forEach(el => el.addEventListener('click', triggerQuickEdit));
+
+    document.getElementById('quickEditSave').addEventListener('click', () => {
+      const newMins = parseInt(quickEditInput.value) || 25;
+      timeRemaining = newMins * 60;
+      totalDuration = timeRemaining;
+      if (engineMode === 'pomodoro' && isWorkInterval) workDurationSecs = timeRemaining;
+      quickEditModal.classList.add('hidden');
+      updateDisplay();
+    });
+
+    document.getElementById('quickEditCancel').addEventListener('click', () => quickEditModal.classList.add('hidden'));
+
+    // --- Task Engine ---
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const taskPrioritySelect = document.getElementById('taskPrioritySelect');
+    const taskList = document.getElementById('taskList');
+    const activeTaskLabel = document.getElementById('currentTaskLabel');
+    const taskBadge = document.getElementById('taskBadge');
+
+    function saveTasksToStorage() {
+      localStorage.setItem('aura_tasks', JSON.stringify(tasks));
+      if (activeTaskId) {
+        localStorage.setItem('aura_activeTaskId', activeTaskId);
+      } else {
+        localStorage.removeItem('aura_activeTaskId');
+      }
+    }
+
+    function getPriorityBadge(priority) {
+      if (priority === 'high') return `<span class="px-1.5 py-0.5 text-[9px] font-mono uppercase font-bold rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">High</span>`;
+      if (priority === 'low') return `<span class="px-1.5 py-0.5 text-[9px] font-mono uppercase font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Low</span>`;
+      return `<span class="px-1.5 py-0.5 text-[9px] font-mono uppercase font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Med</span>`;
+    }
+
+    function renderTasks() {
+      taskList.innerHTML = '';
+      const pendingCount = tasks.filter(t => !t.completed).length;
+      
+      if (pendingCount > 0) {
+        taskBadge.textContent = pendingCount;
+        taskBadge.classList.remove('hidden');
+      } else {
+        taskBadge.classList.add('hidden');
+      }
+
+      const activeTask = tasks.find(t => t.id === activeTaskId);
+      activeTaskLabel.textContent = activeTask ? activeTask.title : "No active task selected";
+
+      tasks.forEach((task, index) => {
+        const item = document.createElement('div');
+        item.draggable = true;
+        item.dataset.index = index;
+        item.className = `glass-panel p-2.5 rounded-xl flex items-center justify-between text-xs transition cursor-grab active:cursor-grabbing ${task.id === activeTaskId ? 'border-sky-500/50 bg-sky-500/10' : ''}`;
+        
+        item.innerHTML = `
+          <div class="flex items-center gap-2 flex-1 min-w-0 select-task">
+            <i class="fa-solid fa-grip-vertical text-slate-600 text-[10px] mr-1"></i>
+            <input type="checkbox" ${task.completed ? 'checked' : ''} class="task-checkbox rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
+            <span class="truncate ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
+            ${getPriorityBadge(task.priority)}
+          </div>
+          <button class="delete-task text-slate-500 hover:text-rose-400 px-1.5 transition"><i class="fa-regular fa-trash-can"></i></button>
+        `;
+
+        item.addEventListener('dragstart', (e) => {
+          draggedTaskIndex = index;
+          e.dataTransfer.effectAllowed = 'move';
+        });
+
+        item.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          item.classList.add('border-sky-400');
+        });
+
+        item.addEventListener('dragleave', () => item.classList.remove('border-sky-400'));
+
+        item.addEventListener('drop', (e) => {
+          e.preventDefault();
+          item.classList.remove('border-sky-400');
+          if (draggedTaskIndex !== null && draggedTaskIndex !== index) {
+            const movedTask = tasks.splice(draggedTaskIndex, 1)[0];
+            tasks.splice(index, 0, movedTask);
+            saveTasksToStorage();
+            renderTasks();
+          }
+        });
+
+        item.querySelector('.select-task').addEventListener('click', (e) => {
+          if (e.target.tagName !== 'INPUT' && !e.target.classList.contains('fa-grip-vertical')) {
+            activeTaskId = task.id;
+            saveTasksToStorage();
+            renderTasks();
+          }
+        });
+
+        item.querySelector('.task-checkbox').addEventListener('change', (e) => {
+          task.completed = e.target.checked;
+          if (task.completed && activeTaskId === task.id) {
+            activeTaskId = null;
+          }
+          saveTasksToStorage();
+          renderTasks();
+        });
+
+        item.querySelector('.delete-task').addEventListener('click', () => {
+          if (activeTaskId === task.id) {
+            activeTaskId = null;
+          }
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveTasksToStorage();
+          renderTasks();
+        });
+
+        taskList.appendChild(item);
+      });
+    }
+
+    taskForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = taskInput.value.trim();
+      const priority = taskPrioritySelect.value;
+      if (title) {
+        const newTask = { id: Date.now(), title, priority, completed: false };
+        tasks.push(newTask);
+        if (!activeTaskId) activeTaskId = newTask.id;
+        taskInput.value = '';
+        saveTasksToStorage();
+        renderTasks();
+      }
+    });
+
+    // --- Analytics ---
+    function updateAnalytics() {
+      const minutes = Math.floor(totalFocusSecondsCompleted / 60);
+      document.getElementById('statTotalTime').textContent = `${minutes}m`;
+      document.getElementById('statCompleted').textContent = completedSessionsCount;
+
+      const targetPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
+      const circumference = 50.2;
+      const offset = circumference - (targetPercent / 100) * circumference;
+      document.getElementById('goalRingCircle').style.strokeDashoffset = offset;
+
+      document.getElementById('goalProgressText').textContent = `${completedSessionsCount} of ${dailyGoalTarget} blocks completed`;
+      document.getElementById('goalStatsLabel').textContent = `${completedSessionsCount} / ${dailyGoalTarget} Focus Blocks Completed`;
+
+      const progressPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
+      document.getElementById('streakBar').style.width = `${progressPercent}%`;
+    }
+
+    document.getElementById('resetStatsBtn').addEventListener('click', () => {
+      if (confirm("Reset focus stats for today?")) {
+        completedSessionsCount = 0;
+        totalFocusSecondsCompleted = 0;
+        localStorage.setItem('aura_completedSessions', 0);
+        localStorage.setItem('aura_focusSeconds', 0);
+        updateAnalytics();
+      }
+    });
+
+    // --- Settings & UI Logic ---
+    function applyWallpaper(url) {
+      document.getElementById('bgLayer').style.backgroundImage = `url('${url}')`;
+    }
+
+    document.getElementById('displaySelect').value = displayStyle;
+    function applyDisplayStyle(style) {
+      displayStyle = style;
+      localStorage.setItem('aura_displayStyle', style);
+      displayMinimal.classList.add('hidden');
+      displayRing.classList.add('hidden');
+      displayFlip.classList.add('hidden');
+
+      if (displayStyle === 'minimal') displayMinimal.classList.remove('hidden');
+      if (displayStyle === 'ring') displayRing.classList.remove('hidden');
+      if (displayStyle === 'flip') displayFlip.classList.remove('hidden');
+      updateDisplay();
+    }
+    document.getElementById('displaySelect').addEventListener('change', (e) => applyDisplayStyle(e.target.value));
+
+    const bgSelect = document.getElementById('bgSelect');
+    const customBgInput = document.getElementById('customBgUrl');
+
+    if (customWallpaperUrl) {
+      customBgInput.value = customWallpaperUrl;
+      applyWallpaper(customWallpaperUrl);
+    } else {
+      bgSelect.value = currentWallpaper;
+      applyWallpaper(wallpapers[currentWallpaper] || wallpapers.beach);
+    }
+
+    bgSelect.addEventListener('change', (e) => {
+      currentWallpaper = e.target.value;
+      localStorage.setItem('aura_wallpaper', currentWallpaper);
+      localStorage.removeItem('aura_customBg');
+      customBgInput.value = '';
+      applyWallpaper(wallpapers[currentWallpaper]);
+    });
+
+    customBgInput.addEventListener('change', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        localStorage.setItem('aura_customBg', url);
+        applyWallpaper(url);
+      }
+    });
+
+    document.getElementById('settingPomoWork').value = workDurationSecs / 60;
+    document.getElementById('settingPomoBreak').value = breakDurationSecs / 60;
+    document.getElementById('settingPomoLongBreak').value = longBreakDurationSecs / 60;
+    document.getElementById('settingDailyGoal').value = dailyGoalTarget;
+
+    document.getElementById('settingPomoWork').addEventListener('change', (e) => {
+      const val = parseInt(e.target.value) || 25;
+      workDurationSecs = val * 60;
+      localStorage.setItem('aura_workMins', val);
+      if (engineMode === 'pomodoro' && isWorkInterval) resetTimer();
+    });
+
+    document.getElementById('settingPomoBreak').addEventListener('change', (e) => {
+      const val = parseInt(e.target.value) || 5;
+      breakDurationSecs = val * 60;
+      localStorage.setItem('aura_breakMins', val);
+      if (engineMode === 'pomodoro' && !isWorkInterval) resetTimer();
+    });
+
+    document.getElementById('settingPomoLongBreak').addEventListener('change', (e) => {
+      const val = parseInt(e.target.value) || 15;
+      longBreakDurationSecs = val * 60;
+      localStorage.setItem('aura_longBreakMins', val);
+    });
+
+    document.getElementById('settingDailyGoal').addEventListener('change', (e) => {
+      dailyGoalTarget = parseInt(e.target.value) || 8;
+      localStorage.setItem('aura_dailyGoal', dailyGoalTarget);
+      updateAnalytics();
+    });
+
+    // Soundscape Setup
+    document.querySelectorAll('.sound-btn').forEach(btn => {
+      if (btn.dataset.sound === activeSound) {
+        btn.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap";
+      } else {
+        btn.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap";
+      }
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.sound-btn').forEach(b => {
+          b.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap";
+        });
+        e.target.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap";
+        activeSound = e.target.dataset.sound;
+        localStorage.setItem('aura_activeSound', activeSound);
+        playAmbient(activeSound);
+      });
+    });
+
+    document.getElementById('volumeControl').addEventListener('input', (e) => {
+      const vol = parseFloat(e.target.value);
+      localStorage.setItem('aura_volume', vol);
+      if (ambientGainNode) ambientGainNode.gain.value = vol;
+    });
+
+    // Drawer Toggles
+    const settingsDrawer = document.getElementById('settingsDrawer');
+    const taskDrawer = document.getElementById('taskDrawer');
+    const analyticsModal = document.getElementById('analyticsModal');
+    const mediaModal = document.getElementById('mediaModal');
+
+    document.getElementById('settingsToggleBtn').addEventListener('click', () => settingsDrawer.classList.remove('translate-x-full'));
+    document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsDrawer.classList.add('translate-x-full'));
+
+    document.getElementById('taskToggleBtn').addEventListener('click', () => taskDrawer.classList.remove('translate-x-full'));
+    document.getElementById('closeTaskBtn').addEventListener('click', () => taskDrawer.classList.add('translate-x-full'));
+
+    document.getElementById('analyticsToggleBtn').addEventListener('click', () => analyticsModal.classList.remove('opacity-0', 'pointer-events-none'));
+    document.getElementById('closeAnalyticsBtn').addEventListener('click', () => analyticsModal.classList.add('opacity-0', 'pointer-events-none'));
+
+    document.getElementById('mediaToggleBtn').addEventListener('click', () => mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
+    document.getElementById('closeMediaBtn').addEventListener('click', () => mediaModal.classList.add('opacity-0', 'pointer-events-none'));
+
+    document.getElementById('loadMediaBtn').addEventListener('click', () => {
+      const input = document.getElementById('mediaUrlInput').value.trim();
+      const container = document.getElementById('mediaEmbedContainer');
+      if (input.includes('<iframe')) {
+        container.innerHTML = input;
+      } else if (input) {
+        container.innerHTML = `<iframe src="${input}" width="100%" height="100%" frameborder="0" allow="encrypted-media"></iframe>`;
+      }
+    });
+
+    function toggleZenMode() {
+      isZenMode = !isZenMode;
+      const header = document.getElementById('mainHeader');
+      const footer = document.getElementById('mainFooter');
+      const quote = document.getElementById('quoteContainer');
+      const modeSelector = document.getElementById('modeSelector');
+      const taskDisplay = document.getElementById('activeTaskDisplay');
+      const tooltip = document.getElementById('keyboardTooltip');
+
+      if (isZenMode) {
+        header.classList.add('zen-hidden');
+        footer.classList.add('zen-hidden');
+        quote.classList.add('zen-hidden');
+        modeSelector.classList.add('zen-hidden');
+        taskDisplay.classList.add('zen-hidden');
+        tooltip.classList.add('zen-hidden');
+      } else {
+        header.classList.remove('zen-hidden');
+        footer.classList.remove('zen-hidden');
+        quote.classList.remove('zen-hidden');
+        modeSelector.classList.remove('zen-hidden');
+        taskDisplay.classList.remove('zen-hidden');
+        tooltip.classList.remove('zen-hidden');
+      }
+    }
+
+    document.getElementById('zenToggleBtn').addEventListener('click', toggleZenMode);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        timerState === 'running' ? pauseTimer() : startTimer();
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        resetTimer();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleZenMode();
+      }
+    });
+
+    let currentQuoteIndex = 0;
+    document.getElementById('quoteToggleBtn').addEventListener('click', () => {
+      currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
+      document.getElementById('quoteText').textContent = `"${quotes[currentQuoteIndex].text}"`;
+      document.getElementById('quoteAuthor').textContent = `— ${quotes[currentQuoteIndex].author}`;
+    });
+
+    // --- Particle Engine ---
+    const canvas = document.getElementById('particleCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.size = Math.random() * 2 + 0.8;
+        this.baseSpeedX = Math.random() * 0.6 - 0.3;
+        this.baseSpeedY = Math.random() * 0.8 + 0.2;
+        this.opacity = Math.random() * 0.5 + 0.1;
+        this.angle = Math.random() * Math.PI * 2;
+        this.oscillationSpeed = Math.random() * 0.03 + 0.01;
+
+        if (particleMode === 'snow') {
+          this.y = -10;
+        } else if (particleMode === 'stardust') {
+          this.y = Math.random() * canvas.height;
+          this.pulse = Math.random() * 0.02 + 0.005;
+        } else if (particleMode === 'bubbles') {
+          this.y = canvas.height + 10;
+          this.size = Math.random() * 3 + 1.5;
+        } else if (particleMode === 'fireflies') {
+          this.y = Math.random() * canvas.height;
+          this.size = Math.random() * 2.5 + 1.0;
+        } else {
+          this.y = canvas.height + 10;
+        }
+      }
+
+      update() {
+        const speed = particleSpeedMultiplier;
+        if (particleMode === 'snow') {
+          this.x += this.baseSpeedX * speed;
+          this.y += this.baseSpeedY * speed;
+          if (this.y > canvas.height) this.reset();
+        } else if (particleMode === 'embers') {
+          this.x += this.baseSpeedX * speed;
+          this.y -= this.baseSpeedY * speed;
+          if (this.y < 0) this.reset();
+        } else if (particleMode === 'stardust') {
+          this.x += this.baseSpeedX * 0.2 * speed;
+          this.angle += this.pulse;
+          this.opacity = Math.abs(Math.sin(this.angle)) * 0.7 + 0.1;
+        } else if (particleMode === 'bubbles') {
+          this.angle += this.oscillationSpeed;
+          this.x += Math.sin(this.angle) * 0.8 * speed;
+          this.y -= (this.baseSpeedY * 0.7) * speed;
+          if (this.y < -10) this.reset();
+        } else if (particleMode === 'fireflies') {
+          this.angle += 0.02;
+          this.x += Math.cos(this.angle) * 0.8 * speed;
+          this.y += Math.sin(this.angle) * 0.8 * speed;
+          this.opacity = Math.abs(Math.sin(this.angle * 0.5)) * 0.8 + 0.2;
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        if (particleMode === 'snow') ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        else if (particleMode === 'stardust') ctx.fillStyle = `rgba(224, 242, 254, ${this.opacity})`;
+        else if (particleMode === 'bubbles') ctx.fillStyle = `rgba(56, 189, 248, ${this.opacity * 0.6})`;
+        else if (particleMode === 'fireflies') ctx.fillStyle = `rgba(250, 204, 21, ${this.opacity})`;
+        else ctx.fillStyle = `rgba(56, 189, 248, ${this.opacity})`;
+        ctx.fill();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      if (particleMode === 'off') return;
+      for (let i = 0; i < particleDensity; i++) particles.push(new Particle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (particleMode !== 'off') {
+        particles.forEach(p => { p.update(); p.draw(); });
+      }
+      requestAnimationFrame(animateParticles);
+    }
+
+    document.getElementById('particleSelect').value = particleMode;
+    document.getElementById('particleDensitySlider').value = particleDensity;
+    document.getElementById('densityVal').textContent = particleDensity;
+    document.getElementById('particleSpeedSlider').value = particleSpeedMultiplier;
+    document.getElementById('speedVal').textContent = `${particleSpeedMultiplier.toFixed(1)}x`;
+
+    document.getElementById('particleSelect').addEventListener('change', (e) => {
+      particleMode = e.target.value;
+      localStorage.setItem('aura_particleMode', particleMode);
+      initParticles();
+    });
+
+    document.getElementById('particleDensitySlider').addEventListener('input', (e) => {
+      particleDensity = parseInt(e.target.value);
+      document.getElementById('densityVal').textContent = particleDensity;
+      localStorage.setItem('aura_particleDensity', particleDensity);
+      initParticles();
+    });
+
+    document.getElementById('particleSpeedSlider').addEventListener('input', (e) => {
+      particleSpeedMultiplier = parseFloat(e.target.value);
+      document.getElementById('speedVal').textContent = `${particleSpeedMultiplier.toFixed(1)}x`;
+      localStorage.setItem('aura_particleSpeed', particleSpeedMultiplier);
+    });
+
+    // Boot
+    applyDisplayStyle(displayStyle);
+    initParticles();
+    animateParticles();
+    renderTasks();
+    updateDisplay();
+    updateAnalytics();
+  </script>
+</body>
+</html>
