@@ -153,15 +153,6 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
-
-    /* Guided Breathe Guide Animation */
-    @keyframes breatheAnimation {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.6); }
-    }
-    .animate-breathe-circle {
-      animation: breatheAnimation 16s infinite ease-in-out;
-    }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden font-sans text-slate-100 bg-slate-950 flex flex-col justify-between relative select-none">
@@ -194,9 +185,16 @@
         <span class="hidden md:inline">Mini Window</span>
       </button>
 
-      <button id="breatheToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-teal-300" title="Shortcut: B (Box Breathing)">
-        <i class="fa-solid fa-lungs text-xs text-teal-400"></i>
-        <span class="hidden md:inline">Breathe</span>
+      <!-- Presets Quick Selector -->
+      <button id="presetsToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-amber-300" title="Focus Presets">
+        <i class="fa-solid fa-bolt text-xs text-amber-400"></i>
+        <span class="hidden md:inline">Presets</span>
+      </button>
+
+      <!-- Scratchpad Notepad Feature -->
+      <button id="notesToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-violet-300" title="Quick Scratchpad">
+        <i class="fa-solid fa-pen-to-square text-xs text-violet-400"></i>
+        <span class="hidden md:inline">Notes</span>
       </button>
 
       <button id="soundscapeToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: M">
@@ -212,11 +210,6 @@
       <button id="mediaToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
         <i class="fa-brands fa-spotify text-xs text-emerald-400"></i>
         <span class="hidden md:inline">Music Hub</span>
-      </button>
-
-      <button id="quoteToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
-        <i class="fa-solid fa-quote-left text-xs text-sky-400"></i>
-        <span class="hidden md:inline">Motivation</span>
       </button>
 
       <button id="taskToggleBtn" class="glass-panel hover:bg-white/10 px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 relative">
@@ -325,7 +318,7 @@
         <button id="resetBtn" class="glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all transform active:scale-95" title="Press 'R'">
           <i class="fa-solid fa-rotate-right"></i>
         </button>
-    </div>
+      </div>
 
       <div id="keyboardTooltip" class="mt-6 flex flex-wrap justify-center items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
@@ -338,11 +331,6 @@
       </div>
     </div>
   </main>
-
-  <div id="quoteContainer" class="relative z-10 max-w-xl mx-auto px-6 mb-2 text-center transition-all duration-500">
-    <p id="quoteText" class="text-xs text-slate-300 font-serif italic tracking-wide">"Deep work is the ability to focus without distraction on a cognitively demanding task."</p>
-    <p id="quoteAuthor" class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-mono">— Cal Newport</p>
-  </div>
 
   <footer id="mainFooter" class="fixed bottom-0 left-0 right-0 z-30 p-4 md:p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500 ease-in-out">
     <div class="glass-card rounded-2xl px-5 py-3 flex items-center gap-4 flex-nowrap justify-between w-full max-w-5xl border border-white/10 shadow-2xl">
@@ -417,7 +405,7 @@
           <option value="mountains" class="bg-slate-900">Swiss Alpine Range</option>
           <option value="aurora" class="bg-slate-900">Nordic Northern Lights</option>
         </select>
-      <input type="text" id="customBgUrl" placeholder="Or enter custom image URL..." class="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500">
+        <input type="text" id="customBgUrl" placeholder="Or enter custom image URL..." class="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500">
       </div>
 
       <div>
@@ -491,7 +479,7 @@
     </div>
 
     <div class="text-[11px] text-slate-500 font-mono text-center pt-4 border-t border-white/10">
-      SPRK-Timer v4.2 • High Focus Workspace
+      SPRK-Timer v4.5 • Pro Workspace
     </div>
   </div>
 
@@ -525,21 +513,77 @@
     </div>
   </div>
 
-  <!-- Guided Breathing Modal -->
-  <div id="breatheModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card rounded-3xl p-8 w-full max-w-sm border border-white/10 relative flex flex-col items-center text-center">
-      <button id="closeBreatheBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-      <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-teal-300 mb-2">Box Breathing Exercise</h3>
-      <p class="text-xs text-slate-400 mb-8 font-mono">4s Inhale • 4s Hold • 4s Exhale • 4s Hold</p>
+  <!-- Productivity Feature 1: Quick Scratchpad / Sticky Notes -->
+  <div id="notesModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-white/10 relative">
+      <button id="closeNotesBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       
-      <div class="relative w-48 h-48 flex items-center justify-center mb-8">
-        <div id="breatheGuideCircle" class="absolute w-28 h-28 rounded-full bg-teal-500/20 border border-teal-400/40 animate-breathe-circle"></div>
-        <span id="breathePhaseText" class="relative z-10 text-sm font-mono font-bold text-teal-200 tracking-wider">Inhale...</span>
-    </div>
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fa-solid fa-pen-to-square text-violet-400"></i>
+        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Workspace Scratchpad</h3>
+      </div>
+      <p class="text-xs text-slate-400 mb-4 font-mono">Jot down temporary thoughts, snippet links, or quick ideas during focus blocks.</p>
 
-      <button id="toggleBreatheBtn" class="glass-panel hover:bg-teal-500/20 border border-teal-500/30 text-teal-300 px-6 py-2 rounded-xl text-xs font-mono font-bold transition">
-        Pause Guide
-      </button>
+      <textarea id="scratchpadArea" placeholder="Type quick notes, todos, or brain dumps here... (auto-saved)" class="w-full h-56 glass-input rounded-2xl p-4 text-xs font-mono text-slate-200 placeholder-slate-500 resize-none focus:outline-none mb-3"></textarea>
+
+      <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
+        <span id="scratchpadMeta">0 words • 0 chars</span>
+        <div class="flex items-center gap-2">
+          <button id="copyNotesBtn" class="glass-panel hover:bg-violet-500/20 px-3 py-1.5 rounded-xl text-violet-300 transition flex items-center gap-1">
+            <i class="fa-regular fa-copy"></i> Copy
+          </button>
+          <button id="clearNotesBtn" class="glass-panel hover:bg-rose-500/20 px-3 py-1.5 rounded-xl text-rose-400 transition flex items-center gap-1">
+            <i class="fa-regular fa-trash-can"></i> Clear
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Productivity Feature 2: Focus Presets Modal -->
+  <div id="presetsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
+      <button id="closePresetsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      
+      <div class="flex items-center gap-2 mb-2">
+        <i class="fa-solid fa-bolt text-amber-400"></i>
+        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Quick Focus Presets</h3>
+      </div>
+      <p class="text-xs text-slate-400 mb-5 font-mono">Switch workflows instantly with scientifically tuned intervals.</p>
+
+      <div class="space-y-2.5">
+        <button data-work="25" data-break="5" data-long="15" class="preset-choice-btn w-full glass-panel hover:bg-sky-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-sky-500/30">
+          <div>
+            <p class="text-xs font-bold text-sky-300 font-mono">Classic Pomodoro (25m / 5m)</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Ideal for general study, coding sprints, and writing.</p>
+          </div>
+          <span class="text-xs font-mono text-sky-400 px-2 py-1 rounded bg-sky-500/10">Apply</span>
+        </button>
+
+        <button data-work="50" data-break="10" data-long="20" class="preset-choice-btn w-full glass-panel hover:bg-emerald-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-emerald-500/30">
+          <div>
+            <p class="text-xs font-bold text-emerald-300 font-mono">Deep Work Block (50m / 10m)</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Extended immersive cognitive tasks requiring complex focus.</p>
+          </div>
+          <span class="text-xs font-mono text-emerald-400 px-2 py-1 rounded bg-emerald-500/10">Apply</span>
+        </button>
+
+        <button data-work="90" data-break="20" data-long="30" class="preset-choice-btn w-full glass-panel hover:bg-indigo-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-indigo-500/30">
+          <div>
+            <p class="text-xs font-bold text-indigo-300 font-mono">Ultradian Rhythm (90m / 20m)</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Maximizes biological high-performance peak cycles.</p>
+          </div>
+          <span class="text-xs font-mono text-indigo-400 px-2 py-1 rounded bg-indigo-500/10">Apply</span>
+        </button>
+
+        <button data-work="15" data-break="3" data-long="10" class="preset-choice-btn w-full glass-panel hover:bg-amber-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-amber-500/30">
+          <div>
+            <p class="text-xs font-bold text-amber-300 font-mono">Quick Sprint (15m / 3m)</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Overcoming procrastination & tackling quick chore lists.</p>
+          </div>
+          <span class="text-xs font-mono text-amber-400 px-2 py-1 rounded bg-amber-500/10">Apply</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -563,7 +607,7 @@
         <div class="flex gap-2 mb-4">
           <input type="text" id="mediaUrlInput" placeholder="https://open.spotify.com/playlist/... or https://youtu.be/..." class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
           <button id="loadMediaBtn" class="glass-panel hover:bg-emerald-500/20 px-4 py-2 rounded-xl text-emerald-400 text-xs font-semibold transition">Load</button>
-      </div>
+        </div>
 
         <div id="mediaEmbedContainer" class="w-full h-64 glass-panel rounded-2xl flex items-center justify-center text-slate-500 text-xs font-mono overflow-hidden mb-4">
           No Stream Loaded
@@ -640,14 +684,6 @@
       'mountains': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=80',
       'aurora': 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=2000&q=80'
     };
-
-    const quotes = [
-      { text: "Deep work is the ability to focus without distraction on a cognitively demanding task.", author: "Cal Newport" },
-      { text: "Simplicity is about subtracting the obvious and adding the meaningful.", author: "John Maeda" },
-      { text: "Focus is a muscle. The more you practice building it, the stronger it becomes.", author: "Unknown" },
-      { text: "It is not that we have a short time to live, but that we waste a lot of it.", author: "Seneca" },
-      { text: "Action gives output. Action with deep focus produces excellence.", author: "Anonymous" }
-    ];
 
     // --- State Initialization with LocalStorage ---
     let engineMode = 'pomodoro'; 
@@ -737,8 +773,6 @@
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible' && timerState === 'running' && isWakeLockEnabled) {
         requestWakeLock();
-      } else if (document.visibilityState === 'hidden') {
-        openPiPWindow();
       }
     });
 
@@ -1154,18 +1188,21 @@
 
       document.title = `${timeObj.formatted} - SPRK-Timer`;
 
+      // Sync pro Document PiP
       if (pipWindow && !pipWindow.closed) {
         const pipTime = pipWindow.document.getElementById('pipTimerDisplay');
         const pipMode = pipWindow.document.getElementById('pipModeLabel');
         const pipPlayBtn = pipWindow.document.getElementById('pipPlayBtn');
         const pipTrack = pipWindow.document.getElementById('pipTrackLabel');
         const pipBg = pipWindow.document.getElementById('pipBgLayer');
+        const pipTask = pipWindow.document.getElementById('pipTaskLabel');
+        const pipProgress = pipWindow.document.getElementById('pipProgressBar');
 
         if (pipBg) pipBg.style.backgroundImage = `url('${getActiveWallpaperUrl()}')`;
         if (pipTime) pipTime.textContent = timeObj.formatted;
         if (pipMode) {
           pipMode.textContent = engineMode === 'pomodoro' 
-            ? (isWorkInterval ? 'FOCUS BLOCK' : 'REST PHASE') 
+            ? (isWorkInterval ? 'FOCUS' : 'REST') 
             : engineMode.toUpperCase();
         }
         if (pipPlayBtn) {
@@ -1175,10 +1212,18 @@
         }
         if (pipTrack) {
           if (localAudioQueue.length > 0) {
-            pipTrack.textContent = `🎵 ${localAudioQueue[currentTrackIndex]?.name || 'Local Track'}`;
+            pipTrack.textContent = localAudioQueue[currentTrackIndex]?.name || 'Local Track';
           } else {
-            pipTrack.textContent = activeSound !== 'none' ? `🎧 ${activeSound.toUpperCase()}` : '⚡ SPRK-Timer';
+            pipTrack.textContent = activeSound !== 'none' ? `🎧 ${activeSound.toUpperCase()} AMBIENT` : 'SPRK-Timer • High Focus';
           }
+        }
+        if (pipTask) {
+          const activeTask = tasks.find(t => t.id === activeTaskId);
+          pipTask.textContent = activeTask ? `🎯 ${activeTask.title}` : "Ready to focus";
+        }
+        if (pipProgress && engineMode !== 'stopwatch') {
+          const pct = Math.max(0, Math.min(100, ((totalDuration - timeRemaining) / totalDuration) * 100));
+          pipProgress.style.width = `${pct}%`;
         }
       }
     }
@@ -1214,7 +1259,7 @@
             pauseTimer();
           }
         }
-    }
+      }
       updateDisplay();
     }
 
@@ -1256,7 +1301,7 @@
       updateDisplay();
     }
 
-    // --- Skip Phase Engine (Skip Break or Current Phase) ---
+    // --- Skip Phase Engine ---
     function skipCurrentPhase() {
       if (engineMode === 'pomodoro') {
         isWorkInterval = !isWorkInterval;
@@ -1380,7 +1425,7 @@
 
     document.getElementById('quickEditCancel').addEventListener('click', () => quickEditModal.classList.add('hidden'));
 
-    // --- Task Engine with Pomodoro Estimates ---
+    // --- Task Engine ---
     const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
     const taskPrioritySelect = document.getElementById('taskPrioritySelect');
@@ -1463,6 +1508,7 @@
             activeTaskId = task.id;
             saveTasksToStorage();
             renderTasks();
+            updateDisplay();
           }
         });
 
@@ -1473,6 +1519,7 @@
           }
           saveTasksToStorage();
           renderTasks();
+          updateDisplay();
         });
 
         item.querySelector('.delete-task').addEventListener('click', () => {
@@ -1482,6 +1529,7 @@
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasksToStorage();
           renderTasks();
+          updateDisplay();
         });
 
         taskList.appendChild(item);
@@ -1500,6 +1548,7 @@
         taskInput.value = '';
         saveTasksToStorage();
         renderTasks();
+        updateDisplay();
       }
     });
 
@@ -1701,7 +1750,6 @@
     const taskDrawer = document.getElementById('taskDrawer');
     const analyticsModal = document.getElementById('analyticsModal');
     const mediaModal = document.getElementById('mediaModal');
-    const breatheModal = document.getElementById('breatheModal');
     const mainFooter = document.getElementById('mainFooter');
 
     function updateMusicBarVisibility() {
@@ -1735,50 +1783,82 @@
     document.getElementById('mediaToggleBtn').addEventListener('click', () => mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
     document.getElementById('closeMediaBtn').addEventListener('click', () => mediaModal.classList.add('opacity-0', 'pointer-events-none'));
 
-    // Guided Breathe Exercise logic
-    let breatheInterval = null;
-    let isBreatheActive = false;
-    const breathePhaseText = document.getElementById('breathePhaseText');
-    const breatheGuideCircle = document.getElementById('breatheGuideCircle');
-    const toggleBreatheBtn = document.getElementById('toggleBreatheBtn');
+    // --- Productivity Feature 1: Scratchpad Logic ---
+    const notesModal = document.getElementById('notesModal');
+    const scratchpadArea = document.getElementById('scratchpadArea');
+    const scratchpadMeta = document.getElementById('scratchpadMeta');
 
-    function runBreatheCycle() {
-      const phases = ['Inhale (4s)', 'Hold (4s)', 'Exhale (4s)', 'Hold (4s)'];
-      let step = 0;
-      breathePhaseText.textContent = phases[step];
-      breatheInterval = setInterval(() => {
-        step = (step + 1) % phases.length;
-        breathePhaseText.textContent = phases[step];
-      }, 4000);
+    scratchpadArea.value = localStorage.getItem('aura_scratchpad') || '';
+
+    function updateScratchpadCounts() {
+      const txt = scratchpadArea.value.trim();
+      const chars = txt.length;
+      const words = txt ? txt.split(/\s+/).length : 0;
+      scratchpadMeta.textContent = `${words} words • ${chars} chars`;
     }
+    updateScratchpadCounts();
 
-    function openBreatheModal() {
-      breatheModal.classList.remove('opacity-0', 'pointer-events-none');
-      isBreatheActive = true;
-      runBreatheCycle();
-    }
+    scratchpadArea.addEventListener('input', () => {
+      localStorage.setItem('aura_scratchpad', scratchpadArea.value);
+      updateScratchpadCounts();
+    });
 
-    function closeBreatheModal() {
-      breatheModal.classList.add('opacity-0', 'pointer-events-none');
-      clearInterval(breatheInterval);
-      isBreatheActive = false;
-    }
+    document.getElementById('notesToggleBtn').addEventListener('click', () => {
+      notesModal.classList.remove('opacity-0', 'pointer-events-none');
+      scratchpadArea.focus();
+    });
+    document.getElementById('closeNotesBtn').addEventListener('click', () => {
+      notesModal.classList.add('opacity-0', 'pointer-events-none');
+    });
 
-    document.getElementById('breatheToggleBtn').addEventListener('click', openBreatheModal);
-    document.getElementById('closeBreatheBtn').addEventListener('click', closeBreatheModal);
-
-    toggleBreatheBtn.addEventListener('click', () => {
-      if (isBreatheActive) {
-        clearInterval(breatheInterval);
-        breatheGuideCircle.style.animationPlayState = 'paused';
-        toggleBreatheBtn.textContent = 'Resume Guide';
-        isBreatheActive = false;
-      } else {
-        runBreatheCycle();
-        breatheGuideCircle.style.animationPlayState = 'running';
-        toggleBreatheBtn.textContent = 'Pause Guide';
-        isBreatheActive = true;
+    document.getElementById('copyNotesBtn').addEventListener('click', () => {
+      if (scratchpadArea.value) {
+        navigator.clipboard.writeText(scratchpadArea.value);
+        const originalText = document.getElementById('copyNotesBtn').innerHTML;
+        document.getElementById('copyNotesBtn').innerHTML = `<i class="fa-solid fa-check"></i> Copied!`;
+        setTimeout(() => document.getElementById('copyNotesBtn').innerHTML = originalText, 1500);
       }
+    });
+
+    document.getElementById('clearNotesBtn').addEventListener('click', () => {
+      if (confirm('Clear scratchpad note?')) {
+        scratchpadArea.value = '';
+        localStorage.removeItem('aura_scratchpad');
+        updateScratchpadCounts();
+      }
+    });
+
+    // --- Productivity Feature 2: Presets Selector Logic ---
+    const presetsModal = document.getElementById('presetsModal');
+
+    document.getElementById('presetsToggleBtn').addEventListener('click', () => {
+      presetsModal.classList.remove('opacity-0', 'pointer-events-none');
+    });
+    document.getElementById('closePresetsBtn').addEventListener('click', () => {
+      presetsModal.classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    document.querySelectorAll('.preset-choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const work = parseInt(btn.dataset.work);
+        const brk = parseInt(btn.dataset.break);
+        const lng = parseInt(btn.dataset.long);
+
+        workDurationSecs = work * 60;
+        breakDurationSecs = brk * 60;
+        longBreakDurationSecs = lng * 60;
+
+        localStorage.setItem('aura_workMins', work);
+        localStorage.setItem('aura_breakMins', brk);
+        localStorage.setItem('aura_longBreakMins', lng);
+
+        document.getElementById('settingPomoWork').value = work;
+        document.getElementById('settingPomoBreak').value = brk;
+        document.getElementById('settingPomoLongBreak').value = lng;
+
+        setEngineMode('pomodoro');
+        presetsModal.classList.add('opacity-0', 'pointer-events-none');
+      });
     });
 
     // --- Automatic URL Parsing for Spotify & YouTube Embeds ---
@@ -1923,20 +2003,20 @@
       });
     }
 
-    // --- Document Picture-in-Picture Mini-Screen Engine ---
+    // --- Spotify-Grade Mini-Screen (Document Picture-in-Picture) ---
     async function openPiPWindow() {
       if (pipWindow && !pipWindow.closed) return;
 
       if ('documentPictureInPicture' in window) {
         try {
           pipWindow = await window.documentPictureInPicture.requestWindow({
-            width: 380,
-            height: 240,
+            width: 360,
+            height: 220,
           });
 
           const linkFont = pipWindow.document.createElement('link');
           linkFont.rel = 'stylesheet';
-          linkFont.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap';
+          linkFont.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap';
           pipWindow.document.head.appendChild(linkFont);
 
           const linkFa = pipWindow.document.createElement('link');
@@ -1949,13 +2029,13 @@
             * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
             body {
               font-family: 'Plus Jakarta Sans', sans-serif;
-              background: #020617;
+              background: #090d16;
               color: #f8fafc;
               height: 100vh;
               display: flex;
               flex-direction: column;
               justify-content: space-between;
-              padding: 14px;
+              padding: 12px 14px;
               overflow: hidden;
               position: relative;
             }
@@ -1964,15 +2044,9 @@
               inset: 0;
               background-size: cover;
               background-position: center;
-              filter: blur(20px) brightness(0.45);
-              transform: scale(1.15);
+              filter: blur(28px) brightness(0.35);
+              transform: scale(1.2);
               z-index: 0;
-            }
-            .pip-overlay {
-              position: absolute;
-              inset: 0;
-              background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.85) 100%);
-              z-index: 1;
             }
             .pip-container {
               position: relative;
@@ -1982,85 +2056,116 @@
               height: 100%;
               justify-content: space-between;
             }
-            .pip-card {
-              background: rgba(15, 23, 42, 0.65);
-              backdrop-filter: blur(20px);
-              -webkit-backdrop-filter: blur(20px);
-              border: 1px solid rgba(255, 255, 255, 0.12);
-              border-radius: 20px;
-              padding: 12px 18px;
+            .pip-top-bar {
               display: flex;
-              flex-direction: column;
               align-items: center;
-              gap: 6px;
-              box-shadow: 0 16px 36px rgba(0,0,0,0.5);
-              flex: 1;
-              justify-content: center;
+              justify-content: space-between;
+              font-family: 'Space Mono', monospace;
+              font-size: 10px;
+            }
+            .pip-badge {
+              background: rgba(56, 189, 248, 0.15);
+              border: 1px solid rgba(56, 189, 248, 0.3);
+              color: #38bdf8;
+              padding: 2px 8px;
+              border-radius: 9999px;
+              font-weight: 700;
+              letter-spacing: 1px;
+            }
+            .pip-task {
+              color: #94a3b8;
+              max-width: 190px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              font-size: 11px;
+              font-weight: 500;
+            }
+            .pip-center-deck {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin: 4px 0;
             }
             .pip-timer {
               font-family: 'Space Mono', monospace;
-              font-size: 42px;
-              font-weight: 700;
-              color: #f8fafc;
-              text-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
-              line-height: 1.05;
-              letter-spacing: -1px;
-            }
-            .pip-mode {
-              font-family: 'Space Mono', monospace;
-              font-size: 10px;
-              letter-spacing: 2px;
-              color: #38bdf8;
-              text-transform: uppercase;
-              font-weight: 600;
+              font-size: 44px;
+              font-weight: 800;
+              color: #ffffff;
+              letter-spacing: -2px;
+              line-height: 1;
+              text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
             }
             .pip-controls {
               display: flex;
               align-items: center;
-              gap: 12px;
-              margin-top: 4px;
+              gap: 8px;
             }
             .pip-btn {
               background: rgba(255, 255, 255, 0.08);
-              backdrop-filter: blur(8px);
               border: 1px solid rgba(255, 255, 255, 0.12);
-              color: #f8fafc;
-              border-radius: 12px;
-              width: 36px;
-              height: 36px;
+              color: #f1f5f9;
+              border-radius: 50%;
+              width: 32px;
+              height: 32px;
               display: flex;
               align-items: center;
               justify-content: center;
               cursor: pointer;
               transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              font-size: 12px;
             }
             .pip-btn:hover {
-              background: rgba(56, 189, 248, 0.25);
-              border-color: rgba(56, 189, 248, 0.5);
-              color: #38bdf8;
-              transform: scale(1.05);
+              background: rgba(255, 255, 255, 0.2);
+              transform: scale(1.06);
             }
             .pip-btn-play {
-              width: 44px;
-              height: 44px;
-              font-size: 16px;
-              color: #38bdf8;
-              border-color: rgba(56, 189, 248, 0.35);
-              background: rgba(56, 189, 248, 0.15);
+              width: 42px;
+              height: 42px;
+              background: #38bdf8;
+              color: #041421;
+              border: none;
+              font-size: 15px;
+              box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+            }
+            .pip-btn-play:hover {
+              background: #7dd3fc;
+              color: #000;
+              transform: scale(1.08);
+            }
+            .pip-progress-track {
+              width: 100%;
+              height: 3px;
+              background: rgba(255, 255, 255, 0.15);
+              border-radius: 9999px;
+              overflow: hidden;
+              margin: 4px 0 8px 0;
+            }
+            .pip-progress-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #38bdf8, #22c55e);
+              width: 0%;
+              transition: width 0.3s linear;
             }
             .pip-bottom-bar {
               display: flex;
               align-items: center;
               justify-content: space-between;
-              width: 100%;
-              margin-top: 8px;
-              padding-top: 6px;
               font-size: 11px;
               font-family: 'Space Mono', monospace;
-              color: #94a3b8;
+              color: #cbd5e1;
+            }
+            .pip-track-name {
+              max-width: 170px;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: flex;
+              align-items: center;
+              gap: 6px;
             }
             .pip-vol {
-              width: 65px;
+              width: 55px;
               height: 4px;
               accent-color: #38bdf8;
               cursor: pointer;
@@ -2070,10 +2175,12 @@
 
           pipWindow.document.body.innerHTML = `
             <div id="pipBgLayer" class="pip-bg" style="background-image: url('${getActiveWallpaperUrl()}');"></div>
-            <div class="pip-overlay"></div>
             <div class="pip-container">
-              <div class="pip-card">
-                <span id="pipModeLabel" class="pip-mode">FOCUS BLOCK</span>
+              <div class="pip-top-bar">
+                <span id="pipModeLabel" class="pip-badge">FOCUS</span>
+                <span id="pipTaskLabel" class="pip-task">🎯 SPRK Flow</span>
+              </div>
+              <div class="pip-center-deck">
                 <div id="pipTimerDisplay" class="pip-timer">25:00</div>
                 <div class="pip-controls">
                   <button id="pipResetBtn" class="pip-btn" title="Reset (R)"><i class="fa-solid fa-rotate-right"></i></button>
@@ -2081,10 +2188,16 @@
                   <button id="pipSkipBtn" class="pip-btn" title="Skip Phase (S)"><i class="fa-solid fa-forward-step"></i></button>
                 </div>
               </div>
+              <div class="pip-progress-track">
+                <div id="pipProgressBar" class="pip-progress-fill"></div>
+              </div>
               <div class="pip-bottom-bar">
-                <span id="pipTrackLabel" style="max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ SPRK-Timer</span>
-                <div style="display: flex; align-items: center; gap: 5px;">
-                  <i class="fa-solid fa-volume-high" style="font-size: 10px; color: #64748b;"></i>
+                <div class="pip-track-name">
+                  <i class="fa-solid fa-compact-disc text-sky-400" id="pipTrackIcon"></i>
+                  <span id="pipTrackLabel">SPRK-Timer</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <i class="fa-solid fa-volume-low text-[10px] text-slate-400"></i>
                   <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" class="pip-vol" title="Volume">
                 </div>
               </div>
@@ -2133,7 +2246,6 @@
       isZenMode = !isZenMode;
       const header = document.getElementById('mainHeader');
       const footer = document.getElementById('mainFooter');
-      const quote = document.getElementById('quoteContainer');
       const modeSelector = document.getElementById('modeSelector');
       const taskDisplay = document.getElementById('activeTaskDisplay');
       const tooltip = document.getElementById('keyboardTooltip');
@@ -2142,7 +2254,6 @@
       if (isZenMode) {
         header.classList.add('zen-hidden');
         footer.classList.add('zen-hidden');
-        quote.classList.add('zen-hidden');
         modeSelector.classList.add('zen-hidden');
         taskDisplay.classList.add('zen-hidden');
         tooltip.classList.add('zen-hidden');
@@ -2156,7 +2267,6 @@
       } else {
         header.classList.remove('zen-hidden');
         if (isMusicBarVisible) footer.classList.remove('zen-hidden');
-        quote.classList.remove('zen-hidden');
         modeSelector.classList.remove('zen-hidden');
         taskDisplay.classList.remove('zen-hidden');
         tooltip.classList.remove('zen-hidden');
@@ -2201,17 +2311,7 @@
       } else if (e.key === 'w' || e.key === 'W') {
         e.preventDefault();
         document.getElementById('wakeLockQuickBtn').click();
-      } else if (e.key === 'b' || e.key === 'B') {
-        e.preventDefault();
-        isBreatheActive ? closeBreatheModal() : openBreatheModal();
       }
-    });
-
-    let currentQuoteIndex = 0;
-    document.getElementById('quoteToggleBtn').addEventListener('click', () => {
-      currentQuoteIndex = (currentQuoteIndex + 1) % quotes.length;
-      document.getElementById('quoteText').textContent = `"${quotes[currentQuoteIndex].text}"`;
-      document.getElementById('quoteAuthor').textContent = `— ${quotes[currentQuoteIndex].author}`;
     });
 
     // --- Particle Engine ---
