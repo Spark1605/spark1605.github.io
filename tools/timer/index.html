@@ -82,7 +82,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     .glass-card {
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(15, 23, 42, 0.55);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -90,14 +90,14 @@
     }
     
     .glass-panel {
-      background: rgba(255, 255, 255, 0.03);
+      background: rgba(255, 255, 255, 0.04);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.07);
     }
 
     .glass-input {
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid rgba(255, 255, 255, 0.1);
       transition: all 0.2s ease;
     }
@@ -144,8 +144,8 @@
     .zen-hidden {
       opacity: 0 !important;
       pointer-events: none !important;
-      transform: scale(0.95);
-      transition: all 0.5s ease-in-out;
+      transform: scale(0.96);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .music-bar-hidden {
@@ -184,8 +184,8 @@
         <span class="hidden md:inline">Sounds</span>
       </button>
 
-      <button id="zenToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: F">
-        <i class="fa-solid fa-expand text-xs text-amber-400"></i>
+      <button id="zenToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: F (Zen Mode & Fullscreen)">
+        <i class="fa-solid fa-expand text-xs text-amber-400" id="zenIcon"></i>
         <span class="hidden md:inline">Zen Mode</span>
       </button>
 
@@ -302,7 +302,7 @@
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">R</kbd> Reset</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">P</kbd> Mini-Window</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen/Fullscreen</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">M</kbd> Music Bar</span>
       </div>
     </div>
@@ -440,7 +440,7 @@
     </div>
 
     <div class="text-[11px] text-slate-500 font-mono text-center pt-4 border-t border-white/10">
-      SPRK-Timer v3.5 • High Focus Workspace
+      SPRK-Timer v3.6 • High Focus Workspace
     </div>
   </div>
 
@@ -953,6 +953,10 @@
     // PiP Window reference
     let pipWindow = null;
 
+    function getActiveWallpaperUrl() {
+      return customWallpaperUrl ? customWallpaperUrl : (wallpapers[currentWallpaper] || wallpapers.beach);
+    }
+
     function formatTime(totalSecs) {
       const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
       const s = Math.floor(totalSecs % 60).toString().padStart(2, '0');
@@ -986,7 +990,9 @@
         const pipMode = pipWindow.document.getElementById('pipModeLabel');
         const pipPlayBtn = pipWindow.document.getElementById('pipPlayBtn');
         const pipTrack = pipWindow.document.getElementById('pipTrackLabel');
+        const pipBg = pipWindow.document.getElementById('pipBgLayer');
 
+        if (pipBg) pipBg.style.backgroundImage = `url('${getActiveWallpaperUrl()}')`;
         if (pipTime) pipTime.textContent = timeObj.formatted;
         if (pipMode) {
           pipMode.textContent = engineMode === 'pomodoro' 
@@ -1303,6 +1309,10 @@
     // --- Settings & UI Logic ---
     function applyWallpaper(url) {
       document.getElementById('bgLayer').style.backgroundImage = `url('${url}')`;
+      if (pipWindow && !pipWindow.closed) {
+        const pipBg = pipWindow.document.getElementById('pipBgLayer');
+        if (pipBg) pipBg.style.backgroundImage = `url('${url}')`;
+      }
     }
 
     document.getElementById('displaySelect').value = displayStyle;
@@ -1450,7 +1460,7 @@
       // Spotify Playlist/Track/Album standard URL -> Embed URL
       if (input.includes('spotify.com')) {
         const urlObj = new URL(input);
-        const pathname = urlObj.pathname; // e.g. /playlist/37i9dQZF1DXcBWIGoYBM5M
+        const pathname = urlObj.pathname;
         return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
       }
 
@@ -1590,18 +1600,14 @@
     }
 
     // --- Modern Document Picture-in-Picture Mini-Screen Engine ---
-    async function togglePiP() {
-      if (pipWindow && !pipWindow.closed) {
-        pipWindow.close();
-        pipWindow = null;
-        return;
-      }
+    async function openPiPWindow() {
+      if (pipWindow && !pipWindow.closed) return;
 
       if ('documentPictureInPicture' in window) {
         try {
           pipWindow = await window.documentPictureInPicture.requestWindow({
-            width: 320,
-            height: 200,
+            width: 380,
+            height: 240,
           });
 
           // Inject styling into the PiP Window
@@ -1626,95 +1632,138 @@
               display: flex;
               flex-direction: column;
               justify-content: space-between;
-              padding: 12px;
+              padding: 14px;
               overflow: hidden;
+              position: relative;
+            }
+            .pip-bg {
+              position: absolute;
+              inset: 0;
+              background-size: cover;
+              background-position: center;
+              filter: blur(20px) brightness(0.45);
+              transform: scale(1.15);
+              z-index: 0;
+            }
+            .pip-overlay {
+              position: absolute;
+              inset: 0;
+              background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.85) 100%);
+              z-index: 1;
+            }
+            .pip-container {
+              position: relative;
+              z-index: 2;
+              display: flex;
+              flex-direction: column;
+              height: 100%;
+              justify-content: space-between;
             }
             .pip-card {
-              background: rgba(15, 23, 42, 0.95);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              border-radius: 16px;
-              padding: 10px 14px;
+              background: rgba(15, 23, 42, 0.65);
+              backdrop-filter: blur(20px);
+              -webkit-backdrop-filter: blur(20px);
+              border: 1px solid rgba(255, 255, 255, 0.12);
+              border-radius: 20px;
+              padding: 12px 18px;
               display: flex;
               flex-direction: column;
               align-items: center;
-              gap: 4px;
-              box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+              gap: 6px;
+              box-shadow: 0 16px 36px rgba(0,0,0,0.5);
               flex: 1;
               justify-content: center;
             }
             .pip-timer {
               font-family: 'Space Mono', monospace;
-              font-size: 38px;
+              font-size: 42px;
               font-weight: 700;
-              color: #38bdf8;
-              line-height: 1;
+              color: #f8fafc;
+              text-shadow: 0 0 25px rgba(56, 189, 248, 0.4);
+              line-height: 1.05;
               letter-spacing: -1px;
             }
             .pip-mode {
               font-family: 'Space Mono', monospace;
-              font-size: 9px;
-              letter-spacing: 1.5px;
-              color: #94a3b8;
+              font-size: 10px;
+              letter-spacing: 2px;
+              color: #38bdf8;
               text-transform: uppercase;
+              font-weight: 600;
             }
             .pip-controls {
               display: flex;
               align-items: center;
-              gap: 10px;
+              gap: 12px;
               margin-top: 4px;
             }
             .pip-btn {
               background: rgba(255, 255, 255, 0.08);
-              border: 1px solid rgba(255, 255, 255, 0.1);
+              backdrop-filter: blur(8px);
+              border: 1px solid rgba(255, 255, 255, 0.12);
               color: #f8fafc;
-              border-radius: 10px;
-              width: 32px;
-              height: 32px;
+              border-radius: 12px;
+              width: 36px;
+              height: 36px;
               display: flex;
               align-items: center;
               justify-content: center;
               cursor: pointer;
-              transition: all 0.2s;
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             }
             .pip-btn:hover {
               background: rgba(56, 189, 248, 0.25);
+              border-color: rgba(56, 189, 248, 0.5);
               color: #38bdf8;
+              transform: scale(1.05);
+            }
+            .pip-btn-play {
+              width: 44px;
+              height: 44px;
+              font-size: 16px;
+              color: #38bdf8;
+              border-color: rgba(56, 189, 248, 0.35);
+              background: rgba(56, 189, 248, 0.15);
             }
             .pip-bottom-bar {
               display: flex;
               align-items: center;
               justify-content: space-between;
               width: 100%;
-              margin-top: 6px;
+              margin-top: 8px;
               padding-top: 6px;
-              border-top: 1px solid rgba(255, 255, 255, 0.08);
-              font-size: 10px;
+              font-size: 11px;
               font-family: 'Space Mono', monospace;
-              color: #64748b;
+              color: #94a3b8;
             }
             .pip-vol {
-              width: 60px;
+              width: 65px;
               height: 4px;
               accent-color: #38bdf8;
+              cursor: pointer;
             }
           `;
           pipWindow.document.head.appendChild(styleEl);
 
           pipWindow.document.body.innerHTML = `
-            <div class="pip-card">
-              <span id="pipModeLabel" class="pip-mode">FOCUS BLOCK</span>
-              <div id="pipTimerDisplay" class="pip-timer">25:00</div>
-              <div class="pip-controls">
-                <button id="pipResetBtn" class="pip-btn" title="Reset"><i class="fa-solid fa-rotate-right"></i></button>
-                <button id="pipPlayBtn" class="pip-btn" title="Play/Pause" style="width: 40px; height: 40px; font-size: 15px; color: #38bdf8;"><i class="fa-solid fa-play"></i></button>
-                <button id="pipNextTrackBtn" class="pip-btn" title="Next Sound / Track"><i class="fa-solid fa-forward-step"></i></button>
+            <div id="pipBgLayer" class="pip-bg" style="background-image: url('${getActiveWallpaperUrl()}');"></div>
+            <div class="pip-overlay"></div>
+            <div class="pip-container">
+              <div class="pip-card">
+                <span id="pipModeLabel" class="pip-mode">FOCUS BLOCK</span>
+                <div id="pipTimerDisplay" class="pip-timer">25:00</div>
+                <div class="pip-controls">
+                  <button id="pipResetBtn" class="pip-btn" title="Reset (R)"><i class="fa-solid fa-rotate-right"></i></button>
+                  <button id="pipPlayBtn" class="pip-btn pip-btn-play" title="Play/Pause (Space)"><i class="fa-solid fa-play"></i></button>
+                  <button id="pipNextTrackBtn" class="pip-btn" title="Next Sound / Track"><i class="fa-solid fa-forward-step"></i></button>
+                </div>
               </div>
-            </div>
-            <div class="pip-bottom-bar">
-              <span id="pipTrackLabel" style="max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ SPRK-Timer</span>
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <i class="fa-solid fa-volume-high" style="font-size: 9px;"></i>
-                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" class="pip-vol" title="Volume">
+              <div class="pip-bottom-bar">
+                <span id="pipTrackLabel" style="max-width: 190px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ SPRK-Timer</span>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                  <i class="fa-solid fa-volume-high" style="font-size: 10px; color: #64748b;"></i>
+                  <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" class="pip-vol" title="Volume">
+                </div>
               </div>
             </div>
           `;
@@ -1747,19 +1796,50 @@
             localStorage.setItem('aura_volume', vol);
           });
 
+          pipWindow.addEventListener('pagehide', () => {
+            pipWindow = null;
+          });
+
           updateDisplay();
         } catch (err) {
           console.error("Document PiP error:", err);
-          alert("Could not open always-on-top window. Ensure PiP permissions are enabled in your browser.");
         }
+      }
+    }
+
+    async function togglePiP() {
+      if (pipWindow && !pipWindow.closed) {
+        pipWindow.close();
+        pipWindow = null;
       } else {
-        alert("Your browser does not support the Document Picture-in-Picture window API yet. (Supported in Chrome/Edge 116+).");
+        await openPiPWindow();
       }
     }
 
     document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
 
-    function toggleZenMode() {
+    // Auto Pop-up Mini Screen when tab is hidden/switched
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (!pipWindow || pipWindow.closed) {
+          openPiPWindow();
+        }
+      } else {
+        if (pipWindow && !pipWindow.closed) {
+          pipWindow.close();
+          pipWindow = null;
+        }
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      if (document.hidden && (!pipWindow || pipWindow.closed)) {
+        openPiPWindow();
+      }
+    });
+
+    // --- Enhanced Zen Mode with Auto Fullscreen ---
+    async function toggleZenMode() {
       isZenMode = !isZenMode;
       const header = document.getElementById('mainHeader');
       const footer = document.getElementById('mainFooter');
@@ -1767,6 +1847,7 @@
       const modeSelector = document.getElementById('modeSelector');
       const taskDisplay = document.getElementById('activeTaskDisplay');
       const tooltip = document.getElementById('keyboardTooltip');
+      const zenIcon = document.getElementById('zenIcon');
 
       if (isZenMode) {
         header.classList.add('zen-hidden');
@@ -1775,6 +1856,15 @@
         modeSelector.classList.add('zen-hidden');
         taskDisplay.classList.add('zen-hidden');
         tooltip.classList.add('zen-hidden');
+        if (zenIcon) zenIcon.className = "fa-solid fa-compress text-xs text-amber-400";
+
+        try {
+          if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen();
+          }
+        } catch (e) {
+          console.warn("Fullscreen request error/denied:", e);
+        }
       } else {
         header.classList.remove('zen-hidden');
         if (isMusicBarVisible) footer.classList.remove('zen-hidden');
@@ -1782,10 +1872,26 @@
         modeSelector.classList.remove('zen-hidden');
         taskDisplay.classList.remove('zen-hidden');
         tooltip.classList.remove('zen-hidden');
+        if (zenIcon) zenIcon.className = "fa-solid fa-expand text-xs text-amber-400";
+
+        try {
+          if (document.fullscreenElement) {
+            await document.exitFullscreen();
+          }
+        } catch (e) {
+          console.warn("Exit fullscreen error:", e);
+        }
       }
     }
 
     document.getElementById('zenToggleBtn').addEventListener('click', toggleZenMode);
+
+    // Sync Zen state if user exits fullscreen manually with Escape key
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && isZenMode) {
+        toggleZenMode();
+      }
+    });
 
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
