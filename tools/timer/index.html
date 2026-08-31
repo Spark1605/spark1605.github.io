@@ -41,52 +41,52 @@
     ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
     
     .brand-main {
-        background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
+      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
     .brand-sub::after {
-        content: '';
-        position: absolute;
-        width: 6px;
-        height: 6px;
-        background-color: #00f2fe;
-        border-radius: 50%;
-        top: 25%;
-        right: -10px;
-        box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
-        animation: pulse 2s infinite alternate;
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background-color: #00f2fe;
+      border-radius: 50%;
+      top: 25%;
+      right: -10px;
+      box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+      animation: pulse 2s infinite alternate;
     }
 
     .logo-underline {
-        width: 25px;
-        height: 3px;
-        background: linear-gradient(90deg, #00f2fe, #7f00ff);
-        margin-top: 2px;
-        border-radius: 2px;
-        box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 25px;
+      height: 3px;
+      background: linear-gradient(90deg, #00f2fe, #7f00ff);
+      margin-top: 2px;
+      border-radius: 2px;
+      box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
+      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .brand-logo-container:hover .logo-underline {
-        width: 100%;
+      width: 100%;
     }
 
     @keyframes pulse {
-        0% { transform: scale(0.8); opacity: 0.5; }
-        100% { transform: scale(1.3); opacity: 1; }
+      0% { transform: scale(0.8); opacity: 0.5; }
+      100% { transform: scale(1.3); opacity: 1; }
     }
 
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     .glass-card {
-      background: rgba(15, 23, 42, 0.65);
+      background: rgba(15, 23, 42, 0.68);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     }
     
     .glass-panel {
@@ -97,14 +97,14 @@
     }
 
     .glass-input {
-      background: rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       transition: all 0.2s ease;
     }
     .glass-input:focus {
-      border-color: rgba(56, 189, 248, 0.5);
+      border-color: rgba(56, 189, 248, 0.6);
       outline: none;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
     }
 
     .flip-unit { position: relative; perspective: 300px; }
@@ -183,12 +183,18 @@
     </div>
 
     <div class="flex items-center gap-2 md:gap-3">
+      <!-- Screen Wake Lock Quick Indicator Button -->
+      <button id="wakeLockQuickBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-400" title="Shortcut: W (Keep Screen Awake)">
+        <i class="fa-solid fa-sun text-xs text-amber-400" id="wakeLockIcon"></i>
+        <span class="hidden md:inline" id="wakeLockLabel">Awake: Off</span>
+      </button>
+
       <button id="pipToggleBtn" class="glass-panel hover:bg-sky-500/20 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-sky-300" title="Shortcut: P (Mini-Player on Top)">
         <i class="fa-solid fa-window-restore text-xs text-sky-400"></i>
         <span class="hidden md:inline">Mini Window</span>
       </button>
 
-      <button id="breatheToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-teal-300" title="Box Breathing Guide">
+      <button id="breatheToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-teal-300" title="Shortcut: B (Box Breathing)">
         <i class="fa-solid fa-lungs text-xs text-teal-400"></i>
         <span class="hidden md:inline">Breathe</span>
       </button>
@@ -241,7 +247,7 @@
         <button id="modeStopwatch" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white">Stopwatch</button>
       </div>
 
-      <div id="pomodoroStatus" class="mb-4 flex gap-2 text-[11px] tracking-widest uppercase font-mono font-medium">
+      <div id="pomodoroStatus" class="mb-4 flex items-center gap-2 text-[11px] tracking-widest uppercase font-mono font-medium">
         <span id="pomoWork" class="px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all">Focus Phase</span>
         <span id="pomoBreak" class="px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all">Rest Phase</span>
       </div>
@@ -303,7 +309,7 @@
         <span id="currentTaskLabel" class="italic truncate">No active task selected</span>
       </div>
 
-      <div class="flex items-center gap-5 mt-2">
+      <div class="flex items-center gap-4 mt-2">
         <button id="lapBtn" class="hidden glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all transform active:scale-95" title="Record Lap">
           <i class="fa-solid fa-flag"></i>
         </button>
@@ -313,6 +319,9 @@
         <button id="pauseBtn" class="glass-panel hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-300 w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 hidden" title="Spacebar">
           <i class="fa-solid fa-pause"></i>
         </button>
+        <button id="skipBtn" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/40 text-slate-400 hover:text-sky-300 w-12 h-12 rounded-2xl flex items-center justify-center text-sm transition-all transform active:scale-95" title="Skip Break/Focus (Press 'S')">
+          <i class="fa-solid fa-forward-step"></i>
+        </button>
         <button id="resetBtn" class="glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all transform active:scale-95" title="Press 'R'">
           <i class="fa-solid fa-rotate-right"></i>
         </button>
@@ -320,9 +329,11 @@
 
       <div id="keyboardTooltip" class="mt-6 flex flex-wrap justify-center items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">S</kbd> Skip Phase</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">R</kbd> Reset</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">P</kbd> Mini-Window</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen/Fullscreen</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">W</kbd> Wake Lock</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">M</kbd> Music Bar</span>
       </div>
     </div>
@@ -435,8 +446,12 @@
         <input type="range" id="particleSpeedSlider" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full">
       </div>
 
-      <!-- Metronome & Notifications Feature -->
+      <!-- Metronome, Wake Lock & Notifications Feature -->
       <div class="glass-panel p-3 rounded-2xl space-y-3 border border-white/5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-slate-300">Keep Screen Awake (WakeLock)</span>
+          <input type="checkbox" id="settingWakeLock" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
+        </div>
         <div class="flex items-center justify-between">
           <span class="text-xs font-mono text-slate-300">Clock Ticking Metronome</span>
           <input type="checkbox" id="settingTickingSound" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
@@ -444,6 +459,10 @@
         <div class="flex items-center justify-between">
           <span class="text-xs font-mono text-slate-300">Desktop Notifications</span>
           <button id="requestNotifBtn" class="text-[10px] glass-panel px-2.5 py-1 rounded-lg text-sky-300 hover:bg-sky-500/20 transition">Enable</button>
+        </div>
+        <div class="flex items-center justify-between pt-1">
+          <span class="text-xs font-mono text-slate-300">Test Chime Alarm</span>
+          <button id="testChimeBtn" class="text-[10px] glass-panel px-2.5 py-1 rounded-lg text-emerald-300 hover:bg-emerald-500/20 transition">Play Tone</button>
         </div>
       </div>
 
@@ -472,7 +491,7 @@
     </div>
 
     <div class="text-[11px] text-slate-500 font-mono text-center pt-4 border-t border-white/10">
-      SPRK-Timer v4.0 • High Focus Workspace
+      SPRK-Timer v4.2 • High Focus Workspace
     </div>
   </div>
 
@@ -638,6 +657,7 @@
     let isZenMode = false;
     let isMusicBarVisible = localStorage.getItem('aura_musicBarVisible') !== 'false';
     let isTickingEnabled = localStorage.getItem('aura_tickingSound') === 'true';
+    let isWakeLockEnabled = localStorage.getItem('aura_wakeLock') !== 'false';
 
     let isWorkInterval = true;
     let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || 25) * 60;
@@ -665,6 +685,71 @@
     let particleSpeedMultiplier = parseFloat(localStorage.getItem('aura_particleSpeed') || 1.0);
     let currentWallpaper = localStorage.getItem('aura_wallpaper') || 'beach';
     let customWallpaperUrl = localStorage.getItem('aura_customBg') || '';
+
+    // --- Screen WakeLock Engine ---
+    let wakeLockSentinel = null;
+
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator && isWakeLockEnabled && timerState === 'running') {
+        try {
+          if (!wakeLockSentinel) {
+            wakeLockSentinel = await navigator.wakeLock.request('screen');
+            wakeLockSentinel.addEventListener('release', () => {
+              wakeLockSentinel = null;
+              updateWakeLockUI();
+            });
+          }
+        } catch (err) {
+          console.warn("Wake Lock request failed:", err);
+        }
+      }
+      updateWakeLockUI();
+    }
+
+    async function releaseWakeLock() {
+      if (wakeLockSentinel) {
+        try {
+          await wakeLockSentinel.release();
+          wakeLockSentinel = null;
+        } catch (e) {}
+      }
+      updateWakeLockUI();
+    }
+
+    function updateWakeLockUI() {
+      const icon = document.getElementById('wakeLockIcon');
+      const label = document.getElementById('wakeLockLabel');
+      const setting = document.getElementById('settingWakeLock');
+      if (setting) setting.checked = isWakeLockEnabled;
+
+      if (isWakeLockEnabled && (wakeLockSentinel || timerState === 'running')) {
+        icon.className = "fa-solid fa-sun text-xs text-amber-400";
+        label.textContent = "Awake: Active";
+      } else if (isWakeLockEnabled) {
+        icon.className = "fa-regular fa-sun text-xs text-slate-300";
+        label.textContent = "Awake: Auto";
+      } else {
+        icon.className = "fa-solid fa-moon text-xs text-slate-500";
+        label.textContent = "Awake: Off";
+      }
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && timerState === 'running' && isWakeLockEnabled) {
+        requestWakeLock();
+      }
+    });
+
+    document.getElementById('wakeLockQuickBtn').addEventListener('click', () => {
+      isWakeLockEnabled = !isWakeLockEnabled;
+      localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
+      if (isWakeLockEnabled && timerState === 'running') {
+        requestWakeLock();
+      } else {
+        releaseWakeLock();
+      }
+      updateWakeLockUI();
+    });
 
     // --- Local MP3 Player State ---
     let localAudioQueue = [];
@@ -726,7 +811,6 @@
       osc.start();
       osc.stop(audioCtx.currentTime + 1.8);
 
-      // Desktop notification trigger
       if (Notification.permission === 'granted') {
         const title = engineMode === 'pomodoro' ? (isWorkInterval ? "Session Finished!" : "Break Finished!") : "Timer Complete!";
         new Notification(title, {
@@ -948,7 +1032,6 @@
         rainFilter.frequency.value = 900;
 
         const rumbleOsc = audioCtx.createOscillator();
-        rumpleOsc = rumbleOsc;
         rumbleOsc.type = 'triangle';
         rumbleOsc.frequency.value = 45;
 
@@ -1017,6 +1100,7 @@
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const skipBtn = document.getElementById('skipBtn');
     const lapBtn = document.getElementById('lapBtn');
     const stopwatchLapsContainer = document.getElementById('stopwatchLapsContainer');
 
@@ -1068,7 +1152,6 @@
 
       document.title = `${timeObj.formatted} - SPRK-Timer`;
 
-      // Update PiP Window if open
       if (pipWindow && !pipWindow.closed) {
         const pipTime = pipWindow.document.getElementById('pipTimerDisplay');
         const pipMode = pipWindow.document.getElementById('pipModeLabel');
@@ -1119,7 +1202,6 @@
               sessionCycleCount++;
               localStorage.setItem('aura_completedSessions', completedSessionsCount);
               
-              // Record daily trend history
               weeklyHistory[6] = (weeklyHistory[6] || 0) + 1;
               localStorage.setItem('aura_weeklyHistory', JSON.stringify(weeklyHistory));
             }
@@ -1141,6 +1223,7 @@
       startBtn.classList.add('hidden');
       pauseBtn.classList.remove('hidden');
       if (!timerInterval) timerInterval = setInterval(tick, 1000);
+      requestWakeLock();
       updateDisplay();
     }
 
@@ -1150,6 +1233,7 @@
       startBtn.classList.remove('hidden');
       clearInterval(timerInterval);
       timerInterval = null;
+      releaseWakeLock();
       updateDisplay();
     }
 
@@ -1169,6 +1253,23 @@
       }
       updateDisplay();
     }
+
+    // --- Skip Phase Engine (Skip Break or Current Phase) ---
+    function skipCurrentPhase() {
+      if (engineMode === 'pomodoro') {
+        isWorkInterval = !isWorkInterval;
+        switchPomoPhase();
+        if (timerState === 'running') {
+          clearInterval(timerInterval);
+          timerInterval = setInterval(tick, 1000);
+        }
+      } else if (engineMode === 'countdown') {
+        resetTimer();
+      }
+      updateDisplay();
+    }
+
+    skipBtn.addEventListener('click', skipCurrentPhase);
 
     function renderStopwatchLaps() {
       stopwatchLapsContainer.innerHTML = '';
@@ -1221,6 +1322,7 @@
       countdownInputGroup.classList.add('hidden');
       lapBtn.classList.add('hidden');
       stopwatchLapsContainer.classList.add('hidden');
+      skipBtn.classList.remove('hidden');
 
       if (mode === 'pomodoro') {
         modePomodoro.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
@@ -1237,6 +1339,7 @@
         modeStopwatch.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
         stopwatchSeconds = 0;
         lapBtn.classList.remove('hidden');
+        skipBtn.classList.add('hidden');
       }
       resetTimer();
     }
@@ -1415,7 +1518,6 @@
       const progressPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
       document.getElementById('streakBar').style.width = `${progressPercent}%`;
 
-      // Render Weekly Bars
       const weeklyContainer = document.getElementById('weeklyTrendBars');
       weeklyContainer.innerHTML = '';
       const days = ['M', 'T', 'W', 'T', 'F', 'S', 'Today'];
@@ -1536,6 +1638,23 @@
       localStorage.setItem('aura_tickingSound', isTickingEnabled);
     });
 
+    // Test Chime Alarm Button
+    document.getElementById('testChimeBtn').addEventListener('click', playAlarmSound);
+
+    // Wake Lock setting toggle
+    const settingWakeLock = document.getElementById('settingWakeLock');
+    settingWakeLock.checked = isWakeLockEnabled;
+    settingWakeLock.addEventListener('change', (e) => {
+      isWakeLockEnabled = e.target.checked;
+      localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
+      if (isWakeLockEnabled && timerState === 'running') {
+        requestWakeLock();
+      } else {
+        releaseWakeLock();
+      }
+      updateWakeLockUI();
+    });
+
     // Desktop Notification Request
     document.getElementById('requestNotifBtn').addEventListener('click', () => {
       if ('Notification' in window) {
@@ -1631,17 +1750,20 @@
       }, 4000);
     }
 
-    document.getElementById('breatheToggleBtn').addEventListener('click', () => {
+    function openBreatheModal() {
       breatheModal.classList.remove('opacity-0', 'pointer-events-none');
       isBreatheActive = true;
       runBreatheCycle();
-    });
+    }
 
-    document.getElementById('closeBreatheBtn').addEventListener('click', () => {
+    function closeBreatheModal() {
       breatheModal.classList.add('opacity-0', 'pointer-events-none');
       clearInterval(breatheInterval);
       isBreatheActive = false;
-    });
+    }
+
+    document.getElementById('breatheToggleBtn').addEventListener('click', openBreatheModal);
+    document.getElementById('closeBreatheBtn').addEventListener('click', closeBreatheModal);
 
     toggleBreatheBtn.addEventListener('click', () => {
       if (isBreatheActive) {
@@ -1954,7 +2076,7 @@
                 <div class="pip-controls">
                   <button id="pipResetBtn" class="pip-btn" title="Reset (R)"><i class="fa-solid fa-rotate-right"></i></button>
                   <button id="pipPlayBtn" class="pip-btn pip-btn-play" title="Play/Pause (Space)"><i class="fa-solid fa-play"></i></button>
-                  <button id="pipNextTrackBtn" class="pip-btn" title="Next Sound / Track"><i class="fa-solid fa-forward-step"></i></button>
+                  <button id="pipSkipBtn" class="pip-btn" title="Skip Phase (S)"><i class="fa-solid fa-forward-step"></i></button>
                 </div>
               </div>
               <div class="pip-bottom-bar">
@@ -1972,19 +2094,7 @@
           });
 
           pipWindow.document.getElementById('pipResetBtn').addEventListener('click', resetTimer);
-
-          pipWindow.document.getElementById('pipNextTrackBtn').addEventListener('click', () => {
-            if (localAudioQueue.length > 0) {
-              nextLocalTrack();
-            } else {
-              const sounds = ['none', 'alpha', 'campfire', 'waves', 'rain', 'forest', 'white', 'pink', 'brown', 'thunder', 'cafe', 'crickets'];
-              const nextIdx = (sounds.indexOf(activeSound) + 1) % sounds.length;
-              activeSound = sounds[nextIdx];
-              localStorage.setItem('aura_activeSound', activeSound);
-              playAmbient(activeSound);
-              updateDisplay();
-            }
-          });
+          pipWindow.document.getElementById('pipSkipBtn').addEventListener('click', skipCurrentPhase);
 
           pipWindow.document.getElementById('pipVolControl').addEventListener('input', (e) => {
             const vol = parseFloat(e.target.value);
@@ -2015,26 +2125,6 @@
     }
 
     document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
-
-    // Auto Pop-up Mini Screen when tab is hidden/switched
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        if (!pipWindow || pipWindow.closed) {
-          openPiPWindow();
-        }
-      } else {
-        if (pipWindow && !pipWindow.closed) {
-          pipWindow.close();
-          pipWindow = null;
-        }
-      }
-    });
-
-    window.addEventListener('blur', () => {
-      if (document.hidden && (!pipWindow || pipWindow.closed)) {
-        openPiPWindow();
-      }
-    });
 
     // --- Enhanced Zen Mode with Auto Fullscreen ---
     async function toggleZenMode() {
@@ -2094,6 +2184,9 @@
       } else if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
         resetTimer();
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        skipCurrentPhase();
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
         toggleZenMode();
@@ -2103,6 +2196,12 @@
       } else if (e.key === 'p' || e.key === 'P') {
         e.preventDefault();
         togglePiP();
+      } else if (e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        document.getElementById('wakeLockQuickBtn').click();
+      } else if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        isBreatheActive ? closeBreatheModal() : openBreatheModal();
       }
     });
 
@@ -2238,6 +2337,7 @@
     updateDisplay();
     updateAnalytics();
     updateMusicBarVisibility();
+    updateWakeLockUI();
   </script>
 </body>
 </html>
