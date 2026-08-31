@@ -770,9 +770,29 @@
       }
     }
 
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible' && timerState === 'running' && isWakeLockEnabled) {
-        requestWakeLock();
+    let autoOpenedPiP = false;
+
+    document.addEventListener('visibilitychange', async () => {
+      if (document.visibilityState === 'visible') {
+        if (timerState === 'running' && isWakeLockEnabled) {
+          requestWakeLock();
+        }
+        if (pipWindow && !pipWindow.closed && autoOpenedPiP) {
+          try {
+            pipWindow.close();
+            pipWindow = null;
+            autoOpenedPiP = false;
+          } catch(e) {}
+        }
+      } else if (document.visibilityState === 'hidden') {
+        if (timerState === 'running' && (!pipWindow || pipWindow.closed)) {
+          try {
+            autoOpenedPiP = true;
+            await openPiPWindow();
+          } catch (err) {
+            console.warn("Auto-PiP on tab switch requires browser permissions or user interaction:", err);
+          }
+        }
       }
     });
 
@@ -2221,6 +2241,7 @@
 
           pipWindow.addEventListener('pagehide', () => {
             pipWindow = null;
+            autoOpenedPiP = false;
           });
 
           updateDisplay();
@@ -2234,7 +2255,9 @@
       if (pipWindow && !pipWindow.closed) {
         pipWindow.close();
         pipWindow = null;
+        autoOpenedPiP = false;
       } else {
+        autoOpenedPiP = false;
         await openPiPWindow();
       }
     }
