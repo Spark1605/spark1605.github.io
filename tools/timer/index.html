@@ -78,13 +78,8 @@
         100% { transform: scale(1.3); opacity: 1; }
     }
 
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     .glass-card {
       background: rgba(15, 23, 42, 0.5);
@@ -153,7 +148,6 @@
       transition: all 0.5s ease-in-out;
     }
 
-    /* Music Bar Pop-up / Pop-down Animation */
     .music-bar-hidden {
       transform: translateY(120%) !important;
       opacity: 0 !important;
@@ -180,6 +174,11 @@
     </div>
 
     <div class="flex items-center gap-2 md:gap-3">
+      <button id="pipToggleBtn" class="glass-panel hover:bg-sky-500/20 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-sky-300" title="Shortcut: P (Mini-Player on Top)">
+        <i class="fa-solid fa-window-restore text-xs text-sky-400"></i>
+        <span class="hidden md:inline">Mini Window</span>
+      </button>
+
       <button id="soundscapeToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: M">
         <i class="fa-solid fa-headphones text-xs text-sky-400"></i>
         <span class="hidden md:inline">Sounds</span>
@@ -192,7 +191,7 @@
 
       <button id="mediaToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
         <i class="fa-brands fa-spotify text-xs text-emerald-400"></i>
-        <span class="hidden md:inline">Stream</span>
+        <span class="hidden md:inline">Music Hub</span>
       </button>
 
       <button id="quoteToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
@@ -302,6 +301,7 @@
       <div id="keyboardTooltip" class="mt-6 flex flex-wrap justify-center items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">R</kbd> Reset</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">P</kbd> Mini-Window</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">M</kbd> Music Bar</span>
       </div>
@@ -314,7 +314,7 @@
   </div>
 
   <footer id="mainFooter" class="fixed bottom-0 left-0 right-0 z-30 p-4 md:p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500 ease-in-out">
-    <div class="glass-card rounded-2xl px-5 py-3 flex items-center gap-4 flex-nowrap justify-between w-full max-w-4xl border border-white/10 shadow-2xl">
+    <div class="glass-card rounded-2xl px-5 py-3 flex items-center gap-4 flex-nowrap justify-between w-full max-w-5xl border border-white/10 shadow-2xl">
       <div class="flex items-center gap-2.5 flex-shrink-0">
         <div class="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20">
           <i class="fa-solid fa-headphones text-sky-400 text-sm"></i>
@@ -323,6 +323,14 @@
           <span class="text-xs font-semibold tracking-wide uppercase font-mono text-slate-200 block">Soundscape</span>
           <span class="text-[9px] text-slate-400 font-mono">Press M to hide</span>
         </div>
+      </div>
+
+      <!-- Local MP3 Bar Controls if files are active -->
+      <div id="localAudioControlsBar" class="hidden flex items-center gap-2 px-3 py-1 glass-panel rounded-xl border border-sky-500/30">
+        <button id="prevTrackBtn" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-backward-step"></i></button>
+        <button id="toggleLocalPlayBtn" class="text-sky-400 hover:text-sky-300 text-xs px-1"><i class="fa-solid fa-play" id="localPlayIcon"></i></button>
+        <button id="nextTrackBtn" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-forward-step"></i></button>
+        <span id="nowPlayingBarText" class="text-[10px] font-mono text-sky-300 max-w-[100px] sm:max-w-[140px] truncate">No file</span>
       </div>
 
       <div class="flex gap-2 overflow-x-auto py-1 px-1 flex-1 mx-2 scroll-smooth items-center">
@@ -342,11 +350,12 @@
 
       <div class="flex items-center gap-2 flex-shrink-0 pl-2 border-l border-white/10">
         <i class="fa-solid fa-volume-low text-xs text-slate-400"></i>
-        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-16 sm:w-20" title="Master Ambient Volume">
+        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-16 sm:w-20" title="Master Ambient & MP3 Volume">
       </div>
     </div>
   </footer>
 
+  <!-- Settings Drawer -->
   <div id="settingsDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10">
     <div class="overflow-y-auto pr-1 space-y-5">
       <div class="flex justify-between items-center border-b border-white/10 pb-4">
@@ -435,6 +444,7 @@
     </div>
   </div>
 
+  <!-- Task Drawer -->
   <div id="taskDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10">
     <div class="flex flex-col h-full">
       <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-4">
@@ -462,27 +472,54 @@
     </div>
   </div>
 
+  <!-- Enhanced Media & Playlist Hub Modal -->
   <div id="mediaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-white/10 relative max-h-[90vh] overflow-y-auto">
       <button id="closeMediaBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       
       <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200 mb-4 flex items-center gap-2">
-        <i class="fa-brands fa-spotify text-emerald-400"></i> Embedded Radio / Stream
+        <i class="fa-brands fa-spotify text-emerald-400"></i> Stream & Playlist Hub
       </h3>
 
-      <p class="text-xs text-slate-400 mb-4">Paste a Spotify, SoundCloud, or custom iframe embed code/link below to keep your music docked inside SPRK-Timer.</p>
-
-      <div class="flex gap-2 mb-4">
-        <input type="text" id="mediaUrlInput" placeholder="Paste Spotify embed URL or iframe..." class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
-        <button id="loadMediaBtn" class="glass-panel hover:bg-emerald-500/20 px-3 py-2 rounded-xl text-emerald-400 text-xs font-semibold transition">Load</button>
+      <!-- Tab Switcher for Streams vs Local MP3s -->
+      <div class="flex gap-2 p-1 glass-panel rounded-xl mb-4 text-xs font-mono">
+        <button id="tabOnlineMedia" class="flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition">Online Streams (Spotify / YouTube)</button>
+        <button id="tabLocalMedia" class="flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Local MP3s</button>
       </div>
 
-      <div id="mediaEmbedContainer" class="w-full h-40 glass-panel rounded-2xl flex items-center justify-center text-slate-500 text-xs font-mono overflow-hidden">
-        No Stream Loaded
+      <!-- Online Stream Section -->
+      <div id="onlineMediaSection">
+        <p class="text-xs text-slate-400 mb-3">Paste any public <strong>Spotify / YouTube playlist URL</strong>, track link, or iframe embed code:</p>
+
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="mediaUrlInput" placeholder="https://open.spotify.com/playlist/... or https://youtu.be/..." class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+          <button id="loadMediaBtn" class="glass-panel hover:bg-emerald-500/20 px-4 py-2 rounded-xl text-emerald-400 text-xs font-semibold transition">Load</button>
+        </div>
+
+        <div id="mediaEmbedContainer" class="w-full h-64 glass-panel rounded-2xl flex items-center justify-center text-slate-500 text-xs font-mono overflow-hidden mb-4">
+          No Stream Loaded
+        </div>
+      </div>
+
+      <!-- Local MP3 Section -->
+      <div id="localMediaSection" class="hidden">
+        <p class="text-xs text-slate-400 mb-3">Select local audio files (.mp3, .wav, .m4a) to build your offline study queue:</p>
+        
+        <label class="glass-panel hover:bg-white/10 px-4 py-3 rounded-2xl flex items-center justify-center gap-2 cursor-pointer border border-dashed border-white/20 mb-4 text-xs text-sky-400">
+          <i class="fa-solid fa-folder-open text-base"></i>
+          <span>Choose Audio Files...</span>
+          <input type="file" id="localFileInput" accept="audio/*" multiple class="hidden">
+        </label>
+
+        <!-- Current playing and playlist -->
+        <div id="localPlaylistContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+          <p class="text-[11px] font-mono text-slate-500 text-center py-4">No local files loaded</p>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Analytics Modal -->
   <div id="analyticsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
       <button id="closeAnalyticsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -571,6 +608,12 @@
     let particleSpeedMultiplier = parseFloat(localStorage.getItem('aura_particleSpeed') || 1.0);
     let currentWallpaper = localStorage.getItem('aura_wallpaper') || 'beach';
     let customWallpaperUrl = localStorage.getItem('aura_customBg') || '';
+
+    // --- Local MP3 Player State ---
+    let localAudioQueue = [];
+    let currentTrackIndex = 0;
+    const localAudio = new Audio();
+    let isLocalPlaying = false;
 
     // --- Audio Web API Engine ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -907,6 +950,9 @@
     const quickEditModal = document.getElementById('quickEditModal');
     const quickEditInput = document.getElementById('quickEditInput');
 
+    // PiP Window reference
+    let pipWindow = null;
+
     function formatTime(totalSecs) {
       const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
       const s = Math.floor(totalSecs % 60).toString().padStart(2, '0');
@@ -933,6 +979,33 @@
       document.getElementById('flipS2').textContent = timeObj.s[1];
 
       document.title = `${timeObj.formatted} - SPRK-Timer`;
+
+      // Update PiP Window if open
+      if (pipWindow && !pipWindow.closed) {
+        const pipTime = pipWindow.document.getElementById('pipTimerDisplay');
+        const pipMode = pipWindow.document.getElementById('pipModeLabel');
+        const pipPlayBtn = pipWindow.document.getElementById('pipPlayBtn');
+        const pipTrack = pipWindow.document.getElementById('pipTrackLabel');
+
+        if (pipTime) pipTime.textContent = timeObj.formatted;
+        if (pipMode) {
+          pipMode.textContent = engineMode === 'pomodoro' 
+            ? (isWorkInterval ? 'FOCUS BLOCK' : 'REST PHASE') 
+            : engineMode.toUpperCase();
+        }
+        if (pipPlayBtn) {
+          pipPlayBtn.innerHTML = timerState === 'running' 
+            ? '<i class="fa-solid fa-pause"></i>' 
+            : '<i class="fa-solid fa-play"></i>';
+        }
+        if (pipTrack) {
+          if (localAudioQueue.length > 0) {
+            pipTrack.textContent = `🎵 ${localAudioQueue[currentTrackIndex]?.name || 'Local Track'}`;
+          } else {
+            pipTrack.textContent = activeSound !== 'none' ? `🎧 ${activeSound.toUpperCase()}` : '⚡ SPRK-Timer';
+          }
+        }
+      }
     }
 
     function tick() {
@@ -972,6 +1045,7 @@
       startBtn.classList.add('hidden');
       pauseBtn.classList.remove('hidden');
       if (!timerInterval) timerInterval = setInterval(tick, 1000);
+      updateDisplay();
     }
 
     function pauseTimer() {
@@ -980,6 +1054,7 @@
       startBtn.classList.remove('hidden');
       clearInterval(timerInterval);
       timerInterval = null;
+      updateDisplay();
     }
 
     function resetTimer() {
@@ -1006,7 +1081,6 @@
         workBadge.className = "px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all";
         breakBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
       } else {
-        // Automatically trigger long break after 4 focus blocks
         const isLong = sessionCycleCount % 4 === 0 && sessionCycleCount > 0;
         timeRemaining = isLong ? longBreakDurationSecs : breakDurationSecs;
         breakBadge.textContent = isLong ? "Long Rest Phase" : "Rest Phase";
@@ -1319,6 +1393,7 @@
         activeSound = e.target.dataset.sound;
         localStorage.setItem('aura_activeSound', activeSound);
         playAmbient(activeSound);
+        updateDisplay();
       });
     });
 
@@ -1326,6 +1401,11 @@
       const vol = parseFloat(e.target.value);
       localStorage.setItem('aura_volume', vol);
       if (ambientGainNode) ambientGainNode.gain.value = vol;
+      localAudio.volume = vol;
+      if (pipWindow && !pipWindow.closed) {
+        const pipVol = pipWindow.document.getElementById('pipVolControl');
+        if (pipVol) pipVol.value = vol;
+      }
     });
 
     // Drawer Toggles
@@ -1363,15 +1443,321 @@
     document.getElementById('mediaToggleBtn').addEventListener('click', () => mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
     document.getElementById('closeMediaBtn').addEventListener('click', () => mediaModal.classList.add('opacity-0', 'pointer-events-none'));
 
+    // --- Automatic URL Parsing for Spotify & YouTube Embeds ---
+    function parseMediaUrl(input) {
+      if (input.includes('<iframe')) return input;
+      
+      // Spotify Playlist/Track/Album standard URL -> Embed URL
+      if (input.includes('spotify.com')) {
+        const urlObj = new URL(input);
+        const pathname = urlObj.pathname; // e.g. /playlist/37i9dQZF1DXcBWIGoYBM5M
+        return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+      }
+
+      // YouTube Playlist / Video URL -> Embed URL
+      if (input.includes('youtube.com') || input.includes('youtu.be')) {
+        let embedUrl = '';
+        if (input.includes('list=')) {
+          const listId = new URL(input).searchParams.get('list');
+          embedUrl = `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
+        } else if (input.includes('youtu.be/')) {
+          const videoId = input.split('youtu.be/')[1].split('?')[0];
+          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        } else if (input.includes('v=')) {
+          const videoId = new URL(input).searchParams.get('v');
+          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+        }
+        if (embedUrl) {
+          return `<iframe width="100%" height="100%" src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+        }
+      }
+
+      // Generic fallback iframe
+      return `<iframe src="${input}" width="100%" height="100%" frameborder="0" allow="encrypted-media; autoplay"></iframe>`;
+    }
+
     document.getElementById('loadMediaBtn').addEventListener('click', () => {
       const input = document.getElementById('mediaUrlInput').value.trim();
       const container = document.getElementById('mediaEmbedContainer');
-      if (input.includes('<iframe')) {
-        container.innerHTML = input;
-      } else if (input) {
-        container.innerHTML = `<iframe src="${input}" width="100%" height="100%" frameborder="0" allow="encrypted-media"></iframe>`;
+      if (input) {
+        container.innerHTML = parseMediaUrl(input);
       }
     });
+
+    // Media modal tab toggling
+    document.getElementById('tabOnlineMedia').addEventListener('click', () => {
+      document.getElementById('onlineMediaSection').classList.remove('hidden');
+      document.getElementById('localMediaSection').classList.add('hidden');
+      document.getElementById('tabOnlineMedia').className = "flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition";
+      document.getElementById('tabLocalMedia').className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+    });
+
+    document.getElementById('tabLocalMedia').addEventListener('click', () => {
+      document.getElementById('localMediaSection').classList.remove('hidden');
+      document.getElementById('onlineMediaSection').classList.add('hidden');
+      document.getElementById('tabLocalMedia').className = "flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition";
+      document.getElementById('tabOnlineMedia').className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+    });
+
+    // --- Local MP3 File Loader & Queue Engine ---
+    const localFileInput = document.getElementById('localFileInput');
+    const localPlaylistContainer = document.getElementById('localPlaylistContainer');
+    const localAudioControlsBar = document.getElementById('localAudioControlsBar');
+    const nowPlayingBarText = document.getElementById('nowPlayingBarText');
+    const toggleLocalPlayBtn = document.getElementById('toggleLocalPlayBtn');
+    const localPlayIcon = document.getElementById('localPlayIcon');
+
+    localFileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (!files.length) return;
+
+      localAudioQueue = files.map(file => ({
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        url: URL.createObjectURL(file)
+      }));
+
+      currentTrackIndex = 0;
+      loadLocalTrack(currentTrackIndex);
+      renderLocalPlaylistUI();
+      localAudioControlsBar.classList.remove('hidden');
+    });
+
+    function loadLocalTrack(index) {
+      if (!localAudioQueue[index]) return;
+      localAudio.src = localAudioQueue[index].url;
+      localAudio.volume = parseFloat(document.getElementById('volumeControl').value);
+      nowPlayingBarText.textContent = localAudioQueue[index].name;
+      renderLocalPlaylistUI();
+    }
+
+    function toggleLocalPlay() {
+      if (localAudioQueue.length === 0) return;
+      if (isLocalPlaying) {
+        localAudio.pause();
+        isLocalPlaying = false;
+        localPlayIcon.className = "fa-solid fa-play";
+      } else {
+        localAudio.play();
+        isLocalPlaying = true;
+        localPlayIcon.className = "fa-solid fa-pause";
+      }
+      updateDisplay();
+    }
+
+    function nextLocalTrack() {
+      if (localAudioQueue.length === 0) return;
+      currentTrackIndex = (currentTrackIndex + 1) % localAudioQueue.length;
+      loadLocalTrack(currentTrackIndex);
+      if (isLocalPlaying) localAudio.play();
+      updateDisplay();
+    }
+
+    function prevLocalTrack() {
+      if (localAudioQueue.length === 0) return;
+      currentTrackIndex = (currentTrackIndex - 1 + localAudioQueue.length) % localAudioQueue.length;
+      loadLocalTrack(currentTrackIndex);
+      if (isLocalPlaying) localAudio.play();
+      updateDisplay();
+    }
+
+    localAudio.addEventListener('ended', nextLocalTrack);
+    toggleLocalPlayBtn.addEventListener('click', toggleLocalPlay);
+    document.getElementById('nextTrackBtn').addEventListener('click', nextLocalTrack);
+    document.getElementById('prevTrackBtn').addEventListener('click', prevLocalTrack);
+
+    function renderLocalPlaylistUI() {
+      localPlaylistContainer.innerHTML = '';
+      localAudioQueue.forEach((track, idx) => {
+        const item = document.createElement('div');
+        item.className = `p-2 rounded-xl flex items-center justify-between text-xs glass-panel cursor-pointer transition ${idx === currentTrackIndex ? 'border-sky-400/50 bg-sky-500/10 text-sky-300' : 'text-slate-300 hover:bg-white/5'}`;
+        item.innerHTML = `
+          <div class="flex items-center gap-2 truncate flex-1">
+            <i class="fa-solid ${idx === currentTrackIndex && isLocalPlaying ? 'fa-volume-high text-sky-400' : 'fa-music text-slate-500'} text-[10px]"></i>
+            <span class="truncate">${track.name}</span>
+          </div>
+          <span class="text-[10px] font-mono text-slate-500 ml-2">#${idx + 1}</span>
+        `;
+        item.addEventListener('click', () => {
+          currentTrackIndex = idx;
+          loadLocalTrack(idx);
+          localAudio.play();
+          isLocalPlaying = true;
+          localPlayIcon.className = "fa-solid fa-pause";
+          updateDisplay();
+        });
+        localPlaylistContainer.appendChild(item);
+      });
+    }
+
+    // --- Modern Document Picture-in-Picture Mini-Screen Engine ---
+    async function togglePiP() {
+      if (pipWindow && !pipWindow.closed) {
+        pipWindow.close();
+        pipWindow = null;
+        return;
+      }
+
+      if ('documentPictureInPicture' in window) {
+        try {
+          pipWindow = await window.documentPictureInPicture.requestWindow({
+            width: 320,
+            height: 200,
+          });
+
+          // Inject styling into the PiP Window
+          const linkFont = pipWindow.document.createElement('link');
+          linkFont.rel = 'stylesheet';
+          linkFont.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap';
+          pipWindow.document.head.appendChild(linkFont);
+
+          const linkFa = pipWindow.document.createElement('link');
+          linkFa.rel = 'stylesheet';
+          linkFa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+          pipWindow.document.head.appendChild(linkFa);
+
+          const styleEl = pipWindow.document.createElement('style');
+          styleEl.textContent = `
+            * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+            body {
+              font-family: 'Plus Jakarta Sans', sans-serif;
+              background: #020617;
+              color: #f8fafc;
+              height: 100vh;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              padding: 12px;
+              overflow: hidden;
+            }
+            .pip-card {
+              background: rgba(15, 23, 42, 0.95);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              border-radius: 16px;
+              padding: 10px 14px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 4px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+              flex: 1;
+              justify-content: center;
+            }
+            .pip-timer {
+              font-family: 'Space Mono', monospace;
+              font-size: 38px;
+              font-weight: 700;
+              color: #38bdf8;
+              line-height: 1;
+              letter-spacing: -1px;
+            }
+            .pip-mode {
+              font-family: 'Space Mono', monospace;
+              font-size: 9px;
+              letter-spacing: 1.5px;
+              color: #94a3b8;
+              text-transform: uppercase;
+            }
+            .pip-controls {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin-top: 4px;
+            }
+            .pip-btn {
+              background: rgba(255, 255, 255, 0.08);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              color: #f8fafc;
+              border-radius: 10px;
+              width: 32px;
+              height: 32px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: all 0.2s;
+            }
+            .pip-btn:hover {
+              background: rgba(56, 189, 248, 0.25);
+              color: #38bdf8;
+            }
+            .pip-bottom-bar {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              width: 100%;
+              margin-top: 6px;
+              padding-top: 6px;
+              border-top: 1px solid rgba(255, 255, 255, 0.08);
+              font-size: 10px;
+              font-family: 'Space Mono', monospace;
+              color: #64748b;
+            }
+            .pip-vol {
+              width: 60px;
+              height: 4px;
+              accent-color: #38bdf8;
+            }
+          `;
+          pipWindow.document.head.appendChild(styleEl);
+
+          pipWindow.document.body.innerHTML = `
+            <div class="pip-card">
+              <span id="pipModeLabel" class="pip-mode">FOCUS BLOCK</span>
+              <div id="pipTimerDisplay" class="pip-timer">25:00</div>
+              <div class="pip-controls">
+                <button id="pipResetBtn" class="pip-btn" title="Reset"><i class="fa-solid fa-rotate-right"></i></button>
+                <button id="pipPlayBtn" class="pip-btn" title="Play/Pause" style="width: 40px; height: 40px; font-size: 15px; color: #38bdf8;"><i class="fa-solid fa-play"></i></button>
+                <button id="pipNextTrackBtn" class="pip-btn" title="Next Sound / Track"><i class="fa-solid fa-forward-step"></i></button>
+              </div>
+            </div>
+            <div class="pip-bottom-bar">
+              <span id="pipTrackLabel" style="max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">⚡ SPRK-Timer</span>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-volume-high" style="font-size: 9px;"></i>
+                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" class="pip-vol" title="Volume">
+              </div>
+            </div>
+          `;
+
+          // Bind PiP window button events back to the main app engine
+          pipWindow.document.getElementById('pipPlayBtn').addEventListener('click', () => {
+            timerState === 'running' ? pauseTimer() : startTimer();
+          });
+
+          pipWindow.document.getElementById('pipResetBtn').addEventListener('click', resetTimer);
+
+          pipWindow.document.getElementById('pipNextTrackBtn').addEventListener('click', () => {
+            if (localAudioQueue.length > 0) {
+              nextLocalTrack();
+            } else {
+              const sounds = ['none', 'alpha', 'campfire', 'waves', 'rain', 'forest', 'white', 'pink', 'brown', 'thunder', 'cafe', 'crickets'];
+              const nextIdx = (sounds.indexOf(activeSound) + 1) % sounds.length;
+              activeSound = sounds[nextIdx];
+              localStorage.setItem('aura_activeSound', activeSound);
+              playAmbient(activeSound);
+              updateDisplay();
+            }
+          });
+
+          pipWindow.document.getElementById('pipVolControl').addEventListener('input', (e) => {
+            const vol = parseFloat(e.target.value);
+            document.getElementById('volumeControl').value = vol;
+            if (ambientGainNode) ambientGainNode.gain.value = vol;
+            localAudio.volume = vol;
+            localStorage.setItem('aura_volume', vol);
+          });
+
+          updateDisplay();
+        } catch (err) {
+          console.error("Document PiP error:", err);
+          alert("Could not open always-on-top window. Ensure PiP permissions are enabled in your browser.");
+        }
+      } else {
+        alert("Your browser does not support the Document Picture-in-Picture window API yet. (Supported in Chrome/Edge 116+).");
+      }
+    }
+
+    document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
 
     function toggleZenMode() {
       isZenMode = !isZenMode;
@@ -1415,6 +1801,9 @@
       } else if (e.key === 'm' || e.key === 'M') {
         e.preventDefault();
         toggleMusicBar();
+      } else if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        togglePiP();
       }
     });
 
