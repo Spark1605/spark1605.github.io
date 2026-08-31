@@ -82,7 +82,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
     .glass-card {
-      background: rgba(15, 23, 42, 0.55);
+      background: rgba(15, 23, 42, 0.65);
       backdrop-filter: blur(24px);
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -153,6 +153,15 @@
       opacity: 0 !important;
       pointer-events: none !important;
     }
+
+    /* Guided Breathe Guide Animation */
+    @keyframes breatheAnimation {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.6); }
+    }
+    .animate-breathe-circle {
+      animation: breatheAnimation 16s infinite ease-in-out;
+    }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden font-sans text-slate-100 bg-slate-950 flex flex-col justify-between relative select-none">
@@ -177,6 +186,11 @@
       <button id="pipToggleBtn" class="glass-panel hover:bg-sky-500/20 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-sky-300" title="Shortcut: P (Mini-Player on Top)">
         <i class="fa-solid fa-window-restore text-xs text-sky-400"></i>
         <span class="hidden md:inline">Mini Window</span>
+      </button>
+
+      <button id="breatheToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-teal-300" title="Box Breathing Guide">
+        <i class="fa-solid fa-lungs text-xs text-teal-400"></i>
+        <span class="hidden md:inline">Breathe</span>
       </button>
 
       <button id="soundscapeToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: M">
@@ -274,6 +288,9 @@
         </div>
       </div>
 
+      <!-- Lap Counter list for Stopwatch -->
+      <div id="stopwatchLapsContainer" class="hidden w-full max-h-24 overflow-y-auto my-2 space-y-1 pr-1 font-mono text-xs"></div>
+
       <div id="quickEditModal" class="hidden my-2 flex items-center gap-2 bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30">
         <span class="text-xs font-mono text-slate-400">Set (Mins):</span>
         <input type="number" id="quickEditInput" min="1" max="180" class="w-16 glass-input text-center py-1 rounded-xl text-white font-mono text-sm">
@@ -287,6 +304,9 @@
       </div>
 
       <div class="flex items-center gap-5 mt-2">
+        <button id="lapBtn" class="hidden glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all transform active:scale-95" title="Record Lap">
+          <i class="fa-solid fa-flag"></i>
+        </button>
         <button id="startBtn" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/40 border-sky-500/30 text-sky-300 w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 shadow-lg" title="Spacebar">
           <i class="fa-solid fa-play ml-1"></i>
         </button>
@@ -415,6 +435,18 @@
         <input type="range" id="particleSpeedSlider" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full">
       </div>
 
+      <!-- Metronome & Notifications Feature -->
+      <div class="glass-panel p-3 rounded-2xl space-y-3 border border-white/5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-slate-300">Clock Ticking Metronome</span>
+          <input type="checkbox" id="settingTickingSound" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-mono text-slate-300">Desktop Notifications</span>
+          <button id="requestNotifBtn" class="text-[10px] glass-panel px-2.5 py-1 rounded-lg text-sky-300 hover:bg-sky-500/20 transition">Enable</button>
+        </div>
+      </div>
+
       <div class="border-t border-white/10 pt-4">
         <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono">Interval Preset Durations (Mins)</label>
         <div class="grid grid-cols-3 gap-2">
@@ -440,7 +472,7 @@
     </div>
 
     <div class="text-[11px] text-slate-500 font-mono text-center pt-4 border-t border-white/10">
-      SPRK-Timer v3.6 • High Focus Workspace
+      SPRK-Timer v4.0 • High Focus Workspace
     </div>
   </div>
 
@@ -462,6 +494,8 @@
             <option value="low" class="bg-slate-900 text-emerald-400">Low Priority</option>
           </select>
 
+          <input type="number" id="taskEstPomos" min="1" max="20" value="2" title="Estimated Pomodoros" class="w-14 glass-input rounded-xl px-2 py-1.5 text-xs text-slate-300 text-center font-mono">
+
           <button type="submit" class="glass-panel hover:bg-sky-500/20 px-4 py-1.5 rounded-xl text-sky-400 text-xs font-semibold transition flex items-center gap-1">
             <i class="fa-solid fa-plus"></i> Add
           </button>
@@ -472,7 +506,25 @@
     </div>
   </div>
 
-  <!-- Enhanced Media & Playlist Hub Modal -->
+  <!-- Guided Breathing Modal -->
+  <div id="breatheModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="glass-card rounded-3xl p-8 w-full max-w-sm border border-white/10 relative flex flex-col items-center text-center">
+      <button id="closeBreatheBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-teal-300 mb-2">Box Breathing Exercise</h3>
+      <p class="text-xs text-slate-400 mb-8 font-mono">4s Inhale • 4s Hold • 4s Exhale • 4s Hold</p>
+      
+      <div class="relative w-48 h-48 flex items-center justify-center mb-8">
+        <div id="breatheGuideCircle" class="absolute w-28 h-28 rounded-full bg-teal-500/20 border border-teal-400/40 animate-breathe-circle"></div>
+        <span id="breathePhaseText" class="relative z-10 text-sm font-mono font-bold text-teal-200 tracking-wider">Inhale...</span>
+      </div>
+
+      <button id="toggleBreatheBtn" class="glass-panel hover:bg-teal-500/20 border border-teal-500/30 text-teal-300 px-6 py-2 rounded-xl text-xs font-mono font-bold transition">
+        Pause Guide
+      </button>
+    </div>
+  </div>
+
+  <!-- Media Hub Modal -->
   <div id="mediaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-white/10 relative max-h-[90vh] overflow-y-auto">
       <button id="closeMediaBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -481,13 +533,11 @@
         <i class="fa-brands fa-spotify text-emerald-400"></i> Stream & Playlist Hub
       </h3>
 
-      <!-- Tab Switcher for Streams vs Local MP3s -->
       <div class="flex gap-2 p-1 glass-panel rounded-xl mb-4 text-xs font-mono">
         <button id="tabOnlineMedia" class="flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition">Online Streams (Spotify / YouTube)</button>
         <button id="tabLocalMedia" class="flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Local MP3s</button>
       </div>
 
-      <!-- Online Stream Section -->
       <div id="onlineMediaSection">
         <p class="text-xs text-slate-400 mb-3">Paste any public <strong>Spotify / YouTube playlist URL</strong>, track link, or iframe embed code:</p>
 
@@ -501,7 +551,6 @@
         </div>
       </div>
 
-      <!-- Local MP3 Section -->
       <div id="localMediaSection" class="hidden">
         <p class="text-xs text-slate-400 mb-3">Select local audio files (.mp3, .wav, .m4a) to build your offline study queue:</p>
         
@@ -511,7 +560,6 @@
           <input type="file" id="localFileInput" accept="audio/*" multiple class="hidden">
         </label>
 
-        <!-- Current playing and playlist -->
         <div id="localPlaylistContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
           <p class="text-[11px] font-mono text-slate-500 text-center py-4">No local files loaded</p>
         </div>
@@ -519,7 +567,7 @@
     </div>
   </div>
 
-  <!-- Analytics Modal -->
+  <!-- Analytics Modal with 7-Day Chart -->
   <div id="analyticsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
     <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
       <button id="closeAnalyticsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -528,7 +576,7 @@
         <i class="fa-solid fa-chart-line text-indigo-400"></i> Performance Insights
       </h3>
 
-      <div class="grid grid-cols-2 gap-4 mb-6">
+      <div class="grid grid-cols-2 gap-4 mb-4">
         <div class="glass-panel rounded-2xl p-4 text-center">
           <p class="text-[10px] uppercase font-mono text-slate-400 mb-1">Total Focused Time</p>
           <p id="statTotalTime" class="text-2xl font-bold font-mono text-sky-400">0m</p>
@@ -537,6 +585,12 @@
           <p class="text-[10px] uppercase font-mono text-slate-400 mb-1">Completed Sessions</p>
           <p id="statCompleted" class="text-2xl font-bold font-mono text-emerald-400">0</p>
         </div>
+      </div>
+
+      <!-- 7-Day Activity Trend Visualizer -->
+      <div class="glass-panel rounded-2xl p-4 mb-4">
+        <p class="text-[10px] uppercase font-mono text-slate-400 mb-3">7-Day Consistency (Blocks)</p>
+        <div id="weeklyTrendBars" class="flex justify-between items-end h-20 pt-2 px-1"></div>
       </div>
 
       <div class="glass-panel rounded-2xl p-4 mb-4">
@@ -583,6 +637,7 @@
     let activeSound = localStorage.getItem('aura_activeSound') || 'none';
     let isZenMode = false;
     let isMusicBarVisible = localStorage.getItem('aura_musicBarVisible') !== 'false';
+    let isTickingEnabled = localStorage.getItem('aura_tickingSound') === 'true';
 
     let isWorkInterval = true;
     let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || 25) * 60;
@@ -593,11 +648,13 @@
     let timeRemaining = workDurationSecs;
     let totalDuration = workDurationSecs;
     let stopwatchSeconds = 0;
+    let stopwatchLaps = [];
     let timerInterval = null;
 
     let dailyGoalTarget = parseInt(localStorage.getItem('aura_dailyGoal') || 8);
     let completedSessionsCount = parseInt(localStorage.getItem('aura_completedSessions') || 0);
     let totalFocusSecondsCompleted = parseInt(localStorage.getItem('aura_focusSeconds') || 0);
+    let weeklyHistory = JSON.parse(localStorage.getItem('aura_weeklyHistory') || JSON.stringify([0,0,0,0,0,0,0]));
 
     let tasks = JSON.parse(localStorage.getItem('aura_tasks') || '[]');
     let activeTaskId = localStorage.getItem('aura_activeTaskId') ? parseInt(localStorage.getItem('aura_activeTaskId')) : null;
@@ -632,6 +689,22 @@
       }
     }
 
+    function playTickSound() {
+      if (!isTickingEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.04);
+      } catch (e) {}
+    }
+
     function playAlarmSound() {
       initAudio();
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -652,6 +725,15 @@
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 1.8);
+
+      // Desktop notification trigger
+      if (Notification.permission === 'granted') {
+        const title = engineMode === 'pomodoro' ? (isWorkInterval ? "Session Finished!" : "Break Finished!") : "Timer Complete!";
+        new Notification(title, {
+          body: engineMode === 'pomodoro' ? (isWorkInterval ? "Great job! Time for a short rest." : "Break is over. Ready to focus?") : "Your target countdown has completed.",
+          icon: "https://cdn-icons-png.flaticon.com/512/865/865969.png"
+        });
+      }
     }
 
     function stopAmbient() {
@@ -866,6 +948,7 @@
         rainFilter.frequency.value = 900;
 
         const rumbleOsc = audioCtx.createOscillator();
+        rumpleOsc = rumbleOsc;
         rumbleOsc.type = 'triangle';
         rumbleOsc.frequency.value = 45;
 
@@ -934,6 +1017,8 @@
     const startBtn = document.getElementById('startBtn');
     const pauseBtn = document.getElementById('pauseBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const lapBtn = document.getElementById('lapBtn');
+    const stopwatchLapsContainer = document.getElementById('stopwatchLapsContainer');
 
     const modePomodoro = document.getElementById('modePomodoro');
     const modeCountdown = document.getElementById('modeCountdown');
@@ -950,7 +1035,6 @@
     const quickEditModal = document.getElementById('quickEditModal');
     const quickEditInput = document.getElementById('quickEditInput');
 
-    // PiP Window reference
     let pipWindow = null;
 
     function getActiveWallpaperUrl() {
@@ -1015,6 +1099,8 @@
     }
 
     function tick() {
+      if (timerState === 'running') playTickSound();
+
       if (engineMode === 'stopwatch') {
         stopwatchSeconds++;
       } else {
@@ -1032,6 +1118,10 @@
               completedSessionsCount++;
               sessionCycleCount++;
               localStorage.setItem('aura_completedSessions', completedSessionsCount);
+              
+              // Record daily trend history
+              weeklyHistory[6] = (weeklyHistory[6] || 0) + 1;
+              localStorage.setItem('aura_weeklyHistory', JSON.stringify(weeklyHistory));
             }
             isWorkInterval = !isWorkInterval;
             switchPomoPhase();
@@ -1074,9 +1164,33 @@
         totalDuration = timeRemaining;
       } else if (engineMode === 'stopwatch') {
         stopwatchSeconds = 0;
+        stopwatchLaps = [];
+        renderStopwatchLaps();
       }
       updateDisplay();
     }
+
+    function renderStopwatchLaps() {
+      stopwatchLapsContainer.innerHTML = '';
+      if (stopwatchLaps.length > 0) {
+        stopwatchLapsContainer.classList.remove('hidden');
+        stopwatchLaps.forEach((lap, idx) => {
+          const div = document.createElement('div');
+          div.className = 'flex justify-between px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-slate-300';
+          div.innerHTML = `<span>Lap ${idx + 1}</span><span class="text-sky-400">${lap}</span>`;
+          stopwatchLapsContainer.prepend(div);
+        });
+      } else {
+        stopwatchLapsContainer.classList.add('hidden');
+      }
+    }
+
+    lapBtn.addEventListener('click', () => {
+      if (engineMode === 'stopwatch' && timerState === 'running') {
+        stopwatchLaps.push(formatTime(stopwatchSeconds).formatted);
+        renderStopwatchLaps();
+      }
+    });
 
     function switchPomoPhase() {
       const workBadge = document.getElementById('pomoWork');
@@ -1105,6 +1219,8 @@
 
       pomodoroStatus.classList.add('hidden');
       countdownInputGroup.classList.add('hidden');
+      lapBtn.classList.add('hidden');
+      stopwatchLapsContainer.classList.add('hidden');
 
       if (mode === 'pomodoro') {
         modePomodoro.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
@@ -1120,6 +1236,7 @@
       } else if (mode === 'stopwatch') {
         modeStopwatch.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
         stopwatchSeconds = 0;
+        lapBtn.classList.remove('hidden');
       }
       resetTimer();
     }
@@ -1158,10 +1275,11 @@
 
     document.getElementById('quickEditCancel').addEventListener('click', () => quickEditModal.classList.add('hidden'));
 
-    // --- Task Engine ---
+    // --- Task Engine with Pomodoro Estimates ---
     const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
     const taskPrioritySelect = document.getElementById('taskPrioritySelect');
+    const taskEstPomos = document.getElementById('taskEstPomos');
     const taskList = document.getElementById('taskList');
     const activeTaskLabel = document.getElementById('currentTaskLabel');
     const taskBadge = document.getElementById('taskBadge');
@@ -1206,6 +1324,7 @@
             <i class="fa-solid fa-grip-vertical text-slate-600 text-[10px] mr-1"></i>
             <input type="checkbox" ${task.completed ? 'checked' : ''} class="task-checkbox rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
             <span class="truncate ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
+            <span class="text-[9px] font-mono text-slate-400">⏱ ${task.estPomos || 1}</span>
             ${getPriorityBadge(task.priority)}
           </div>
           <button class="delete-task text-slate-500 hover:text-rose-400 px-1.5 transition"><i class="fa-regular fa-trash-can"></i></button>
@@ -1268,8 +1387,9 @@
       e.preventDefault();
       const title = taskInput.value.trim();
       const priority = taskPrioritySelect.value;
+      const estPomos = parseInt(taskEstPomos.value) || 1;
       if (title) {
-        const newTask = { id: Date.now(), title, priority, completed: false };
+        const newTask = { id: Date.now(), title, priority, estPomos, completed: false };
         tasks.push(newTask);
         if (!activeTaskId) activeTaskId = newTask.id;
         taskInput.value = '';
@@ -1278,7 +1398,7 @@
       }
     });
 
-    // --- Analytics ---
+    // --- Analytics & Weekly Trend Visualization ---
     function updateAnalytics() {
       const minutes = Math.floor(totalFocusSecondsCompleted / 60);
       document.getElementById('statTotalTime').textContent = `${minutes}m`;
@@ -1294,6 +1414,24 @@
 
       const progressPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
       document.getElementById('streakBar').style.width = `${progressPercent}%`;
+
+      // Render Weekly Bars
+      const weeklyContainer = document.getElementById('weeklyTrendBars');
+      weeklyContainer.innerHTML = '';
+      const days = ['M', 'T', 'W', 'T', 'F', 'S', 'Today'];
+      const maxVal = Math.max(...weeklyHistory, dailyGoalTarget, 1);
+      weeklyHistory.forEach((val, i) => {
+        const heightPercent = Math.min((val / maxVal) * 100, 100);
+        const col = document.createElement('div');
+        col.className = 'flex flex-col items-center gap-1 flex-1';
+        col.innerHTML = `
+          <div class="w-4 bg-slate-800 rounded-t-sm h-14 flex items-end overflow-hidden">
+            <div class="w-full bg-sky-400 rounded-t-sm" style="height: ${heightPercent}%"></div>
+          </div>
+          <span class="text-[9px] font-mono text-slate-500">${days[i]}</span>
+        `;
+        weeklyContainer.appendChild(col);
+      });
     }
 
     document.getElementById('resetStatsBtn').addEventListener('click', () => {
@@ -1302,6 +1440,8 @@
         totalFocusSecondsCompleted = 0;
         localStorage.setItem('aura_completedSessions', 0);
         localStorage.setItem('aura_focusSeconds', 0);
+        weeklyHistory[6] = 0;
+        localStorage.setItem('aura_weeklyHistory', JSON.stringify(weeklyHistory));
         updateAnalytics();
       }
     });
@@ -1388,6 +1528,23 @@
       updateAnalytics();
     });
 
+    // Metronome setting
+    const settingTickingSound = document.getElementById('settingTickingSound');
+    settingTickingSound.checked = isTickingEnabled;
+    settingTickingSound.addEventListener('change', (e) => {
+      isTickingEnabled = e.target.checked;
+      localStorage.setItem('aura_tickingSound', isTickingEnabled);
+    });
+
+    // Desktop Notification Request
+    document.getElementById('requestNotifBtn').addEventListener('click', () => {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') alert('Notifications enabled successfully!');
+        });
+      }
+    });
+
     // Soundscape Setup
     document.querySelectorAll('.sound-btn').forEach(btn => {
       if (btn.dataset.sound === activeSound) {
@@ -1418,11 +1575,12 @@
       }
     });
 
-    // Drawer Toggles
+    // Drawer & Modal Toggles
     const settingsDrawer = document.getElementById('settingsDrawer');
     const taskDrawer = document.getElementById('taskDrawer');
     const analyticsModal = document.getElementById('analyticsModal');
     const mediaModal = document.getElementById('mediaModal');
+    const breatheModal = document.getElementById('breatheModal');
     const mainFooter = document.getElementById('mainFooter');
 
     function updateMusicBarVisibility() {
@@ -1447,24 +1605,68 @@
     document.getElementById('taskToggleBtn').addEventListener('click', () => taskDrawer.classList.remove('translate-x-full'));
     document.getElementById('closeTaskBtn').addEventListener('click', () => taskDrawer.classList.add('translate-x-full'));
 
-    document.getElementById('analyticsToggleBtn').addEventListener('click', () => analyticsModal.classList.remove('opacity-0', 'pointer-events-none'));
+    document.getElementById('analyticsToggleBtn').addEventListener('click', () => {
+      updateAnalytics();
+      analyticsModal.classList.remove('opacity-0', 'pointer-events-none');
+    });
     document.getElementById('closeAnalyticsBtn').addEventListener('click', () => analyticsModal.classList.add('opacity-0', 'pointer-events-none'));
 
     document.getElementById('mediaToggleBtn').addEventListener('click', () => mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
     document.getElementById('closeMediaBtn').addEventListener('click', () => mediaModal.classList.add('opacity-0', 'pointer-events-none'));
 
+    // Guided Breathe Exercise logic
+    let breatheInterval = null;
+    let isBreatheActive = false;
+    const breathePhaseText = document.getElementById('breathePhaseText');
+    const breatheGuideCircle = document.getElementById('breatheGuideCircle');
+    const toggleBreatheBtn = document.getElementById('toggleBreatheBtn');
+
+    function runBreatheCycle() {
+      const phases = ['Inhale (4s)', 'Hold (4s)', 'Exhale (4s)', 'Hold (4s)'];
+      let step = 0;
+      breathePhaseText.textContent = phases[step];
+      breatheInterval = setInterval(() => {
+        step = (step + 1) % phases.length;
+        breathePhaseText.textContent = phases[step];
+      }, 4000);
+    }
+
+    document.getElementById('breatheToggleBtn').addEventListener('click', () => {
+      breatheModal.classList.remove('opacity-0', 'pointer-events-none');
+      isBreatheActive = true;
+      runBreatheCycle();
+    });
+
+    document.getElementById('closeBreatheBtn').addEventListener('click', () => {
+      breatheModal.classList.add('opacity-0', 'pointer-events-none');
+      clearInterval(breatheInterval);
+      isBreatheActive = false;
+    });
+
+    toggleBreatheBtn.addEventListener('click', () => {
+      if (isBreatheActive) {
+        clearInterval(breatheInterval);
+        breatheGuideCircle.style.animationPlayState = 'paused';
+        toggleBreatheBtn.textContent = 'Resume Guide';
+        isBreatheActive = false;
+      } else {
+        runBreatheCycle();
+        breatheGuideCircle.style.animationPlayState = 'running';
+        toggleBreatheBtn.textContent = 'Pause Guide';
+        isBreatheActive = true;
+      }
+    });
+
     // --- Automatic URL Parsing for Spotify & YouTube Embeds ---
     function parseMediaUrl(input) {
       if (input.includes('<iframe')) return input;
       
-      // Spotify Playlist/Track/Album standard URL -> Embed URL
       if (input.includes('spotify.com')) {
         const urlObj = new URL(input);
         const pathname = urlObj.pathname;
         return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
       }
 
-      // YouTube Playlist / Video URL -> Embed URL
       if (input.includes('youtube.com') || input.includes('youtu.be')) {
         let embedUrl = '';
         if (input.includes('list=')) {
@@ -1482,7 +1684,6 @@
         }
       }
 
-      // Generic fallback iframe
       return `<iframe src="${input}" width="100%" height="100%" frameborder="0" allow="encrypted-media; autoplay"></iframe>`;
     }
 
@@ -1494,7 +1695,6 @@
       }
     });
 
-    // Media modal tab toggling
     document.getElementById('tabOnlineMedia').addEventListener('click', () => {
       document.getElementById('onlineMediaSection').classList.remove('hidden');
       document.getElementById('localMediaSection').classList.add('hidden');
@@ -1599,7 +1799,7 @@
       });
     }
 
-    // --- Modern Document Picture-in-Picture Mini-Screen Engine ---
+    // --- Document Picture-in-Picture Mini-Screen Engine ---
     async function openPiPWindow() {
       if (pipWindow && !pipWindow.closed) return;
 
@@ -1610,7 +1810,6 @@
             height: 240,
           });
 
-          // Inject styling into the PiP Window
           const linkFont = pipWindow.document.createElement('link');
           linkFont.rel = 'stylesheet';
           linkFont.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap';
@@ -1768,7 +1967,6 @@
             </div>
           `;
 
-          // Bind PiP window button events back to the main app engine
           pipWindow.document.getElementById('pipPlayBtn').addEventListener('click', () => {
             timerState === 'running' ? pauseTimer() : startTimer();
           });
@@ -1862,9 +2060,7 @@
           if (!document.fullscreenElement) {
             await document.documentElement.requestFullscreen();
           }
-        } catch (e) {
-          console.warn("Fullscreen request error/denied:", e);
-        }
+        } catch (e) {}
       } else {
         header.classList.remove('zen-hidden');
         if (isMusicBarVisible) footer.classList.remove('zen-hidden');
@@ -1878,15 +2074,12 @@
           if (document.fullscreenElement) {
             await document.exitFullscreen();
           }
-        } catch (e) {
-          console.warn("Exit fullscreen error:", e);
-        }
+        } catch (e) {}
       }
     }
 
     document.getElementById('zenToggleBtn').addEventListener('click', toggleZenMode);
 
-    // Sync Zen state if user exits fullscreen manually with Escape key
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement && isZenMode) {
         toggleZenMode();
