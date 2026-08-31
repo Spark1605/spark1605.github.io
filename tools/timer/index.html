@@ -152,6 +152,13 @@
       transform: scale(0.95);
       transition: all 0.5s ease-in-out;
     }
+
+    /* Music Bar Pop-up / Pop-down Animation */
+    .music-bar-hidden {
+      transform: translateY(120%) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
 </head>
 <body class="h-screen w-screen overflow-hidden font-sans text-slate-100 bg-slate-950 flex flex-col justify-between relative select-none">
@@ -171,9 +178,13 @@
       </div>
       <div class="logo-underline"></div>
     </div>
-    </div>
 
     <div class="flex items-center gap-2 md:gap-3">
+      <button id="soundscapeToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: M">
+        <i class="fa-solid fa-headphones text-xs text-sky-400"></i>
+        <span class="hidden md:inline">Sounds</span>
+      </button>
+
       <button id="zenToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: F">
         <i class="fa-solid fa-expand text-xs text-amber-400"></i>
         <span class="hidden md:inline">Zen Mode</span>
@@ -288,10 +299,11 @@
         </button>
       </div>
 
-      <div id="keyboardTooltip" class="mt-6 flex items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
+      <div id="keyboardTooltip" class="mt-6 flex flex-wrap justify-center items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">R</kbd> Reset</span>
         <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen</span>
+        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">M</kbd> Music Bar</span>
       </div>
     </div>
   </main>
@@ -301,26 +313,36 @@
     <p id="quoteAuthor" class="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-mono">— Cal Newport</p>
   </div>
 
-  <footer id="mainFooter" class="relative z-10 p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500">
-    <div class="glass-panel rounded-2xl px-6 py-3 flex items-center gap-6 flex-wrap justify-between w-full max-w-3xl">
-      <div class="flex items-center gap-3">
-        <i class="fa-solid fa-headphones text-sky-400 text-sm"></i>
-        <span class="text-xs font-semibold tracking-wide uppercase font-mono text-slate-300">Soundscape</span>
+  <footer id="mainFooter" class="fixed bottom-0 left-0 right-0 z-30 p-4 md:p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500 ease-in-out">
+    <div class="glass-card rounded-2xl px-5 py-3 flex items-center gap-4 flex-nowrap justify-between w-full max-w-4xl border border-white/10 shadow-2xl">
+      <div class="flex items-center gap-2.5 flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20">
+          <i class="fa-solid fa-headphones text-sky-400 text-sm"></i>
+        </div>
+        <div class="hidden sm:block">
+          <span class="text-xs font-semibold tracking-wide uppercase font-mono text-slate-200 block">Soundscape</span>
+          <span class="text-[9px] text-slate-400 font-mono">Press M to hide</span>
+        </div>
       </div>
 
-      <div class="flex gap-1.5 overflow-x-auto py-1 max-w-md">
-        <button data-sound="none" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap">Off</button>
-        <button data-sound="alpha" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Binaural Alpha</button>
-        <button data-sound="campfire" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Campfire</button>
-        <button data-sound="waves" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Ocean Waves</button>
-        <button data-sound="rain" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Rain</button>
-        <button data-sound="forest" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">Forest Pad</button>
-        <button data-sound="white" class="sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap">White Noise</button>
+      <div class="flex gap-2 overflow-x-auto py-1 px-1 flex-1 mx-2 scroll-smooth items-center">
+        <button data-sound="none" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap flex-shrink-0 transition">Off</button>
+        <button data-sound="alpha" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Binaural Alpha</button>
+        <button data-sound="campfire" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Campfire</button>
+        <button data-sound="waves" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Ocean Waves</button>
+        <button data-sound="rain" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Rain</button>
+        <button data-sound="forest" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Forest Pad</button>
+        <button data-sound="white" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">White Noise</button>
+        <button data-sound="pink" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Pink Noise</button>
+        <button data-sound="brown" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Deep Brown</button>
+        <button data-sound="thunder" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Thunderstorm</button>
+        <button data-sound="cafe" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Coffee Shop</button>
+        <button data-sound="crickets" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Night Crickets</button>
       </div>
 
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-shrink-0 pl-2 border-l border-white/10">
         <i class="fa-solid fa-volume-low text-xs text-slate-400"></i>
-        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-20" title="Master Ambient Volume">
+        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-16 sm:w-20" title="Master Ambient Volume">
       </div>
     </div>
   </footer>
@@ -523,6 +545,7 @@
     let displayStyle = localStorage.getItem('aura_displayStyle') || 'minimal'; 
     let activeSound = localStorage.getItem('aura_activeSound') || 'none';
     let isZenMode = false;
+    let isMusicBarVisible = localStorage.getItem('aura_musicBarVisible') !== 'false';
 
     let isWorkInterval = true;
     let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || 25) * 60;
@@ -745,6 +768,121 @@
         currentAmbientSource = {
           stop: () => { osc1.stop(); osc2.stop(); },
           disconnect: () => { osc1.disconnect(); osc2.disconnect(); padGain.disconnect(); }
+        };
+      } else if (type === 'pink') {
+        const bufferSize = sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99765 * b0 + white * 0.0990460;
+          b1 = 0.96300 * b1 + white * 0.2965164;
+          b2 = 0.57000 * b2 + white * 1.0526913;
+          output[i] = (b0 + b1 + b2 + white * 0.1848) * 0.05;
+        }
+        const source = audioCtx.createBufferSource();
+        source.buffer = noiseBuffer;
+        source.loop = true;
+        source.connect(ambientGainNode);
+        source.start();
+        currentAmbientSource = source;
+      } else if (type === 'brown') {
+        const bufferSize = sampleRate * 2;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const output = noiseBuffer.getChannelData(0);
+        let lastOut = 0.0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          output[i] = (lastOut + (0.02 * white)) / 1.02;
+          lastOut = output[i];
+          output[i] *= 1.2;
+        }
+        const source = audioCtx.createBufferSource();
+        source.buffer = noiseBuffer;
+        source.loop = true;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.value = 250;
+        source.connect(filter);
+        filter.connect(ambientGainNode);
+        source.start();
+        currentAmbientSource = source;
+      } else if (type === 'thunder') {
+        const bufferSize = sampleRate * 3;
+        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const rainSource = audioCtx.createBufferSource();
+        rainSource.buffer = noiseBuffer;
+        rainSource.loop = true;
+
+        const rainFilter = audioCtx.createBiquadFilter();
+        rainFilter.type = 'lowpass';
+        rainFilter.frequency.value = 900;
+
+        const rumbleOsc = audioCtx.createOscillator();
+        rumbleOsc.type = 'triangle';
+        rumbleOsc.frequency.value = 45;
+
+        const thunderGain = audioCtx.createGain();
+        thunderGain.gain.value = 0.15;
+
+        rainSource.connect(rainFilter);
+        rainFilter.connect(thunderGain);
+        rumbleOsc.connect(thunderGain);
+        thunderGain.connect(ambientGainNode);
+
+        rainSource.start();
+        rumbleOsc.start();
+        currentAmbientSource = {
+          stop: () => { rainSource.stop(); rumbleOsc.stop(); },
+          disconnect: () => { rainSource.disconnect(); rumbleOsc.disconnect(); thunderGain.disconnect(); }
+        };
+      } else if (type === 'cafe') {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        osc1.type = 'sine'; osc1.frequency.value = 130;
+        osc2.type = 'triangle'; osc2.frequency.value = 220;
+
+        const cafeFilter = audioCtx.createBiquadFilter();
+        cafeFilter.type = 'bandpass';
+        cafeFilter.frequency.value = 500;
+
+        const cafeGain = audioCtx.createGain();
+        cafeGain.gain.value = 0.07;
+
+        osc1.connect(cafeFilter);
+        osc2.connect(cafeFilter);
+        cafeFilter.connect(cafeGain);
+        cafeGain.connect(ambientGainNode);
+
+        osc1.start(); osc2.start();
+        currentAmbientSource = {
+          stop: () => { osc1.stop(); osc2.stop(); },
+          disconnect: () => { osc1.disconnect(); osc2.disconnect(); cafeGain.disconnect(); }
+        };
+      } else if (type === 'crickets') {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sawtooth';
+        osc.frequency.value = 4200;
+
+        const modOsc = audioCtx.createOscillator();
+        modOsc.type = 'square';
+        modOsc.frequency.value = 7;
+
+        const modGain = audioCtx.createGain();
+        modGain.gain.value = 0.04;
+
+        modOsc.connect(modGain.gain);
+        osc.connect(modGain);
+        modGain.connect(ambientGainNode);
+
+        osc.start(); modOsc.start();
+        currentAmbientSource = {
+          stop: () => { osc.stop(); modOsc.stop(); },
+          disconnect: () => { osc.disconnect(); modOsc.disconnect(); modGain.disconnect(); }
         };
       }
     }
@@ -1169,15 +1307,15 @@
     // Soundscape Setup
     document.querySelectorAll('.sound-btn').forEach(btn => {
       if (btn.dataset.sound === activeSound) {
-        btn.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap";
+        btn.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap flex-shrink-0 transition";
       } else {
-        btn.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap";
+        btn.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0";
       }
       btn.addEventListener('click', (e) => {
         document.querySelectorAll('.sound-btn').forEach(b => {
-          b.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap";
+          b.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0";
         });
-        e.target.className = "sound-btn px-3 py-1 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap";
+        e.target.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap flex-shrink-0 transition";
         activeSound = e.target.dataset.sound;
         localStorage.setItem('aura_activeSound', activeSound);
         playAmbient(activeSound);
@@ -1195,6 +1333,23 @@
     const taskDrawer = document.getElementById('taskDrawer');
     const analyticsModal = document.getElementById('analyticsModal');
     const mediaModal = document.getElementById('mediaModal');
+    const mainFooter = document.getElementById('mainFooter');
+
+    function updateMusicBarVisibility() {
+      if (isMusicBarVisible) {
+        mainFooter.classList.remove('music-bar-hidden');
+      } else {
+        mainFooter.classList.add('music-bar-hidden');
+      }
+    }
+
+    function toggleMusicBar() {
+      isMusicBarVisible = !isMusicBarVisible;
+      localStorage.setItem('aura_musicBarVisible', isMusicBarVisible);
+      updateMusicBarVisibility();
+    }
+
+    document.getElementById('soundscapeToggleBtn').addEventListener('click', toggleMusicBar);
 
     document.getElementById('settingsToggleBtn').addEventListener('click', () => settingsDrawer.classList.remove('translate-x-full'));
     document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsDrawer.classList.add('translate-x-full'));
@@ -1236,7 +1391,7 @@
         tooltip.classList.add('zen-hidden');
       } else {
         header.classList.remove('zen-hidden');
-        footer.classList.remove('zen-hidden');
+        if (isMusicBarVisible) footer.classList.remove('zen-hidden');
         quote.classList.remove('zen-hidden');
         modeSelector.classList.remove('zen-hidden');
         taskDisplay.classList.remove('zen-hidden');
@@ -1257,6 +1412,9 @@
       } else if (e.key === 'f' || e.key === 'F') {
         e.preventDefault();
         toggleZenMode();
+      } else if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMusicBar();
       }
     });
 
@@ -1391,6 +1549,7 @@
     renderTasks();
     updateDisplay();
     updateAnalytics();
+    updateMusicBarVisibility();
   </script>
 </body>
 </html>
