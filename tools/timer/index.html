@@ -2349,42 +2349,84 @@
     }
 
     // --- Visualizer Bar Canvas Integration ---
+    // --- Visualizer Bar Canvas Integration (Symmetrical & Dynamic) ---
     function startVisualizers() {
       const mainCanvas = document.getElementById('mainAudioVisualizer');
       if (!mainCanvas) return;
       const mainCtx = mainCanvas.getContext('2d');
 
+      // Increase smoothing and responsiveness
+      if (analyserNode) {
+        analyserNode.smoothingTimeConstant = 0.82;
+        analyserNode.fftSize = 128; // Provides 64 frequency bins for rich detail
+      }
+
       function drawVisualizer() {
         requestAnimationFrame(drawVisualizer);
         mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
-        if (analyserNode && (timerState === 'running' || isLocalPlaying || Object.values(ambientTracks).some(v => v > 0))) {
+        const isAudioActive = timerState === 'running' || isLocalPlaying || Object.values(ambientTracks).some(v => v > 0);
+
+        if (analyserNode && isAudioActive) {
           const bufferLength = analyserNode.frequencyBinCount;
           const dataArray = new Uint8Array(bufferLength);
           analyserNode.getByteFrequencyData(dataArray);
 
-          const barWidth = (mainCanvas.width / bufferLength) * 1.5;
-          let x = 0;
+          // Focus on active audible spectrum and sample bins logarithmically/smoothly
+          const barCount = 28; // Total mirrored bars across canvas
+          const halfCount = Math.floor(barCount / 2);
+          const barWidth = (mainCanvas.width / barCount) - 2;
+          const centerY = mainCanvas.height / 2;
 
-          for (let i = 0; i < bufferLength; i++) {
-            const barHeight = (dataArray[i] / 255) * mainCanvas.height;
-            mainCtx.fillStyle = `rgba(56, 189, 248, ${Math.max(dataArray[i] / 255, 0.2)})`;
-            mainCtx.fillRect(x, mainCanvas.height - barHeight, barWidth - 1, barHeight);
-            x += barWidth + 1;
+          for (let i = 0; i < halfCount; i++) {
+            // Sample lower-to-mid energetic frequencies with scaling
+            const sampleIdx = Math.floor(Math.pow(i / halfCount, 1.4) * (bufferLength * 0.65));
+            const rawVal = dataArray[sampleIdx] || 0;
+            const normalized = rawVal / 255;
+            const barHeight = Math.max(2, normalized * (mainCanvas.height - 2));
+
+            // Neon gradient for modern cyber/glassmorphism vibe
+            const grad = mainCtx.createLinearGradient(0, centerY - barHeight / 2, 0, centerY + barHeight / 2);
+            grad.addColorStop(0, `rgba(56, 189, 248, ${Math.max(normalized, 0.35)})`);
+            grad.addColorStop(0.5, `rgba(168, 85, 247, ${Math.max(normalized, 0.45)})`);
+            grad.addColorStop(1, `rgba(56, 189, 248, ${Math.max(normalized, 0.35)})`);
+
+            mainCtx.fillStyle = grad;
+
+            // Draw Left Mirror (Center outward)
+            const leftX = (halfCount - 1 - i) * (barWidth + 2);
+            mainCtx.beginPath();
+            mainCtx.roundRect(leftX, centerY - barHeight / 2, barWidth, barHeight, 3);
+            mainCtx.fill();
+
+            // Draw Right Mirror (Center outward)
+            const rightX = (halfCount + i) * (barWidth + 2);
+            mainCtx.beginPath();
+            mainCtx.roundRect(rightX, centerY - barHeight / 2, barWidth, barHeight, 3);
+            mainCtx.fill();
           }
 
+          // Mini Picture-in-Picture Visualizer Support
           if (pipWindow && !pipWindow.closed) {
             const pipCanvas = pipWindow.document.getElementById('pipVisualizer');
             if (pipCanvas) {
               const pCtx = pipCanvas.getContext('2d');
               pCtx.clearRect(0, 0, pipCanvas.width, pipCanvas.height);
-              let px = 0;
-              const pBarWidth = (pipCanvas.width / bufferLength) * 1.5;
-              for (let i = 0; i < bufferLength; i++) {
-                const pBarHeight = (dataArray[i] / 255) * pipCanvas.height;
-                pCtx.fillStyle = '#38bdf8';
-                pCtx.fillRect(px, pipCanvas.height - pBarHeight, pBarWidth - 1, pBarHeight);
-                px += pBarWidth + 1;
+              const pBarCount = 18;
+              const pHalf = pBarCount / 2;
+              const pBarWidth = (pipCanvas.width / pBarCount) - 2;
+              const pCenterY = pipCanvas.height / 2;
+
+              for (let i = 0; i < pHalf; i++) {
+                const sampleIdx = Math.floor(Math.pow(i / pHalf, 1.4) * (bufferLength * 0.65));
+                const val = (dataArray[sampleIdx] || 0) / 255;
+                const h = Math.max(2, val * (pipCanvas.height - 2));
+
+                pCtx.fillStyle = `rgba(56, 189, 248, ${Math.max(val, 0.4)})`;
+                pCtx.beginPath();
+                pCtx.roundRect((pHalf - 1 - i) * (pBarWidth + 2), pCenterY - h / 2, pBarWidth, h, 2);
+                pCtx.roundRect((pHalf + i) * (pBarWidth + 2), pCenterY - h / 2, pBarWidth, h, 2);
+                pCtx.fill();
               }
             }
           }
