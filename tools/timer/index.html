@@ -7,262 +7,319 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"Space Mono"', 'monospace'],
-          },
-          colors: {
-            brand: {
-              50: '#f0fdf4',
-              400: '#4ade80',
-              500: '#22c55e',
-              900: '#14532d',
-              accent: '#38bdf8'
-            }
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          mono: ['"Space Mono"', 'monospace'],
+        },
+        colors: {
+          brand: {
+            50: '#f8fafc',
+            400: '#94a3b8',
+            500: '#64748b',
+            900: '#0f172a',
+            accent: '#38bdf8'
           }
+        },
+        boxShadow: {
+          'puffed': '0 25px 50px -12px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 0 rgba(0, 0, 0, 0.4)',
+          'puffed-subtle': '0 10px 25px -5px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+          'inner-subtle': 'inset 0 1px 2px 0 rgba(0, 0, 0, 0.4)',
         }
       }
     }
-  </script>
+  }
+</script>
 
-  <style>
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
-    
-    .brand-main {
-      background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
+<style>
+  /* Custom Scrollbars */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { 
+    background: rgba(56, 189, 248, 0.2); 
+    border-radius: 9999px;
+    backdrop-filter: blur(8px);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.4); }
+  
+  /* Brand Typography Details */
+  .brand-main {
+    background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
 
-    .brand-sub::after {
-      content: '';
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      background-color: #00f2fe;
-      border-radius: 50%;
-      top: 25%;
-      right: -10px;
-      box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
-      animation: pulse 2s infinite alternate;
-    }
+  .logo-underline {
+    width: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    margin-top: 4px;
+    border-radius: 9999px;
+    transition: all 0.3s ease;
+  }
 
-    .logo-underline {
-      width: 25px;
-      height: 3px;
-      background: linear-gradient(90deg, #00f2fe, #7f00ff);
-      margin-top: 2px;
-      border-radius: 2px;
-      box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
-      transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  .brand-logo-container:hover .logo-underline {
+    width: 100%;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  }
 
-    .brand-logo-container:hover .logo-underline {
-      width: 100%;
-    }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    @keyframes pulse {
-      0% { transform: scale(0.8); opacity: 0.5; }
-      100% { transform: scale(1.3); opacity: 1; }
-    }
+  /* Tactile Puffed Glassmorphic Surfaces */
+  .glass-card {
+    background: radial-gradient(130% 130% at 50% 0%, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
+    backdrop-filter: blur(32px) saturate(140%);
+    -webkit-backdrop-filter: blur(32px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.75), 
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.15), 
+                inset 0 -1px 0 0 rgba(0, 0, 0, 0.4);
+    position: relative;
+  }
+  
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .glass-panel:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
 
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .glass-input {
+    background: rgba(10, 15, 26, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.35);
+    transition: all 0.2s ease;
+  }
+  .glass-input:focus {
+    background: rgba(10, 15, 26, 0.9);
+    border-color: rgba(56, 189, 248, 0.4);
+    outline: none;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.2), inset 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
 
-    .glass-card {
-      background: rgba(15, 23, 42, 0.68);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.09);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-    }
-    
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.04);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-    }
+  /* Flip Unit Clock Styling */
+  .flip-unit { 
+    position: relative; 
+    perspective: 400px; 
+  }
+  .flip-card-inner {
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), 
+                inset 0 1px 1px rgba(255, 255, 255, 0.2), 
+                inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+    position: relative;
+  }
+  .flip-card-inner::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.65);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
 
-    .glass-input {
-      background: rgba(0, 0, 0, 0.35);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: all 0.2s ease;
-    }
-    .glass-input:focus {
-      border-color: rgba(56, 189, 248, 0.6);
-      outline: none;
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
-    }
+  .bg-overlay {
+    background: radial-gradient(circle at center, rgba(15, 23, 42, 0.7) 0%, rgba(2, 6, 23, 0.98) 100%);
+  }
 
-    .flip-unit { position: relative; perspective: 300px; }
-    .flip-card-inner {
-      background: rgba(15, 23, 42, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 10px 20px rgba(0,0,0,0.4);
-    }
+  /* Sleek Range Sliders */
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 14px;
+    width: 14px;
+    border-radius: 50%;
+    background: #38bdf8;
+    cursor: pointer;
+    margin-top: -5px;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5), 0 2px 6px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    transition: transform 0.15s ease, background-color 0.15s ease;
+  }
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    background: #7dd3fc;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 9999px;
+  }
 
-    .bg-overlay {
-      background: radial-gradient(circle at center, rgba(15, 23, 42, 0.45) 0%, rgba(2, 6, 23, 0.88) 100%);
-    }
+  /* Clean State Classes */
+  .zen-hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.98) translateY(-4px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    input[type=range] {
-      -webkit-appearance: none;
-      background: transparent;
-    }
-    input[type=range]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      height: 14px;
-      width: 14px;
-      border-radius: 50%;
-      background: #38bdf8;
-      cursor: pointer;
-      margin-top: -5px;
-      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-    }
-    input[type=range]::-webkit-slider-runnable-track {
-      width: 100%;
-      height: 4px;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 2px;
-    }
+  .music-bar-hidden {
+    transform: translateY(135%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 
-    .zen-hidden {
-      opacity: 0 !important;
-      pointer-events: none !important;
-      transform: scale(0.96);
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+  .active-glow {
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 25px rgba(56, 189, 248, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+  }
+  .active-glow-rest {
+    border-color: rgba(52, 211, 153, 0.4) !important;
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.8), 0 0 25px rgba(52, 211, 153, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.2) !important;
+  }
 
-    .music-bar-hidden {
-      transform: translateY(120%) !important;
-      opacity: 0 !important;
-      pointer-events: none !important;
-    }
-  </style>
+  .kanban-col {
+    min-height: 280px;
+  }
+</style>
 </head>
-<body class="h-screen w-screen overflow-hidden font-sans text-slate-100 bg-slate-950 flex flex-col justify-between relative select-none">
+<body class="h-screen w-screen overflow-hidden font-sans text-slate-200 bg-slate-950 flex flex-col justify-between relative select-none antialiased">
 
-  <div id="bgLayer" class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105 z-0" 
+  <!-- Background Layer -->
+  <div id="bgLayer" class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-1000 scale-105 z-0 brightness-75 filter" 
        style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80');">
   </div>
+  <canvas id="themeCanvas" class="absolute inset-0 pointer-events-none z-0 hidden"></canvas>
   
-  <div class="absolute inset-0 bg-overlay z-0 pointer-events-none"></div>
+  <div id="bgDimmer" class="absolute inset-0 bg-overlay z-0 pointer-events-none transition-all duration-700"></div>
   <canvas id="particleCanvas" class="absolute inset-0 pointer-events-none z-0"></canvas>
 
-  <header id="mainHeader" class="relative z-10 px-6 py-5 flex justify-between items-center max-w-7xl w-full mx-auto transition-all duration-500">
-    <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
-      <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
+  <!-- Navigation Header -->
+  <header id="mainHeader" class="relative z-10 px-4 md:px-8 py-4 flex justify-between items-center max-w-7xl w-full mx-auto transition-all duration-500">
+    <div class="brand-logo-container flex flex-col items-center cursor-pointer group" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <div class="flex items-center text-lg font-bold uppercase tracking-wider select-none">
         <span class="brand-main">Sprk</span>
-        <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">-Timer</span>
+        <span class="brand-sub relative text-sky-400/80 font-light ml-1">Timer</span>
       </div>
       <div class="logo-underline"></div>
     </div>
 
-    <div class="flex items-center gap-2 md:gap-3">
-      <!-- Screen Wake Lock Quick Indicator Button -->
-      <button id="wakeLockQuickBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-400" title="Shortcut: W (Keep Screen Awake)">
-        <i class="fa-solid fa-sun text-xs text-amber-400" id="wakeLockIcon"></i>
-        <span class="hidden md:inline" id="wakeLockLabel">Awake: Off</span>
+    <div class="flex items-center gap-1.5 md:gap-2 flex-wrap justify-end">
+      <button id="cmdPaletteBtn" class="glass-panel hover:text-white hover:border-violet-500/30 hover:bg-violet-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 text-slate-300 transition active:scale-95 shadow-sm group" title="Command Palette (Ctrl+K / ⌘K)">
+        <i class="fa-solid fa-terminal text-violet-400 group-hover:text-violet-300 text-xs transition-colors"></i>
+        <kbd class="hidden md:inline px-1.5 py-0.5 text-[10px] bg-white/5 rounded font-mono border border-white/10 text-violet-300/70">⌘K</kbd>
       </button>
 
-      <button id="pipToggleBtn" class="glass-panel hover:bg-sky-500/20 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-sky-300" title="Shortcut: P (Mini-Player on Top)">
-        <i class="fa-solid fa-window-restore text-xs text-sky-400"></i>
-        <span class="hidden md:inline">Mini Window</span>
+      <button id="wakeLockQuickBtn" class="glass-panel hover:text-white hover:border-amber-500/30 hover:bg-amber-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group" title="Shortcut: W (Keep Screen Awake)">
+        <i class="fa-solid fa-sun text-xs text-amber-400 group-hover:text-amber-300 transition-colors" id="wakeLockIcon"></i>
+        <span class="hidden md:inline font-mono text-[11px]" id="wakeLockLabel">Awake: Off</span>
       </button>
 
-      <!-- Presets Quick Selector -->
-      <button id="presetsToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-amber-300" title="Focus Presets">
-        <i class="fa-solid fa-bolt text-xs text-amber-400"></i>
-        <span class="hidden md:inline">Presets</span>
+      <button id="pipToggleBtn" class="glass-panel hover:text-white hover:border-sky-500/30 hover:bg-sky-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group" title="Shortcut: P (Mini-Player on Top)">
+        <i class="fa-solid fa-window-restore text-xs text-sky-400 group-hover:text-sky-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Mini Window</span>
       </button>
 
-      <!-- Scratchpad Notepad Feature -->
-      <button id="notesToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-violet-300" title="Quick Scratchpad">
-        <i class="fa-solid fa-pen-to-square text-xs text-violet-400"></i>
-        <span class="hidden md:inline">Notes</span>
+      <button id="presetsToggleBtn" class="glass-panel hover:text-white hover:border-yellow-500/30 hover:bg-yellow-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group" title="Focus Presets">
+        <i class="fa-solid fa-bolt text-xs text-yellow-400 group-hover:text-yellow-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Presets</span>
       </button>
 
-      <button id="soundscapeToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: M">
-        <i class="fa-solid fa-headphones text-xs text-sky-400"></i>
-        <span class="hidden md:inline">Sounds</span>
+      <button id="notesToggleBtn" class="glass-panel hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group" title="Quick Scratchpad">
+        <i class="fa-solid fa-pen-to-square text-xs text-emerald-400 group-hover:text-emerald-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Notes</span>
       </button>
 
-      <button id="zenToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300" title="Shortcut: F (Zen Mode & Fullscreen)">
-        <i class="fa-solid fa-expand text-xs text-amber-400" id="zenIcon"></i>
-        <span class="hidden md:inline">Zen Mode</span>
+      <button id="soundscapeToggleBtn" class="glass-panel hover:text-white hover:border-cyan-500/30 hover:bg-cyan-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group" title="Shortcut: M">
+        <i class="fa-solid fa-sliders text-xs text-cyan-400 group-hover:text-cyan-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Mixer</span>
       </button>
 
-      <button id="mediaToggleBtn" class="glass-panel hover:bg-white/10 px-3 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
-        <i class="fa-brands fa-spotify text-xs text-emerald-400"></i>
-        <span class="hidden md:inline">Music Hub</span>
+      <button id="zenToggleBtn" class="glass-panel hover:text-white hover:border-indigo-500/30 hover:bg-indigo-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group" title="Shortcut: F (Zen Mode & Fullscreen)">
+        <i class="fa-solid fa-expand text-xs text-indigo-400 group-hover:text-indigo-300 transition-colors" id="zenIcon"></i>
+        <span class="hidden md:inline font-medium">Zen</span>
       </button>
 
-      <button id="taskToggleBtn" class="glass-panel hover:bg-white/10 px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 relative">
-        <i class="fa-solid fa-list-check text-xs text-emerald-400"></i>
-        <span class="hidden md:inline">Tasks</span>
-        <span id="taskBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 text-[10px] font-bold text-slate-950 rounded-full flex items-center justify-center">0</span>
+      <button id="mediaToggleBtn" class="glass-panel hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group">
+        <i class="fa-brands fa-spotify text-xs text-emerald-400 group-hover:text-emerald-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Music</span>
       </button>
 
-      <button id="analyticsToggleBtn" class="glass-panel hover:bg-white/10 px-3.5 py-2 rounded-xl text-xs flex items-center gap-2 transition text-slate-300">
-        <i class="fa-solid fa-chart-simple text-xs text-indigo-400"></i>
-        <span class="hidden md:inline">Analytics</span>
+      <button id="taskToggleBtn" class="glass-panel hover:text-white hover:border-pink-500/30 hover:bg-pink-500/10 px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 relative active:scale-95 group">
+        <i class="fa-solid fa-list-check text-xs text-pink-400 group-hover:text-pink-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Tasks</span>
+        <span id="taskBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-pink-500 text-[9px] font-bold text-white rounded-full flex items-center justify-center shadow-sm">0</span>
       </button>
 
-      <button id="settingsToggleBtn" class="glass-panel hover:bg-white/10 w-9 h-9 rounded-xl flex items-center justify-center text-slate-300 transition">
-        <i class="fa-solid fa-sliders text-xs"></i>
+      <button id="analyticsToggleBtn" class="glass-panel hover:text-white hover:border-blue-500/30 hover:bg-blue-500/10 px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-2 transition text-slate-300 active:scale-95 group">
+        <i class="fa-solid fa-chart-simple text-xs text-blue-400 group-hover:text-blue-300 transition-colors"></i>
+        <span class="hidden md:inline font-medium">Stats</span>
+      </button>
+
+      <button id="settingsToggleBtn" class="glass-panel hover:text-white hover:border-slate-400/40 hover:bg-white/10 w-9 h-8 rounded-xl flex items-center justify-center text-slate-300 hover:text-white transition active:scale-95 group">
+        <i class="fa-solid fa-gear text-xs text-slate-400 group-hover:text-slate-200 transition-colors"></i>
       </button>
     </div>
   </header>
 
+  <!-- Central Workspace & Timer Deck -->
   <main class="relative z-10 my-auto flex items-center justify-center p-4 w-full max-w-7xl mx-auto">
-    <div id="pomoCard" class="glass-card rounded-3xl p-8 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500">
+    <div id="pomoCard" class="glass-card rounded-[2.5rem] p-7 md:p-11 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500">
       
-      <div class="absolute -top-24 left-1/2 -translate-x-1/2 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <!-- Subtle Ambient Top Light -->
+      <div class="absolute -top-32 left-1/2 -translate-x-1/2 w-80 h-40 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div id="modeSelector" class="flex p-1 gap-1 glass-panel rounded-2xl mb-6 w-full max-w-xs justify-between transition-all duration-300">
-        <button id="modePomodoro" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm">Pomodoro</button>
-        <button id="modeCountdown" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white">Timer</button>
-        <button id="modeStopwatch" class="flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white">Stopwatch</button>
+      <!-- Mode Selector -->
+      <div id="modeSelector" class="flex p-1.5 gap-1.5 glass-panel rounded-2xl mb-5 md:mb-6 w-full max-w-xs justify-between transition-all duration-300">
+        <button id="modePomodoro" class="flex-1 py-1.5 text-xs font-medium rounded-xl transition-all duration-200 bg-sky-500/20 text-sky-300 border border-sky-500/30 shadow-sm">Pomodoro</button>
+        <button id="modeCountdown" class="flex-1 py-1.5 text-xs font-medium rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5">Timer</button>
+        <button id="modeStopwatch" class="flex-1 py-1.5 text-xs font-medium rounded-xl transition-all duration-200 text-slate-400 hover:text-slate-200 hover:bg-white/5">Stopwatch</button>
       </div>
 
-      <div id="pomodoroStatus" class="mb-4 flex items-center gap-2 text-[11px] tracking-widest uppercase font-mono font-medium">
-        <span id="pomoWork" class="px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all">Focus Phase</span>
-        <span id="pomoBreak" class="px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all">Rest Phase</span>
+      <!-- Status Sub-Pills -->
+      <div id="pomodoroStatus" class="mb-4 flex items-center gap-2 text-[11px] tracking-widest uppercase font-mono">
+        <span id="pomoWork" class="px-4 py-1.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 transition-all shadow-sm">Focus Phase</span>
+        <span id="pomoBreak" class="px-4 py-1.5 rounded-full bg-transparent text-slate-500 border border-transparent transition-all">Rest Phase</span>
       </div>
 
-      <div id="dailyGoalContainer" class="mb-4 flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel border border-white/5 text-xs">
-        <div class="relative w-5 h-5 flex items-center justify-center">
+      <!-- Daily Block Mini-Progress -->
+      <div id="dailyGoalContainer" class="mb-5 flex items-center gap-3 px-4 py-1.5 rounded-full glass-panel border border-white/5 text-xs">
+        <div class="relative w-4 h-4 flex items-center justify-center">
           <svg class="w-full h-full transform -rotate-90">
-            <circle cx="10" cy="10" r="8" class="stroke-white/10" stroke-width="2" fill="transparent" />
-            <circle id="goalRingCircle" cx="10" cy="10" r="8" class="stroke-emerald-400 transition-all duration-500" stroke-width="2" stroke-dasharray="50.2" stroke-dashoffset="50.2" stroke-linecap="round" fill="transparent" />
+            <circle cx="8" cy="8" r="6.5" class="stroke-white/10" stroke-width="2" fill="transparent" />
+            <circle id="goalRingCircle" cx="8" cy="8" r="6.5" class="stroke-sky-400 transition-all duration-500" stroke-width="2" stroke-dasharray="40.8" stroke-dashoffset="40.8" stroke-linecap="round" fill="transparent" />
           </svg>
         </div>
         <span id="goalProgressText" class="font-mono text-[11px] text-slate-300">0 of 8 blocks completed</span>
       </div>
 
-      <div id="countdownInputGroup" class="mb-6 hidden flex items-center gap-2">
-        <input type="number" id="customMinutes" min="1" max="300" value="15" class="w-20 glass-input text-center py-1 rounded-xl text-white font-mono text-sm">
-        <span class="text-xs text-slate-400 font-mono">MIN</span>
-        <button id="setCountdownBtn" class="glass-panel hover:bg-white/10 px-3 py-1 rounded-xl text-xs font-semibold transition">Set</button>
+      <!-- Custom Countdown Input -->
+      <div id="countdownInputGroup" class="mb-4 hidden flex items-center gap-2">
+        <input type="number" id="customMinutes" min="1" max="300" value="15" class="w-20 glass-input text-center py-1.5 rounded-xl text-white font-mono text-sm">
+        <span class="text-xs text-sky-400 font-mono font-medium">MIN</span>
+        <button id="setCountdownBtn" class="glass-panel hover:text-white hover:bg-sky-500/20 hover:border-sky-500/30 px-3.5 py-1.5 rounded-xl text-xs font-medium transition active:scale-95 text-sky-300">Set</button>
       </div>
 
-      <div id="clockContainer" class="my-2 min-h-[160px] flex items-center justify-center w-full">
-        <div id="displayMinimal" class="text-7xl md:text-8xl font-bold tracking-tight text-slate-100 font-mono drop-shadow-lg cursor-pointer select-none transition-transform active:scale-95" title="Click to edit duration">
+      <!-- Clock Display Modes -->
+      <div id="clockContainer" class="my-2 min-h-[150px] md:min-h-[175px] flex items-center justify-center w-full">
+        <div id="displayMinimal" class="text-7xl md:text-8xl font-bold tracking-tight text-slate-100 font-mono select-none transition-transform active:scale-95" title="Click to edit duration">
           25:00
         </div>
 
@@ -271,119 +328,129 @@
             <circle cx="50%" cy="50%" r="42%" class="stroke-white/5" stroke-width="6" fill="transparent" />
             <circle id="progressCircle" cx="50%" cy="50%" r="42%" class="stroke-sky-400 transition-all duration-300" stroke-width="6" stroke-dasharray="660" stroke-dashoffset="0" stroke-linecap="round" fill="transparent" />
           </svg>
-          <span id="ringTimeText" class="absolute text-4xl md:text-5xl font-bold font-mono text-slate-100">25:00</span>
+          <span id="ringTimeText" class="absolute text-4xl md:text-5xl font-bold font-mono text-slate-100 tracking-tight">25:00</span>
         </div>
 
         <div id="displayFlip" class="hidden flex items-center gap-3 md:gap-4 font-mono cursor-pointer select-none" title="Click to edit duration">
-          <div class="flex gap-1.5">
-            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipM1">2</div></div>
-            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipM2">5</div></div>
+          <div class="flex gap-2">
+            <div class="flip-unit"><div class="flip-card-inner px-3.5 py-4 text-4xl md:text-6xl font-bold text-slate-100" id="flipM1">2</div></div>
+            <div class="flip-unit"><div class="flip-card-inner px-3.5 py-4 text-4xl md:text-6xl font-bold text-slate-100" id="flipM2">5</div></div>
           </div>
-          <span class="text-3xl font-bold text-slate-600">:</span>
-          <div class="flex gap-1.5">
-            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipS1">0</div></div>
-            <div class="flip-unit"><div class="flip-card-inner px-3 py-4 text-4xl md:text-6xl font-bold" id="flipS2">0</div></div>
+          <span class="text-4xl font-light text-sky-400/50">:</span>
+          <div class="flex gap-2">
+            <div class="flip-unit"><div class="flip-card-inner px-3.5 py-4 text-4xl md:text-6xl font-bold text-slate-100" id="flipS1">0</div></div>
+            <div class="flip-unit"><div class="flip-card-inner px-3.5 py-4 text-4xl md:text-6xl font-bold text-slate-100" id="flipS2">0</div></div>
           </div>
         </div>
       </div>
 
+      <!-- Realtime Audio Visualizer Bars -->
+      <canvas id="mainAudioVisualizer" width="280" height="20" class="my-2 rounded opacity-40 pointer-events-none"></canvas>
+
       <!-- Lap Counter list for Stopwatch -->
-      <div id="stopwatchLapsContainer" class="hidden w-full max-h-24 overflow-y-auto my-2 space-y-1 pr-1 font-mono text-xs"></div>
+      <div id="stopwatchLapsContainer" class="hidden w-full max-h-28 overflow-y-auto my-2 space-y-1.5 pr-1 font-mono text-xs"></div>
 
-      <div id="quickEditModal" class="hidden my-2 flex items-center gap-2 bg-slate-900/90 p-3 rounded-2xl border border-sky-500/30">
-        <span class="text-xs font-mono text-slate-400">Set (Mins):</span>
-        <input type="number" id="quickEditInput" min="1" max="180" class="w-16 glass-input text-center py-1 rounded-xl text-white font-mono text-sm">
-        <button id="quickEditSave" class="glass-panel hover:bg-sky-500/20 px-3 py-1 rounded-xl text-sky-400 text-xs font-bold transition">Save</button>
-        <button id="quickEditCancel" class="glass-panel hover:bg-white/10 px-2 py-1 rounded-xl text-slate-400 text-xs transition"><i class="fa-solid fa-xmark"></i></button>
+      <!-- Quick Duration In-Place Editor -->
+      <div id="quickEditModal" class="hidden my-2 flex items-center gap-2.5 bg-slate-900/95 backdrop-blur-md p-3.5 rounded-2xl border border-sky-500/20 shadow-xl">
+        <span class="text-xs font-mono text-sky-400">Set (Mins):</span>
+        <input type="number" id="quickEditInput" min="1" max="180" class="w-16 glass-input text-center py-1.5 rounded-xl text-white font-mono text-sm">
+        <button id="quickEditSave" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/30 px-3 py-1.5 rounded-xl text-sky-300 text-xs font-medium transition">Save</button>
+        <button id="quickEditCancel" class="glass-panel hover:bg-rose-500/20 hover:border-rose-500/30 px-2.5 py-1.5 rounded-xl text-rose-400 text-xs transition"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
-      <div id="activeTaskDisplay" class="mt-2 mb-4 text-xs text-slate-400 flex items-center gap-2 max-w-xs truncate">
-        <i class="fa-regular fa-circle-dot text-sky-400 text-[10px]"></i>
-        <span id="currentTaskLabel" class="italic truncate">No active task selected</span>
+      <!-- Active Task Label -->
+      <div id="activeTaskDisplay" class="mt-2 mb-4 text-xs text-slate-400 flex items-center gap-2 max-w-xs truncate cursor-pointer hover:text-sky-300 transition px-3 py-1 rounded-full hover:bg-sky-500/10 border border-transparent hover:border-sky-500/20" title="Open Tasks">
+        <i class="fa-regular fa-circle text-sky-400 text-[10px]"></i>
+        <span id="currentTaskLabel" class="font-normal truncate">No active task selected</span>
       </div>
 
-      <div class="flex items-center gap-4 mt-2">
-        <button id="lapBtn" class="hidden glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-white transition-all transform active:scale-95" title="Record Lap">
-          <i class="fa-solid fa-flag"></i>
+      <!-- Control Buttons -->
+      <div class="flex items-center gap-3 md:gap-4 mt-1">
+        <button id="lapBtn" class="hidden glass-panel hover:text-amber-300 hover:border-amber-500/30 hover:bg-amber-500/15 w-12 h-12 rounded-2xl flex items-center justify-center text-amber-400 transition-all transform active:scale-95 shadow-sm" title="Record Lap">
+          <i class="fa-solid fa-flag text-sm"></i>
         </button>
-        <button id="startBtn" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/40 border-sky-500/30 text-sky-300 w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 shadow-lg" title="Spacebar">
+        <button id="startBtn" class="glass-panel bg-sky-500/15 border-sky-400/30 hover:bg-sky-500/25 hover:border-sky-400/50 text-sky-300 hover:text-white w-16 h-16 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 shadow-lg shadow-sky-500/10" title="Spacebar">
           <i class="fa-solid fa-play ml-1"></i>
         </button>
-        <button id="pauseBtn" class="glass-panel hover:bg-amber-500/20 hover:border-amber-500/40 text-amber-300 w-14 h-14 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 hidden" title="Spacebar">
+        <button id="pauseBtn" class="glass-panel bg-amber-500/15 border-amber-400/30 hover:bg-amber-500/25 hover:border-amber-400/50 text-amber-300 hover:text-white w-16 h-16 rounded-2xl flex items-center justify-center text-xl transition-all transform active:scale-95 shadow-lg shadow-amber-500/10 hidden" title="Spacebar">
           <i class="fa-solid fa-pause"></i>
         </button>
-        <button id="skipBtn" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/40 text-slate-400 hover:text-sky-300 w-12 h-12 rounded-2xl flex items-center justify-center text-sm transition-all transform active:scale-95" title="Skip Break/Focus (Press 'S')">
-          <i class="fa-solid fa-forward-step"></i>
+        <button id="skipBtn" class="glass-panel hover:text-indigo-300 hover:border-indigo-500/30 hover:bg-indigo-500/15 text-indigo-400 w-12 h-12 rounded-2xl flex items-center justify-center text-sm transition-all transform active:scale-95 shadow-sm" title="Skip Phase (Press 'S')">
+          <i class="fa-solid fa-forward-step text-sm"></i>
         </button>
-        <button id="resetBtn" class="glass-panel hover:bg-white/10 w-12 h-12 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-100 transition-all transform active:scale-95" title="Press 'R'">
-          <i class="fa-solid fa-rotate-right"></i>
+        <button id="resetBtn" class="glass-panel hover:text-rose-300 hover:border-rose-500/30 hover:bg-rose-500/15 text-rose-400 w-12 h-12 rounded-2xl flex items-center justify-center transition-all transform active:scale-95 shadow-sm" title="Press 'R'">
+          <i class="fa-solid fa-rotate-right text-sm"></i>
         </button>
       </div>
 
-      <div id="keyboardTooltip" class="mt-6 flex flex-wrap justify-center items-center gap-3 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">Space</kbd> Play/Pause</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">S</kbd> Skip Phase</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">R</kbd> Reset</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">P</kbd> Mini-Window</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">F</kbd> Zen/Fullscreen</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">W</kbd> Wake Lock</span>
-        <span><kbd class="px-1.5 py-0.5 rounded bg-white/10 border border-white/10 text-slate-300">M</kbd> Music Bar</span>
+      <!-- Keyboard Shortcuts Tooltip -->
+      <div id="keyboardTooltip" class="mt-6 flex flex-wrap justify-center items-center gap-2 text-[10px] font-mono text-slate-500 transition-opacity duration-300">
+        <span class="flex items-center gap-1"><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-sky-400/80">Space</kbd> Play/Pause</span>
+        <span class="flex items-center gap-1"><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-indigo-400/80">S</kbd> Skip</span>
+        <span class="flex items-center gap-1"><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-rose-400/80">R</kbd> Reset</span>
+        <span class="flex items-center gap-1"><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-sky-400/80">P</kbd> PiP</span>
+        <span class="flex items-center gap-1"><kbd class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-violet-400/80">F</kbd> Zen</span>
       </div>
     </div>
   </main>
 
-  <footer id="mainFooter" class="fixed bottom-0 left-0 right-0 z-30 p-4 md:p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500 ease-in-out">
-    <div class="glass-card rounded-2xl px-5 py-3 flex items-center gap-4 flex-nowrap justify-between w-full max-w-5xl border border-white/10 shadow-2xl">
-      <div class="flex items-center gap-2.5 flex-shrink-0">
-        <div class="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center border border-sky-500/20">
-          <i class="fa-solid fa-headphones text-sky-400 text-sm"></i>
+  <!-- Bottom Ambient Mixer & Media Bar -->
+  <footer id="mainFooter" class="fixed bottom-0 left-0 right-0 z-30 p-3 md:p-6 flex justify-center max-w-7xl mx-auto w-full transition-all duration-500 ease-in-out">
+    <div class="glass-card rounded-2xl px-5 py-3.5 flex items-center gap-4 flex-nowrap justify-between w-full max-w-5xl border border-white/10 shadow-2xl">
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20">
+          <i class="fa-solid fa-sliders text-cyan-400 text-xs"></i>
         </div>
         <div class="hidden sm:block">
-          <span class="text-xs font-semibold tracking-wide uppercase font-mono text-slate-200 block">Soundscape</span>
-          <span class="text-[9px] text-slate-400 font-mono">Press M to hide</span>
+          <span class="text-xs font-semibold tracking-wide uppercase font-mono text-slate-200 block">Sound Mixer</span>
+          <span class="text-[9px] text-cyan-400/70 font-mono">Multi-track layer</span>
         </div>
       </div>
 
-      <!-- Local MP3 Bar Controls if files are active -->
-      <div id="localAudioControlsBar" class="hidden flex items-center gap-2 px-3 py-1 glass-panel rounded-xl border border-sky-500/30">
-        <button id="prevTrackBtn" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-backward-step"></i></button>
-        <button id="toggleLocalPlayBtn" class="text-sky-400 hover:text-sky-300 text-xs px-1"><i class="fa-solid fa-play" id="localPlayIcon"></i></button>
-        <button id="nextTrackBtn" class="text-slate-400 hover:text-white text-xs"><i class="fa-solid fa-forward-step"></i></button>
-        <span id="nowPlayingBarText" class="text-[10px] font-mono text-sky-300 max-w-[100px] sm:max-w-[140px] truncate">No file</span>
+      <!-- Local MP3 Bar Controls -->
+      <div id="localAudioControlsBar" class="hidden flex items-center gap-2 px-3 py-1.5 glass-panel rounded-xl border-emerald-500/20">
+        <button id="prevTrackBtn" class="text-slate-400 hover:text-emerald-400 text-xs transition"><i class="fa-solid fa-backward-step"></i></button>
+        <button id="toggleLocalPlayBtn" class="text-emerald-400 hover:text-emerald-300 text-xs px-1.5 transition"><i class="fa-solid fa-play" id="localPlayIcon"></i></button>
+        <button id="nextTrackBtn" class="text-slate-400 hover:text-emerald-400 text-xs transition"><i class="fa-solid fa-forward-step"></i></button>
+        <span id="nowPlayingBarText" class="text-[10px] font-mono text-slate-300 max-w-[90px] sm:max-w-[130px] truncate font-medium">No file</span>
       </div>
 
-      <div class="flex gap-2 overflow-x-auto py-1 px-1 flex-1 mx-2 scroll-smooth items-center">
-        <button data-sound="none" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap flex-shrink-0 transition">Off</button>
-        <button data-sound="alpha" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Binaural Alpha</button>
-        <button data-sound="campfire" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Campfire</button>
-        <button data-sound="waves" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Ocean Waves</button>
-        <button data-sound="rain" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Rain</button>
-        <button data-sound="forest" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Forest Pad</button>
-        <button data-sound="white" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">White Noise</button>
-        <button data-sound="pink" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Pink Noise</button>
-        <button data-sound="brown" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Deep Brown</button>
-        <button data-sound="thunder" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Thunderstorm</button>
-        <button data-sound="cafe" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Coffee Shop</button>
-        <button data-sound="crickets" class="sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0">Night Crickets</button>
-      </div>
+      <!-- Multi-Track Ambient Sound Layer Sliders -->
+      <div id="soundLayerList" class="flex gap-2.5 overflow-x-auto py-1 px-1 flex-1 mx-2 items-center no-scrollbar"></div>
 
-      <div class="flex items-center gap-2 flex-shrink-0 pl-2 border-l border-white/10">
-        <i class="fa-solid fa-volume-low text-xs text-slate-400"></i>
-        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-16 sm:w-20" title="Master Ambient & MP3 Volume">
+      <!-- Master Volume -->
+      <div class="flex items-center gap-2.5 flex-shrink-0 pl-3 border-l border-white/10">
+        <i class="fa-solid fa-volume-high text-xs text-cyan-400"></i>
+        <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-16 sm:w-24" title="Master Ambient Volume">
       </div>
     </div>
   </footer>
 
-  <!-- Settings Drawer -->
-  <div id="settingsDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10">
+  <!-- Command Palette Modal (Ctrl+K) -->
+  <div id="cmdPaletteModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-start justify-center pt-24 p-4 opacity-0 pointer-events-none transition-opacity duration-200">
+    <div class="glass-card rounded-2xl w-full max-w-lg border border-violet-500/20 overflow-hidden shadow-2xl">
+      <div class="flex items-center px-4 py-3.5 border-b border-white/10 gap-3">
+        <i class="fa-solid fa-magnifying-glass text-violet-400 text-sm"></i>
+        <input type="text" id="cmdInput" placeholder="Type a command or jump to feature... (e.g. 'rain', 'zen', 'beach')" class="w-full bg-transparent text-sm text-slate-100 placeholder-slate-500 focus:outline-none font-mono">
+        <kbd class="text-[10px] font-mono bg-white/5 px-2 py-0.5 rounded border border-white/10 text-violet-300">ESC</kbd>
+      </div>
+      <div id="cmdResults" class="max-h-72 overflow-y-auto p-2.5 space-y-1 font-mono text-xs"></div>
+    </div>
+  </div>
+
+  <!-- Workspace Settings Drawer -->
+  <div id="settingsDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 md:p-7 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10 shadow-2xl">
     <div class="overflow-y-auto pr-1 space-y-5">
       <div class="flex justify-between items-center border-b border-white/10 pb-4">
-        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Workspace Settings</h3>
-        <button id="closeSettingsBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-gear text-slate-400 text-xs"></i>
+          <h3 class="font-semibold text-xs tracking-widest uppercase font-mono text-slate-200">Workspace Settings</h3>
+        </div>
+        <button id="closeSettingsBtn" class="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Display Aesthetic</label>
+        <label class="text-xs font-medium text-sky-400 uppercase tracking-wider block mb-2 font-mono">Display Aesthetic</label>
         <select id="displaySelect" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
           <option value="minimal" class="bg-slate-900">Minimalist Monospace</option>
           <option value="ring" class="bg-slate-900">Progress Vector Ring</option>
@@ -392,24 +459,38 @@
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Ambient Scene</label>
+        <label class="text-xs font-medium text-sky-400 uppercase tracking-wider block mb-2 font-mono">Theme & Ambient Scene</label>
         <select id="bgSelect" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none mb-2">
           <option value="beach" class="bg-slate-900">Serene Ocean Coast</option>
           <option value="misty-forest" class="bg-slate-900">Misty Forest Canopy</option>
           <option value="cosmic" class="bg-slate-900">Deep Cosmic Nebula</option>
+          <option value="oled-black" class="bg-slate-900">OLED Pitch Black (Pure 0% Light)</option>
+          <option value="aurora-canvas" class="bg-slate-900">Animated Gradient Aurora</option>
           <option value="minimal-dark" class="bg-slate-900">Minimal Architectural Dark</option>
           <option value="rainy-city" class="bg-slate-900">Rainy Tokyo Window</option>
           <option value="sakura" class="bg-slate-900">Kyoto Sakura Blossom</option>
           <option value="cyberpunk" class="bg-slate-900">Cyberpunk Neon Alley</option>
           <option value="desert" class="bg-slate-900">Dusk Sand Dunes</option>
           <option value="mountains" class="bg-slate-900">Swiss Alpine Range</option>
-          <option value="aurora" class="bg-slate-900">Nordic Northern Lights</option>
         </select>
-        <input type="text" id="customBgUrl" placeholder="Or enter custom image URL..." class="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500">
+        <input type="text" id="customBgUrl" placeholder="Or custom image/video wallpaper URL..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500">
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Atmospheric Particle Engine</label>
+        <label class="text-xs font-medium text-sky-400 uppercase tracking-wider block mb-2 font-mono">Transition Chime Sound</label>
+        <div class="flex gap-2">
+          <select id="alarmToneSelect" class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
+            <option value="bowl" class="bg-slate-900">Tibetan Singing Bowl</option>
+            <option value="bell" class="bg-slate-900">Soft Celestial Bell</option>
+            <option value="digital" class="bg-slate-900">Modern Digital Synth</option>
+            <option value="wood" class="bg-slate-900">Gentle Zen Woodblock</option>
+          </select>
+          <button id="testChimeBtn" class="glass-panel hover:bg-sky-500/20 hover:border-sky-500/30 hover:text-sky-300 px-3.5 py-2 rounded-xl text-slate-300 text-xs font-mono active:scale-95 transition">Test</button>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-xs font-medium text-sky-400 uppercase tracking-wider block mb-2 font-mono">Atmospheric Particle Engine</label>
         <select id="particleSelect" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none">
           <option value="embers" class="bg-slate-900">Floating Golden Embers</option>
           <option value="snow" class="bg-slate-900">Soft Nordic Snow</option>
@@ -420,209 +501,211 @@
         </select>
       </div>
 
-      <div class="glass-panel p-3 rounded-2xl space-y-3 border border-white/5">
-        <div class="flex justify-between items-center text-[11px] font-mono text-slate-300">
-          <span>Particle Density</span>
-          <span id="densityVal" class="text-sky-400">45</span>
-        </div>
-        <input type="range" id="particleDensitySlider" min="10" max="150" value="45" class="w-full">
-
-        <div class="flex justify-between items-center text-[11px] font-mono text-slate-300">
-          <span>Particle Speed</span>
-          <span id="speedVal" class="text-sky-400">1.0x</span>
-        </div>
-        <input type="range" id="particleSpeedSlider" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full">
-      </div>
-
-      <!-- Metronome, Wake Lock & Notifications Feature -->
-      <div class="glass-panel p-3 rounded-2xl space-y-3 border border-white/5">
+      <div class="glass-panel p-3.5 rounded-2xl space-y-3.5 border border-white/5">
         <div class="flex items-center justify-between">
           <span class="text-xs font-mono text-slate-300">Keep Screen Awake (WakeLock)</span>
-          <input type="checkbox" id="settingWakeLock" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
+          <input type="checkbox" id="settingWakeLock" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0 cursor-pointer accent-sky-400">
         </div>
         <div class="flex items-center justify-between">
           <span class="text-xs font-mono text-slate-300">Clock Ticking Metronome</span>
-          <input type="checkbox" id="settingTickingSound" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
+          <input type="checkbox" id="settingTickingSound" class="rounded border-white/20 bg-transparent text-sky-400 focus:ring-0 cursor-pointer accent-sky-400">
         </div>
         <div class="flex items-center justify-between">
           <span class="text-xs font-mono text-slate-300">Desktop Notifications</span>
-          <button id="requestNotifBtn" class="text-[10px] glass-panel px-2.5 py-1 rounded-lg text-sky-300 hover:bg-sky-500/20 transition">Enable</button>
-        </div>
-        <div class="flex items-center justify-between pt-1">
-          <span class="text-xs font-mono text-slate-300">Test Chime Alarm</span>
-          <button id="testChimeBtn" class="text-[10px] glass-panel px-2.5 py-1 rounded-lg text-emerald-300 hover:bg-emerald-500/20 transition">Play Tone</button>
+          <button id="requestNotifBtn" class="text-[10px] glass-panel hover:bg-sky-500/20 hover:border-sky-500/30 hover:text-sky-300 px-3 py-1 rounded-lg text-slate-300 active:scale-95 transition font-medium">Enable</button>
         </div>
       </div>
 
       <div class="border-t border-white/10 pt-4">
-        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono">Interval Preset Durations (Mins)</label>
+        <label class="text-xs font-medium text-sky-400 uppercase tracking-wider block mb-3 font-mono">Interval Preset Durations (Mins)</label>
         <div class="grid grid-cols-3 gap-2">
           <div>
-            <span class="text-[10px] text-slate-400 block mb-1">Focus</span>
-            <input type="number" id="settingPomoWork" value="25" min="1" max="120" class="w-full glass-input rounded-xl px-2 py-1.5 text-xs text-slate-200">
+            <span class="text-[10px] text-sky-400/80 block mb-1">Focus</span>
+            <input type="number" id="settingPomoWork" value="25" min="1" max="120" class="w-full glass-input rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-mono">
           </div>
           <div>
-            <span class="text-[10px] text-slate-400 block mb-1">Short Rest</span>
-            <input type="number" id="settingPomoBreak" value="5" min="1" max="60" class="w-full glass-input rounded-xl px-2 py-1.5 text-xs text-slate-200">
+            <span class="text-[10px] text-emerald-400/80 block mb-1">Short Rest</span>
+            <input type="number" id="settingPomoBreak" value="5" min="1" max="60" class="w-full glass-input rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-mono">
           </div>
           <div>
-            <span class="text-[10px] text-slate-400 block mb-1">Long Rest</span>
-            <input type="number" id="settingPomoLongBreak" value="15" min="1" max="60" class="w-full glass-input rounded-xl px-2 py-1.5 text-xs text-slate-200">
+            <span class="text-[10px] text-indigo-400/80 block mb-1">Long Rest</span>
+            <input type="number" id="settingPomoLongBreak" value="15" min="1" max="60" class="w-full glass-input rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-mono">
           </div>
         </div>
       </div>
 
       <div>
-        <label class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono">Daily Target Focus Blocks</label>
-        <input type="number" id="settingDailyGoal" value="8" min="1" max="24" class="w-full glass-input rounded-xl px-3 py-1.5 text-xs text-slate-200">
+        <label class="text-xs font-medium text-sky-400 uppercase tracking-wider block mb-2 font-mono">Daily Target Focus Blocks</label>
+        <input type="number" id="settingDailyGoal" value="8" min="1" max="24" class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 font-mono">
       </div>
     </div>
 
     <div class="text-[11px] text-slate-500 font-mono text-center pt-4 border-t border-white/10">
-      SPRK-Timer v4.5 • Pro Workspace
+      SPRK-Timer v5.0 • Architect Edition
     </div>
   </div>
 
-  <!-- Task Drawer -->
-  <div id="taskDrawer" class="fixed inset-y-0 right-0 w-full max-w-sm glass-card z-50 p-6 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10">
-    <div class="flex flex-col h-full">
-      <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-4">
-        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Focus Tasks</h3>
-        <button id="closeTaskBtn" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+  <!-- Advanced Kanban & Tag Task Drawer -->
+  <div id="taskDrawer" class="fixed inset-y-0 right-0 w-full max-w-md glass-card z-50 p-6 md:p-7 flex flex-col justify-between transform translate-x-full transition-transform duration-300 ease-in-out border-l border-white/10 shadow-2xl">
+    <div class="flex flex-col h-full overflow-hidden">
+      <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-pink-400 text-xs"></i>
+          <h3 class="font-semibold text-xs tracking-widest uppercase font-mono text-slate-200">Kanban Tasks</h3>
+        </div>
+        <button id="closeTaskBtn" class="text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-base"></i></button>
       </div>
 
-      <form id="taskForm" class="flex flex-col gap-2 mb-4">
-        <input type="text" id="taskInput" placeholder="Enter objective..." required class="w-full glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
-        
+      <form id="taskForm" class="flex flex-col gap-2.5 mb-4">
+        <input type="text" id="taskInput" placeholder="Task name (e.g. Build API #dev)..." required class="w-full glass-input rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
         <div class="flex items-center gap-2">
-          <select id="taskPrioritySelect" class="flex-1 glass-input rounded-xl px-2 py-1.5 text-xs text-slate-300">
-            <option value="high" class="bg-slate-900 text-rose-400">High Priority</option>
-            <option value="medium" class="bg-slate-900 text-amber-400" selected>Medium Priority</option>
-            <option value="low" class="bg-slate-900 text-emerald-400">Low Priority</option>
+          <select id="taskTagSelect" class="flex-1 glass-input rounded-xl px-2.5 py-1.5 text-xs text-pink-300 font-mono">
+            <option value="work" class="bg-slate-900 text-slate-200">#work</option>
+            <option value="study" class="bg-slate-900 text-slate-200">#study</option>
+            <option value="personal" class="bg-slate-900 text-slate-200">#personal</option>
+            <option value="dev" class="bg-slate-900 text-slate-200">#dev</option>
           </select>
-
           <input type="number" id="taskEstPomos" min="1" max="20" value="2" title="Estimated Pomodoros" class="w-14 glass-input rounded-xl px-2 py-1.5 text-xs text-slate-300 text-center font-mono">
-
-          <button type="submit" class="glass-panel hover:bg-sky-500/20 px-4 py-1.5 rounded-xl text-sky-400 text-xs font-semibold transition flex items-center gap-1">
-            <i class="fa-solid fa-plus"></i> Add
+          <button type="submit" class="glass-panel hover:bg-pink-500/20 hover:border-pink-500/30 text-pink-300 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5 active:scale-95 shadow-sm">
+            <i class="fa-solid fa-plus text-xs text-pink-400"></i> Add
           </button>
         </div>
       </form>
 
-      <div id="taskList" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
+      <!-- Kanban 3-Column Board -->
+      <div class="flex-1 overflow-y-auto grid grid-cols-3 gap-2.5 pr-1">
+        <div class="glass-panel rounded-2xl p-2.5 flex flex-col kanban-col border border-white/5" data-status="todo">
+          <div class="text-[10px] font-mono uppercase font-semibold text-slate-400 mb-2.5 flex items-center justify-between px-1">
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> To Do</span>
+            <span id="countTodo" class="text-slate-300 bg-white/5 px-1.5 py-0.5 rounded">0</span>
+          </div>
+          <div id="colTodo" class="space-y-2 flex-1 kanban-dropzone" data-status="todo"></div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-2.5 flex flex-col kanban-col border border-white/5" data-status="in-progress">
+          <div class="text-[10px] font-mono uppercase font-semibold text-sky-400 mb-2.5 flex items-center justify-between px-1">
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span> Progress</span>
+            <span id="countProgress" class="text-sky-300 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded">0</span>
+          </div>
+          <div id="colProgress" class="space-y-2 flex-1 kanban-dropzone" data-status="in-progress"></div>
+        </div>
+
+        <div class="glass-panel rounded-2xl p-2.5 flex flex-col kanban-col border border-white/5" data-status="done">
+          <div class="text-[10px] font-mono uppercase font-semibold text-emerald-400 mb-2.5 flex items-center justify-between px-1">
+            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Done</span>
+            <span id="countDone" class="text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded">0</span>
+          </div>
+          <div id="colDone" class="space-y-2 flex-1 kanban-dropzone" data-status="done"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Productivity Feature 1: Quick Scratchpad / Sticky Notes -->
+  <!-- Scratchpad Notepad Modal -->
   <div id="notesModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-white/10 relative">
-      <button id="closeNotesBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-      
-      <div class="flex items-center gap-2 mb-3">
-        <i class="fa-solid fa-pen-to-square text-violet-400"></i>
-        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Workspace Scratchpad</h3>
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-emerald-500/20 relative shadow-2xl">
+      <button id="closeNotesBtn" class="absolute top-6 right-6 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-base"></i></button>
+      <div class="flex items-center gap-2.5 mb-2">
+        <i class="fa-solid fa-pen-to-square text-emerald-400 text-base"></i>
+        <h3 class="font-semibold text-xs tracking-widest uppercase font-mono text-slate-200">Workspace Scratchpad</h3>
       </div>
-      <p class="text-xs text-slate-400 mb-4 font-mono">Jot down temporary thoughts, snippet links, or quick ideas during focus blocks.</p>
-
-      <textarea id="scratchpadArea" placeholder="Type quick notes, todos, or brain dumps here... (auto-saved)" class="w-full h-56 glass-input rounded-2xl p-4 text-xs font-mono text-slate-200 placeholder-slate-500 resize-none focus:outline-none mb-3"></textarea>
-
+      <p class="text-xs text-slate-400 mb-4 font-mono">Brain dumps, code snippets, or notes auto-saved in local cache.</p>
+      <textarea id="scratchpadArea" placeholder="Type thoughts here..." class="w-full h-56 glass-input rounded-2xl p-4 text-xs font-mono text-slate-200 placeholder-slate-500 resize-none focus:outline-none mb-4 shadow-inner"></textarea>
       <div class="flex items-center justify-between text-[11px] font-mono text-slate-400">
-        <span id="scratchpadMeta">0 words • 0 chars</span>
+        <span id="scratchpadMeta" class="text-emerald-400/80">0 words • 0 chars</span>
         <div class="flex items-center gap-2">
-          <button id="copyNotesBtn" class="glass-panel hover:bg-violet-500/20 px-3 py-1.5 rounded-xl text-violet-300 transition flex items-center gap-1">
-            <i class="fa-regular fa-copy"></i> Copy
+          <button id="copyNotesBtn" class="glass-panel hover:bg-emerald-500/20 hover:border-emerald-500/30 hover:text-emerald-300 px-3.5 py-1.5 rounded-xl text-slate-300 transition flex items-center gap-1.5 active:scale-95 shadow-sm">
+            <i class="fa-regular fa-copy text-emerald-400"></i> Copy
           </button>
-          <button id="clearNotesBtn" class="glass-panel hover:bg-rose-500/20 px-3 py-1.5 rounded-xl text-rose-400 transition flex items-center gap-1">
-            <i class="fa-regular fa-trash-can"></i> Clear
+          <button id="clearNotesBtn" class="glass-panel hover:bg-rose-500/20 hover:border-rose-500/30 hover:text-rose-300 px-3.5 py-1.5 rounded-xl text-slate-400 transition flex items-center gap-1.5 active:scale-95 shadow-sm">
+            <i class="fa-regular fa-trash-can text-rose-400"></i> Clear
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Productivity Feature 2: Focus Presets Modal -->
+  <!-- Focus Presets Modal -->
   <div id="presetsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
-      <button id="closePresetsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-      
-      <div class="flex items-center gap-2 mb-2">
-        <i class="fa-solid fa-bolt text-amber-400"></i>
-        <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200">Quick Focus Presets</h3>
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-yellow-500/20 relative shadow-2xl">
+      <button id="closePresetsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-base"></i></button>
+      <div class="flex items-center gap-2.5 mb-2">
+        <i class="fa-solid fa-bolt text-yellow-400 text-base"></i>
+        <h3 class="font-semibold text-xs tracking-widest uppercase font-mono text-slate-200">Focus Protocols</h3>
       </div>
-      <p class="text-xs text-slate-400 mb-5 font-mono">Switch workflows instantly with scientifically tuned intervals.</p>
-
+      <p class="text-xs text-slate-400 mb-4 font-mono">Switch scientifically validated intervals instantly.</p>
       <div class="space-y-2.5">
-        <button data-work="25" data-break="5" data-long="15" class="preset-choice-btn w-full glass-panel hover:bg-sky-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-sky-500/30">
+        <button data-work="25" data-break="5" data-long="15" class="preset-choice-btn w-full glass-panel hover:bg-sky-500/10 p-3.5 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-sky-500/30 group active:scale-[0.99]">
           <div>
-            <p class="text-xs font-bold text-sky-300 font-mono">Classic Pomodoro (25m / 5m)</p>
+            <p class="text-xs font-medium text-slate-200 font-mono group-hover:text-sky-300 transition-colors">Classic Pomodoro (25m / 5m)</p>
             <p class="text-[10px] text-slate-400 mt-0.5">Ideal for general study, coding sprints, and writing.</p>
           </div>
-          <span class="text-xs font-mono text-sky-400 px-2 py-1 rounded bg-sky-500/10">Apply</span>
+          <span class="text-xs font-mono text-sky-400 px-2.5 py-1 rounded bg-sky-500/10 border border-sky-500/20 group-hover:bg-sky-500/20 transition-all">Apply</span>
         </button>
 
-        <button data-work="50" data-break="10" data-long="20" class="preset-choice-btn w-full glass-panel hover:bg-emerald-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-emerald-500/30">
+        <button data-work="50" data-break="10" data-long="20" class="preset-choice-btn w-full glass-panel hover:bg-indigo-500/10 p-3.5 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-indigo-500/30 group active:scale-[0.99]">
           <div>
-            <p class="text-xs font-bold text-emerald-300 font-mono">Deep Work Block (50m / 10m)</p>
-            <p class="text-[10px] text-slate-400 mt-0.5">Extended immersive cognitive tasks requiring complex focus.</p>
+            <p class="text-xs font-medium text-slate-200 font-mono group-hover:text-indigo-300 transition-colors">Deep Work Block (50m / 10m)</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">Extended immersive cognitive tasks requiring deep context.</p>
           </div>
-          <span class="text-xs font-mono text-emerald-400 px-2 py-1 rounded bg-emerald-500/10">Apply</span>
+          <span class="text-xs font-mono text-indigo-400 px-2.5 py-1 rounded bg-indigo-500/10 border border-indigo-500/20 group-hover:bg-indigo-500/20 transition-all">Apply</span>
         </button>
 
-        <button data-work="90" data-break="20" data-long="30" class="preset-choice-btn w-full glass-panel hover:bg-indigo-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-indigo-500/30">
+        <button data-work="90" data-break="20" data-long="30" class="preset-choice-btn w-full glass-panel hover:bg-violet-500/10 p-3.5 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-violet-500/30 group active:scale-[0.99]">
           <div>
-            <p class="text-xs font-bold text-indigo-300 font-mono">Ultradian Rhythm (90m / 20m)</p>
+            <p class="text-xs font-medium text-slate-200 font-mono group-hover:text-violet-300 transition-colors">Ultradian Rhythm (90m / 20m)</p>
             <p class="text-[10px] text-slate-400 mt-0.5">Maximizes biological high-performance peak cycles.</p>
           </div>
-          <span class="text-xs font-mono text-indigo-400 px-2 py-1 rounded bg-indigo-500/10">Apply</span>
+          <span class="text-xs font-mono text-violet-400 px-2.5 py-1 rounded bg-violet-500/10 border border-violet-500/20 group-hover:bg-violet-500/20 transition-all">Apply</span>
         </button>
 
-        <button data-work="15" data-break="3" data-long="10" class="preset-choice-btn w-full glass-panel hover:bg-amber-500/15 p-3 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-amber-500/30">
+        <button data-work="15" data-break="3" data-long="10" class="preset-choice-btn w-full glass-panel hover:bg-amber-500/10 p-3.5 rounded-2xl flex items-center justify-between text-left transition border border-white/5 hover:border-amber-500/30 group active:scale-[0.99]">
           <div>
-            <p class="text-xs font-bold text-amber-300 font-mono">Quick Sprint (15m / 3m)</p>
+            <p class="text-xs font-medium text-slate-200 font-mono group-hover:text-amber-300 transition-colors">Quick Sprint (15m / 3m)</p>
             <p class="text-[10px] text-slate-400 mt-0.5">Overcoming procrastination & tackling quick chore lists.</p>
           </div>
-          <span class="text-xs font-mono text-amber-400 px-2 py-1 rounded bg-amber-500/10">Apply</span>
+          <span class="text-xs font-mono text-amber-400 px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 group-hover:bg-amber-500/20 transition-all">Apply</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Media Hub Modal -->
+  <!-- Media & Stream Hub Modal -->
   <div id="mediaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-white/10 relative max-h-[90vh] overflow-y-auto">
-      <button id="closeMediaBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-      
-      <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200 mb-4 flex items-center gap-2">
-        <i class="fa-brands fa-spotify text-emerald-400"></i> Stream & Playlist Hub
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-emerald-500/20 relative max-h-[90vh] overflow-y-auto shadow-2xl">
+      <button id="closeMediaBtn" class="absolute top-6 right-6 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-base"></i></button>
+      <h3 class="font-semibold text-xs tracking-widest uppercase font-mono text-slate-200 mb-4 flex items-center gap-2.5">
+        <i class="fa-brands fa-spotify text-emerald-400 text-base"></i> Stream & Playlist Hub
       </h3>
 
-      <div class="flex gap-2 p-1 glass-panel rounded-xl mb-4 text-xs font-mono">
-        <button id="tabOnlineMedia" class="flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition">Online Streams (Spotify / YouTube)</button>
+      <div class="flex gap-2 p-1.5 glass-panel rounded-xl mb-4 text-xs font-mono">
+        <button id="tabOnlineMedia" class="flex-1 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-medium transition shadow-sm">Online Streams</button>
         <button id="tabLocalMedia" class="flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition">Local MP3s</button>
       </div>
 
       <div id="onlineMediaSection">
-        <p class="text-xs text-slate-400 mb-3">Paste any public <strong>Spotify / YouTube playlist URL</strong>, track link, or iframe embed code:</p>
-
-        <div class="flex gap-2 mb-4">
-          <input type="text" id="mediaUrlInput" placeholder="https://open.spotify.com/playlist/... or https://youtu.be/..." class="flex-1 glass-input rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
-          <button id="loadMediaBtn" class="glass-panel hover:bg-emerald-500/20 px-4 py-2 rounded-xl text-emerald-400 text-xs font-semibold transition">Load</button>
+        <div class="flex flex-wrap gap-1.5 mb-3" id="streamBookmarksBar">
+          <button data-url="https://www.youtube.com/watch?v=jfKfPfyJRdk" class="stream-chip px-3 py-1.5 rounded-lg text-[10px] font-mono glass-panel hover:text-white hover:border-red-500/30 hover:bg-red-500/10 text-slate-300 active:scale-95 transition">📻 Lofi Girl</button>
+          <button data-url="https://www.youtube.com/watch?v=4xDzrJKXOOY" class="stream-chip px-3 py-1.5 rounded-lg text-[10px] font-mono glass-panel hover:text-white hover:border-fuchsia-500/30 hover:bg-fuchsia-500/10 text-slate-300 active:scale-95 transition">🎹 Synthwave Radio</button>
+          <button data-url="https://open.spotify.com/playlist/37i9dQZF1DX8Uebhn9wzrS" class="stream-chip px-3 py-1.5 rounded-lg text-[10px] font-mono glass-panel hover:text-white hover:border-emerald-500/30 hover:bg-emerald-500/10 text-slate-300 active:scale-95 transition">🟢 Chill Instrumental</button>
         </div>
 
-        <div id="mediaEmbedContainer" class="w-full h-64 glass-panel rounded-2xl flex items-center justify-center text-slate-500 text-xs font-mono overflow-hidden mb-4">
+        <div class="flex gap-2 mb-4">
+          <input type="text" id="mediaUrlInput" placeholder="Paste Spotify / YouTube playlist or track link..." class="flex-1 glass-input rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none">
+          <button id="loadMediaBtn" class="glass-panel hover:bg-emerald-500/20 hover:border-emerald-500/30 text-emerald-300 hover:text-white px-4 py-2 rounded-xl text-xs font-medium transition active:scale-95">Load</button>
+        </div>
+
+        <div id="mediaEmbedContainer" class="w-full h-64 glass-panel rounded-2xl flex items-center justify-center text-slate-500 text-xs font-mono overflow-hidden mb-2 border border-white/5">
           No Stream Loaded
         </div>
       </div>
 
       <div id="localMediaSection" class="hidden">
-        <p class="text-xs text-slate-400 mb-3">Select local audio files (.mp3, .wav, .m4a) to build your offline study queue:</p>
-        
-        <label class="glass-panel hover:bg-white/10 px-4 py-3 rounded-2xl flex items-center justify-center gap-2 cursor-pointer border border-dashed border-white/20 mb-4 text-xs text-sky-400">
-          <i class="fa-solid fa-folder-open text-base"></i>
-          <span>Choose Audio Files...</span>
+        <label class="glass-panel hover:bg-emerald-500/10 hover:border-emerald-500/30 px-4 py-4 rounded-2xl flex items-center justify-center gap-2.5 cursor-pointer border border-dashed border-white/20 mb-4 text-xs text-slate-300 active:scale-[0.99] transition group">
+          <i class="fa-solid fa-folder-open text-base text-emerald-400 group-hover:scale-110 transition-transform"></i>
+          <span class="group-hover:text-emerald-300 transition-colors">Choose Audio Files (.mp3, .wav, .m4a)...</span>
           <input type="file" id="localFileInput" accept="audio/*" multiple class="hidden">
         </label>
-
         <div id="localPlaylistContainer" class="space-y-2 max-h-48 overflow-y-auto pr-1">
           <p class="text-[11px] font-mono text-slate-500 text-center py-4">No local files loaded</p>
         </div>
@@ -630,48 +713,60 @@
     </div>
   </div>
 
-  <!-- Analytics Modal with 7-Day Chart -->
+  <!-- Analytics Modal -->
   <div id="analyticsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-md border border-white/10 relative">
-      <button id="closeAnalyticsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+    <div class="glass-card rounded-3xl p-6 md:p-8 w-full max-w-lg border border-blue-500/20 relative max-h-[92vh] overflow-y-auto shadow-2xl">
+      <button id="closeAnalyticsBtn" class="absolute top-6 right-6 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 p-1 rounded-lg transition"><i class="fa-solid fa-xmark text-base"></i></button>
       
-      <h3 class="font-bold text-sm tracking-widest uppercase font-mono text-slate-200 mb-6 flex items-center gap-2">
-        <i class="fa-solid fa-chart-line text-indigo-400"></i> Performance Insights
+      <h3 class="font-semibold text-xs tracking-widest uppercase font-mono text-slate-200 mb-5 flex items-center gap-2.5">
+        <i class="fa-solid fa-chart-line text-blue-400 text-base"></i> Performance Intelligence
       </h3>
 
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <div class="glass-panel rounded-2xl p-4 text-center">
-          <p class="text-[10px] uppercase font-mono text-slate-400 mb-1">Total Focused Time</p>
-          <p id="statTotalTime" class="text-2xl font-bold font-mono text-sky-400">0m</p>
+      <div class="grid grid-cols-3 gap-3 mb-4">
+        <div class="glass-panel rounded-2xl p-3.5 text-center border border-sky-500/10 bg-sky-500/5">
+          <p class="text-[9px] uppercase font-mono text-sky-400/80 mb-1">Total Focus</p>
+          <p id="statTotalTime" class="text-xl font-bold font-mono text-sky-300">0m</p>
         </div>
-        <div class="glass-panel rounded-2xl p-4 text-center">
-          <p class="text-[10px] uppercase font-mono text-slate-400 mb-1">Completed Sessions</p>
-          <p id="statCompleted" class="text-2xl font-bold font-mono text-emerald-400">0</p>
+        <div class="glass-panel rounded-2xl p-3.5 text-center border border-violet-500/10 bg-violet-500/5">
+          <p class="text-[9px] uppercase font-mono text-violet-400/80 mb-1">Sessions</p>
+          <p id="statCompleted" class="text-xl font-bold font-mono text-violet-300">0</p>
+        </div>
+        <div class="glass-panel rounded-2xl p-3.5 text-center border border-amber-500/10 bg-amber-500/5">
+          <p class="text-[9px] uppercase font-mono text-amber-400/80 mb-1">Current Streak</p>
+          <p id="statStreak" class="text-xl font-bold font-mono text-amber-300">1 Day</p>
         </div>
       </div>
 
-      <!-- 7-Day Activity Trend Visualizer -->
-      <div class="glass-panel rounded-2xl p-4 mb-4">
-        <p class="text-[10px] uppercase font-mono text-slate-400 mb-3">7-Day Consistency (Blocks)</p>
-        <div id="weeklyTrendBars" class="flex justify-between items-end h-20 pt-2 px-1"></div>
+      <!-- 4-Week Activity Heatmap -->
+      <div class="glass-panel rounded-2xl p-4 mb-4 border border-white/5">
+        <p class="text-[10px] uppercase font-mono text-blue-400/80 mb-3">28-Day Focus Heatmap Matrix</p>
+        <div id="heatmapGrid" class="grid grid-cols-7 gap-1.5"></div>
       </div>
 
-      <div class="glass-panel rounded-2xl p-4 mb-4">
-        <p class="text-[10px] uppercase font-mono text-slate-400 mb-2">Today's Focus Goal</p>
-        <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-          <div id="streakBar" class="bg-gradient-to-r from-sky-400 to-emerald-400 h-full w-0 transition-all duration-500"></div>
-        </div>
-        <p id="goalStatsLabel" class="text-[10px] text-slate-400 font-mono mt-2 text-right">0 / 8 Focus Blocks Completed</p>
+      <!-- Tag Distribution Summary -->
+      <div class="glass-panel rounded-2xl p-4 mb-4 border border-white/5">
+        <p class="text-[10px] uppercase font-mono text-blue-400/80 mb-2.5">Tag Time Allocation</p>
+        <div id="tagDistributionList" class="space-y-2 font-mono text-xs"></div>
       </div>
 
-      <button id="resetStatsBtn" class="w-full glass-panel hover:bg-rose-500/20 text-rose-400 py-2 rounded-xl text-xs font-mono transition">
-        Reset Analytics Data
-      </button>
+      <!-- Data Export & Import Hub -->
+      <div class="flex items-center gap-2 pt-3 border-t border-white/10">
+        <button id="exportCsvBtn" class="flex-1 glass-panel hover:bg-emerald-500/15 hover:border-emerald-500/30 hover:text-emerald-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition active:scale-95">
+          <i class="fa-solid fa-file-csv mr-1 text-emerald-400"></i> Export CSV
+        </button>
+        <button id="exportJsonBtn" class="flex-1 glass-panel hover:bg-sky-500/15 hover:border-sky-500/30 hover:text-sky-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition active:scale-95">
+          <i class="fa-solid fa-file-code mr-1 text-sky-400"></i> Backup JSON
+        </button>
+        <label class="flex-1 glass-panel hover:bg-violet-500/15 hover:border-violet-500/30 hover:text-violet-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition text-center cursor-pointer active:scale-95">
+          <i class="fa-solid fa-upload mr-1 text-violet-400"></i> Restore
+          <input type="file" id="importJsonInput" accept=".json" class="hidden">
+        </label>
+      </div>
     </div>
   </div>
 
   <script>
-    // --- Wallpaper Presets ---
+    // --- Wallpaper Studio Dictionary ---
     const wallpapers = {
       'beach': 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80',
       'misty-forest': 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=2000&q=80',
@@ -681,19 +776,18 @@
       'sakura': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=2000&q=80',
       'cyberpunk': 'https://images.unsplash.com/photo-1514565131-fce0801e5785?auto=format&fit=crop&w=2000&q=80',
       'desert': 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=2000&q=80',
-      'mountains': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=80',
-      'aurora': 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=2000&q=80'
+      'mountains': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=80'
     };
 
-    // --- State Initialization with LocalStorage ---
+    // --- State Initialization ---
     let engineMode = 'pomodoro'; 
     let timerState = 'idle'; 
     let displayStyle = localStorage.getItem('aura_displayStyle') || 'minimal'; 
-    let activeSound = localStorage.getItem('aura_activeSound') || 'none';
     let isZenMode = false;
     let isMusicBarVisible = localStorage.getItem('aura_musicBarVisible') !== 'false';
     let isTickingEnabled = localStorage.getItem('aura_tickingSound') === 'true';
     let isWakeLockEnabled = localStorage.getItem('aura_wakeLock') !== 'false';
+    let alarmTone = localStorage.getItem('aura_alarmTone') || 'bowl';
 
     let isWorkInterval = true;
     let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || 25) * 60;
@@ -704,23 +798,53 @@
     let timeRemaining = workDurationSecs;
     let totalDuration = workDurationSecs;
     let stopwatchSeconds = 0;
-    let stopwatchLaps = [];
-    let timerInterval = null;
+    let stopwatchLaps = JSON.parse(localStorage.getItem('aura_stopwatchLaps') || '[]');
+
+    let timerAnimationId = null;
+    let startTimeTimestamp = 0;
+    let initialRemainingAtStart = 0;
+    let lastTickSecondLogged = 0;
 
     let dailyGoalTarget = parseInt(localStorage.getItem('aura_dailyGoal') || 8);
     let completedSessionsCount = parseInt(localStorage.getItem('aura_completedSessions') || 0);
     let totalFocusSecondsCompleted = parseInt(localStorage.getItem('aura_focusSeconds') || 0);
-    let weeklyHistory = JSON.parse(localStorage.getItem('aura_weeklyHistory') || JSON.stringify([0,0,0,0,0,0,0]));
+    let heatmapHistory = JSON.parse(localStorage.getItem('aura_heatmapHistory') || JSON.stringify(new Array(28).fill(0)));
 
     let tasks = JSON.parse(localStorage.getItem('aura_tasks') || '[]');
     let activeTaskId = localStorage.getItem('aura_activeTaskId') ? parseInt(localStorage.getItem('aura_activeTaskId')) : null;
-    let draggedTaskIndex = null;
 
     let particleMode = localStorage.getItem('aura_particleMode') || 'embers';
-    let particleDensity = parseInt(localStorage.getItem('aura_particleDensity') || 45);
-    let particleSpeedMultiplier = parseFloat(localStorage.getItem('aura_particleSpeed') || 1.0);
     let currentWallpaper = localStorage.getItem('aura_wallpaper') || 'beach';
     let customWallpaperUrl = localStorage.getItem('aura_customBg') || '';
+
+    let ambientTracks = {
+      campfire: parseFloat(localStorage.getItem('aura_vol_campfire') || '0'),
+      waves: parseFloat(localStorage.getItem('aura_vol_waves') || '0'),
+      cafe: parseFloat(localStorage.getItem('aura_vol_cafe') || '0'),
+      rain: parseFloat(localStorage.getItem('aura_vol_rain') || '0'),
+      alpha: parseFloat(localStorage.getItem('aura_vol_alpha') || '0'),
+      white: parseFloat(localStorage.getItem('aura_vol_white') || '0')
+    };
+
+    // DOM References
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const lapBtn = document.getElementById('lapBtn');
+    const modePomodoro = document.getElementById('modePomodoro');
+    const modeCountdown = document.getElementById('modeCountdown');
+    const modeStopwatch = document.getElementById('modeStopwatch');
+    const pomodoroStatus = document.getElementById('pomodoroStatus');
+    const countdownInputGroup = document.getElementById('countdownInputGroup');
+    const stopwatchLapsContainer = document.getElementById('stopwatchLapsContainer');
+    const displayMinimal = document.getElementById('displayMinimal');
+    const displayRing = document.getElementById('displayRing');
+    const displayFlip = document.getElementById('displayFlip');
+    const ringTimeText = document.getElementById('ringTimeText');
+    const progressCircle = document.getElementById('progressCircle');
+    const quickEditModal = document.getElementById('quickEditModal');
+    const quickEditInput = document.getElementById('quickEditInput');
 
     // --- Screen WakeLock Engine ---
     let wakeLockSentinel = null;
@@ -736,7 +860,7 @@
             });
           }
         } catch (err) {
-          console.warn("Wake Lock request failed:", err);
+          console.warn("WakeLock Error:", err);
         }
       }
       updateWakeLockUI();
@@ -770,7 +894,222 @@
       }
     }
 
+    // --- Document Picture-in-Picture Engine ---
+    let pipWindow = null;
     let autoOpenedPiP = false;
+
+    async function openPiPWindow() {
+      if (pipWindow && !pipWindow.closed) return;
+      if (!('documentPictureInPicture' in window)) return;
+
+      try {
+        pipWindow = await window.documentPictureInPicture.requestWindow({
+          width: 360,
+          height: 240,
+        });
+
+        const linkFont = pipWindow.document.createElement('link');
+        linkFont.rel = 'stylesheet';
+        linkFont.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap';
+        pipWindow.document.head.appendChild(linkFont);
+
+        const linkFa = pipWindow.document.createElement('link');
+        linkFa.rel = 'stylesheet';
+        linkFa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+        pipWindow.document.head.appendChild(linkFa);
+
+        const styleEl = pipWindow.document.createElement('style');
+        styleEl.textContent = `
+          * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+          body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #030712;
+            color: #f8fafc;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 12px 14px;
+            overflow: hidden;
+            position: relative;
+          }
+          .pip-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(28px) brightness(0.32);
+            transform: scale(1.2);
+            z-index: 0;
+          }
+          .pip-container {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+          }
+          .pip-top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+          }
+          .pip-badge {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #38bdf8;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-weight: 700;
+            letter-spacing: 1px;
+          }
+          .pip-task {
+            color: #94a3b8;
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 11px;
+            font-weight: 500;
+          }
+          .pip-center-deck {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 2px 0;
+          }
+          .pip-timer {
+            font-family: 'Space Mono', monospace;
+            font-size: 42px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: -2px;
+            line-height: 1;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+          }
+          .pip-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .pip-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f1f5f9;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 11px;
+          }
+          .pip-btn-play {
+            width: 40px;
+            height: 40px;
+            background: #38bdf8;
+            color: #041421;
+            border: none;
+            font-size: 14px;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+          }
+          .pip-progress-track {
+            width: 100%;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin: 4px 0;
+          }
+          .pip-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #38bdf8, #22c55e);
+            width: 0%;
+            transition: width 0.3s linear;
+          }
+          .pip-bottom-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            font-family: 'Space Mono', monospace;
+            color: #cbd5e1;
+          }
+          canvas.pip-visualizer {
+            border-radius: 4px;
+            opacity: 0.8;
+          }
+        `;
+        pipWindow.document.head.appendChild(styleEl);
+
+        pipWindow.document.body.innerHTML = `
+          <div id="pipBgLayer" class="pip-bg" style="background-image: url('${getActiveWallpaperUrl()}');"></div>
+          <div class="pip-container">
+            <div class="pip-top-bar">
+              <span id="pipModeLabel" class="pip-badge">FOCUS</span>
+              <span id="pipTaskLabel" class="pip-task">SPRK Flow</span>
+            </div>
+            <div class="pip-center-deck">
+              <div id="pipTimerDisplay" class="pip-timer">25:00</div>
+              <div class="pip-controls">
+                <button id="pipResetBtn" class="pip-btn" title="Reset (R)"><i class="fa-solid fa-rotate-right"></i></button>
+                <button id="pipPlayBtn" class="pip-btn pip-btn-play" title="Play/Pause (Space)"><i class="fa-solid fa-play"></i></button>
+                <button id="pipSkipBtn" class="pip-btn" title="Skip Phase (S)"><i class="fa-solid fa-forward-step"></i></button>
+              </div>
+            </div>
+            <div class="pip-progress-track">
+              <div id="pipProgressBar" class="pip-progress-fill"></div>
+            </div>
+            <div class="pip-bottom-bar">
+              <canvas id="pipVisualizer" width="120" height="18" class="pip-visualizer"></canvas>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-volume-low text-[10px] text-slate-400"></i>
+                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" style="width: 55px; height: 4px; accent-color: #38bdf8; cursor: pointer;">
+              </div>
+            </div>
+          </div>
+        `;
+
+        pipWindow.document.getElementById('pipPlayBtn').addEventListener('click', () => {
+          timerState === 'running' ? pauseTimer() : startTimer();
+        });
+        pipWindow.document.getElementById('pipResetBtn').addEventListener('click', resetTimer);
+        pipWindow.document.getElementById('pipSkipBtn').addEventListener('click', skipCurrentPhase);
+
+        pipWindow.document.getElementById('pipVolControl').addEventListener('input', (e) => {
+          const vol = parseFloat(e.target.value);
+          document.getElementById('volumeControl').value = vol;
+          setMasterVolume(vol);
+        });
+
+        pipWindow.addEventListener('pagehide', () => {
+          pipWindow = null;
+          autoOpenedPiP = false;
+        });
+
+        updateDisplay();
+      } catch (err) {
+        console.warn("Document PiP request requires explicit user interaction gesture:", err);
+      }
+    }
+
+    async function togglePiP() {
+      if (pipWindow && !pipWindow.closed) {
+        pipWindow.close();
+        pipWindow = null;
+        autoOpenedPiP = false;
+      } else {
+        autoOpenedPiP = false;
+        await openPiPWindow();
+      }
+    }
+
+    document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
 
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
@@ -790,7 +1129,7 @@
             autoOpenedPiP = true;
             await openPiPWindow();
           } catch (err) {
-            console.warn("Auto-PiP on tab switch requires browser permissions or user interaction:", err);
+            console.warn("Auto-PiP tab trigger prevented:", err);
           }
         }
       }
@@ -807,26 +1146,39 @@
       updateWakeLockUI();
     });
 
-    // --- Local MP3 Player State ---
-    let localAudioQueue = [];
-    let currentTrackIndex = 0;
-    const localAudio = new Audio();
-    let isLocalPlaying = false;
-
-    // --- Audio Web API Engine ---
+    // --- Web Audio API Engine & Multi-Track Sound Mixer ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
-    let ambientGainNode = null;
-    let currentAmbientSource = null;
+    let masterGainNode = null;
+    let analyserNode = null;
+    const activeSoundSources = {};
 
     function initAudio() {
       if (!audioCtx) {
         audioCtx = new AudioContext();
-        ambientGainNode = audioCtx.createGain();
+        masterGainNode = audioCtx.createGain();
+        analyserNode = audioCtx.createAnalyser();
+        analyserNode.fftSize = 64;
+
         const savedVol = localStorage.getItem('aura_volume') || '0.5';
         document.getElementById('volumeControl').value = savedVol;
-        ambientGainNode.gain.value = parseFloat(savedVol);
-        ambientGainNode.connect(audioCtx.destination);
+        masterGainNode.gain.setValueAtTime(parseFloat(savedVol), audioCtx.currentTime);
+
+        masterGainNode.connect(analyserNode);
+        analyserNode.connect(audioCtx.destination);
+      }
+    }
+
+    function setMasterVolume(vol) {
+      localStorage.setItem('aura_volume', vol);
+      if (masterGainNode && audioCtx) {
+        masterGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
+        masterGainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+      }
+      localAudio.volume = vol;
+      if (pipWindow && !pipWindow.closed) {
+        const pipVol = pipWindow.document.getElementById('pipVolControl');
+        if (pipVol) pipVol.value = vol;
       }
     }
 
@@ -850,343 +1202,199 @@
       initAudio();
       if (audioCtx.state === 'suspended') audioCtx.resume();
 
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
-      osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.15); 
-      osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.30); 
-      osc.frequency.setValueAtTime(1046.50, audioCtx.currentTime + 0.45); 
-
-      gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.05);
-      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.8);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 1.8);
+      const t = audioCtx.currentTime;
+      if (alarmTone === 'bowl') {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc1.type = 'sine'; osc1.frequency.setValueAtTime(261.63, t);
+        osc2.type = 'sine'; osc2.frequency.setValueAtTime(523.25, t);
+        gain.gain.setValueAtTime(0.001, t);
+        gain.gain.exponentialRampToValueAtTime(0.3, t + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 4.0);
+        osc1.connect(gain); osc2.connect(gain);
+        gain.connect(masterGainNode);
+        osc1.start(t); osc2.start(t);
+        osc1.stop(t + 4.0); osc2.stop(t + 4.0);
+      } else if (alarmTone === 'wood') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(800, t);
+        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
+        osc.connect(gain); gain.connect(masterGainNode);
+        osc.start(t); osc.stop(t + 0.35);
+      } else if (alarmTone === 'digital') {
+        [440, 554.37, 659.25, 880].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.frequency.setValueAtTime(freq, t + i * 0.1);
+          gain.gain.setValueAtTime(0.2, t + i * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 0.8);
+          osc.connect(gain); gain.connect(masterGainNode);
+          osc.start(t + i * 0.1); osc.stop(t + i * 0.1 + 0.8);
+        });
+      } else {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, t);
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.5);
+        osc.connect(gain); gain.connect(masterGainNode);
+        osc.start(t); osc.stop(t + 2.5);
+      }
 
       if (Notification.permission === 'granted') {
-        const title = engineMode === 'pomodoro' ? (isWorkInterval ? "Session Finished!" : "Break Finished!") : "Timer Complete!";
+        const title = engineMode === 'pomodoro' ? (isWorkInterval ? "Focus Session Complete!" : "Break Concluded!") : "Timer Finished!";
         new Notification(title, {
-          body: engineMode === 'pomodoro' ? (isWorkInterval ? "Great job! Time for a short rest." : "Break is over. Ready to focus?") : "Your target countdown has completed.",
+          body: engineMode === 'pomodoro' ? (isWorkInterval ? "Well done! Take a well-earned rest." : "Break is over. Ready to sprint?") : "Target duration reached.",
           icon: "https://cdn-icons-png.flaticon.com/512/865/865969.png"
         });
       }
     }
 
-    function stopAmbient() {
-      if (currentAmbientSource) {
-        if (currentAmbientSource.stop) currentAmbientSource.stop();
-        if (currentAmbientSource.disconnect) currentAmbientSource.disconnect();
-        currentAmbientSource = null;
-      }
-    }
-
-    function playAmbient(type) {
-      initAudio();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      stopAmbient();
-      if (type === 'none') return;
-
+    function createSoundSource(type) {
       const sampleRate = audioCtx.sampleRate;
-      if (type === 'alpha') {
-        const oscL = audioCtx.createOscillator();
-        const oscR = audioCtx.createOscillator();
-        const merger = audioCtx.createChannelMerger(2);
-        oscL.type = 'sine'; oscL.frequency.value = 200;
-        oscR.type = 'sine'; oscR.frequency.value = 210;
-        oscL.connect(merger, 0, 0);
-        oscR.connect(merger, 0, 1);
-        merger.connect(ambientGainNode);
-        oscL.start(); oscR.start();
-        currentAmbientSource = {
-          stop: () => { oscL.stop(); oscR.stop(); },
-          disconnect: () => { oscL.disconnect(); oscR.disconnect(); merger.disconnect(); }
-        };
-      } else if (type === 'campfire') {
+      const gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gainNode.connect(masterGainNode);
+
+      let nodes = [];
+
+      if (type === 'campfire' || type === 'white') {
         const bufferSize = sampleRate * 2;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
-
+        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = buffer.getChannelData(0);
+        let b0=0, b1=0, b2=0, b3=0;
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          b0 = 0.99886 * b0 + white * 0.0555;
+          b1 = 0.99332 * b1 + white * 0.0750;
+          b2 = 0.96900 * b2 + white * 0.1538;
+          data[i] = (b0 + b1 + b2 + white * 0.5) * 0.04;
+        }
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer; src.loop = true;
         const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = 1200;
-        filter.Q.value = 3.0;
-
-        const crackleGain = audioCtx.createGain();
-        crackleGain.gain.value = 0.08;
-
-        const lfo = audioCtx.createOscillator();
-        lfo.type = 'sawtooth';
-        lfo.frequency.value = 8;
-        const lfoGain = audioCtx.createGain();
-        lfoGain.gain.value = 0.05;
-
-        lfo.connect(lfoGain);
-        lfoGain.connect(crackleGain.gain);
-        noise.connect(filter);
-        filter.connect(crackleGain);
-        crackleGain.connect(ambientGainNode);
-
-        noise.start(); lfo.start();
-        currentAmbientSource = {
-          stop: () => { noise.stop(); lfo.stop(); },
-          disconnect: () => { noise.disconnect(); lfo.disconnect(); crackleGain.disconnect(); }
-        };
+        filter.type = 'lowpass'; filter.frequency.value = type === 'campfire' ? 1100 : 3500;
+        src.connect(filter); filter.connect(gainNode);
+        src.start();
+        nodes.push(src);
       } else if (type === 'waves') {
         const bufferSize = sampleRate * 3;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        let lastOut = 0.0;
+        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = buffer.getChannelData(0);
+        let last = 0;
         for (let i = 0; i < bufferSize; i++) {
-          let white = Math.random() * 2 - 1;
-          data[i] = (lastOut + (0.02 * white)) / 1.02;
-          lastOut = data[i];
+          data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
+          last = data[i];
         }
-
-        const noise = audioCtx.createBufferSource();
-        noise.buffer = noiseBuffer;
-        noise.loop = true;
-
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer; src.loop = true;
         const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
         filter.frequency.value = 400;
-
-        const waveGain = audioCtx.createGain();
-        waveGain.gain.value = 0.15;
-
         const lfo = audioCtx.createOscillator();
-        lfo.type = 'sine';
-        lfo.frequency.value = 0.125;
+        lfo.frequency.value = 0.12;
         const lfoGain = audioCtx.createGain();
-        lfoGain.gain.value = 0.12;
-
-        lfo.connect(lfoGain);
-        lfoGain.connect(waveGain.gain);
-        noise.connect(filter);
-        filter.connect(waveGain);
-        waveGain.connect(ambientGainNode);
-
-        noise.start(); lfo.start();
-        currentAmbientSource = {
-          stop: () => { noise.stop(); lfo.stop(); },
-          disconnect: () => { noise.disconnect(); lfo.disconnect(); waveGain.disconnect(); }
-        };
-      } else if (type === 'rain' || type === 'white') {
-        const bufferSize = sampleRate * 2;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0;
-        for (let i = 0; i < bufferSize; i++) {
-          let white = Math.random() * 2 - 1;
-          if (type === 'white') {
-            output[i] = white * 0.05;
-          } else {
-            b0 = 0.99886 * b0 + white * 0.0555179;
-            b1 = 0.99332 * b1 + white * 0.0750759;
-            b2 = 0.96900 * b2 + white * 0.1538520;
-            b3 = 0.86650 * b3 + white * 0.3104856;
-            b4 = 0.55000 * b4 + white * 0.5329522;
-            b5 = -0.7616 * b5 - white * 0.0168980;
-            output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-            b6 = white * 0.115926;
-          }
-        }
-        const whiteNoise = audioCtx.createBufferSource();
-        whiteNoise.buffer = noiseBuffer;
-        whiteNoise.loop = true;
-
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = type === 'rain' ? 1000 : 3000;
-
-        whiteNoise.connect(filter);
-        filter.connect(ambientGainNode);
-        whiteNoise.start();
-        currentAmbientSource = whiteNoise;
-      } else if (type === 'forest') {
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        osc1.type = 'sine'; osc2.type = 'sine';
-        osc1.frequency.value = 174;
-        osc2.frequency.value = 285;
-
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 320;
-
-        const padGain = audioCtx.createGain();
-        padGain.gain.value = 0.1;
-
-        osc1.connect(filter); osc2.connect(filter);
-        filter.connect(padGain);
-        padGain.connect(ambientGainNode);
-
-        osc1.start(); osc2.start();
-        currentAmbientSource = {
-          stop: () => { osc1.stop(); osc2.stop(); },
-          disconnect: () => { osc1.disconnect(); osc2.disconnect(); padGain.disconnect(); }
-        };
-      } else if (type === 'pink') {
-        const bufferSize = sampleRate * 2;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        let b0 = 0, b1 = 0, b2 = 0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          b0 = 0.99765 * b0 + white * 0.0990460;
-          b1 = 0.96300 * b1 + white * 0.2965164;
-          b2 = 0.57000 * b2 + white * 1.0526913;
-          output[i] = (b0 + b1 + b2 + white * 0.1848) * 0.05;
-        }
-        const source = audioCtx.createBufferSource();
-        source.buffer = noiseBuffer;
-        source.loop = true;
-        source.connect(ambientGainNode);
-        source.start();
-        currentAmbientSource = source;
-      } else if (type === 'brown') {
-        const bufferSize = sampleRate * 2;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        let lastOut = 0.0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          output[i] = (lastOut + (0.02 * white)) / 1.02;
-          lastOut = output[i];
-          output[i] *= 1.2;
-        }
-        const source = audioCtx.createBufferSource();
-        source.buffer = noiseBuffer;
-        source.loop = true;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass';
-        filter.frequency.value = 250;
-        source.connect(filter);
-        filter.connect(ambientGainNode);
-        source.start();
-        currentAmbientSource = source;
-      } else if (type === 'thunder') {
-        const bufferSize = sampleRate * 3;
-        const noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-
-        const rainSource = audioCtx.createBufferSource();
-        rainSource.buffer = noiseBuffer;
-        rainSource.loop = true;
-
-        const rainFilter = audioCtx.createBiquadFilter();
-        rainFilter.type = 'lowpass';
-        rainFilter.frequency.value = 900;
-
-        const rumbleOsc = audioCtx.createOscillator();
-        rumbleOsc.type = 'triangle';
-        rumbleOsc.frequency.value = 45;
-
-        const thunderGain = audioCtx.createGain();
-        thunderGain.gain.value = 0.15;
-
-        rainSource.connect(rainFilter);
-        rainFilter.connect(thunderGain);
-        rumbleOsc.connect(thunderGain);
-        thunderGain.connect(ambientGainNode);
-
-        rainSource.start();
-        rumbleOsc.start();
-        currentAmbientSource = {
-          stop: () => { rainSource.stop(); rumbleOsc.stop(); },
-          disconnect: () => { rainSource.disconnect(); rumbleOsc.disconnect(); thunderGain.disconnect(); }
-        };
+        lfoGain.gain.value = 0.1;
+        lfo.connect(lfoGain); lfoGain.connect(gainNode.gain);
+        src.connect(filter); filter.connect(gainNode);
+        src.start(); lfo.start();
+        nodes.push(src, lfo);
       } else if (type === 'cafe') {
         const osc1 = audioCtx.createOscillator();
         const osc2 = audioCtx.createOscillator();
         osc1.type = 'sine'; osc1.frequency.value = 130;
         osc2.type = 'triangle'; osc2.frequency.value = 220;
-
-        const cafeFilter = audioCtx.createBiquadFilter();
-        cafeFilter.type = 'bandpass';
-        cafeFilter.frequency.value = 500;
-
-        const cafeGain = audioCtx.createGain();
-        cafeGain.gain.value = 0.07;
-
-        osc1.connect(cafeFilter);
-        osc2.connect(cafeFilter);
-        cafeFilter.connect(cafeGain);
-        cafeGain.connect(ambientGainNode);
-
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass'; filter.frequency.value = 500;
+        osc1.connect(filter); osc2.connect(filter);
+        filter.connect(gainNode);
         osc1.start(); osc2.start();
-        currentAmbientSource = {
-          stop: () => { osc1.stop(); osc2.stop(); },
-          disconnect: () => { osc1.disconnect(); osc2.disconnect(); cafeGain.disconnect(); }
-        };
-      } else if (type === 'crickets') {
-        const osc = audioCtx.createOscillator();
-        osc.type = 'sawtooth';
-        osc.frequency.value = 4200;
+        nodes.push(osc1, osc2);
+      } else if (type === 'rain') {
+        const bufferSize = sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.2;
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer; src.loop = true;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass'; filter.frequency.value = 1300; filter.Q.value = 3.0;
+        src.connect(filter); filter.connect(gainNode);
+        src.start();
+        nodes.push(src);
+      } else if (type === 'alpha') {
+        const oscL = audioCtx.createOscillator();
+        const oscR = audioCtx.createOscillator();
+        const merger = audioCtx.createChannelMerger(2);
+        oscL.type = 'sine'; oscL.frequency.value = 200;
+        oscR.type = 'sine'; oscR.frequency.value = 210;
+        oscL.connect(merger, 0, 0); oscR.connect(merger, 0, 1);
+        merger.connect(gainNode);
+        oscL.start(); oscR.start();
+        nodes.push(oscL, oscR);
+      }
 
-        const modOsc = audioCtx.createOscillator();
-        modOsc.type = 'square';
-        modOsc.frequency.value = 7;
+      return { gainNode, nodes };
+    }
 
-        const modGain = audioCtx.createGain();
-        modGain.gain.value = 0.04;
+    function setTrackVolume(type, vol) {
+      initAudio();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      ambientTracks[type] = vol;
+      localStorage.setItem(`aura_vol_${type}`, vol);
 
-        modOsc.connect(modGain.gain);
-        osc.connect(modGain);
-        modGain.connect(ambientGainNode);
+      if (vol > 0 && !activeSoundSources[type]) {
+        activeSoundSources[type] = createSoundSource(type);
+      }
 
-        osc.start(); modOsc.start();
-        currentAmbientSource = {
-          stop: () => { osc.stop(); modOsc.stop(); },
-          disconnect: () => { osc.disconnect(); modOsc.disconnect(); modGain.disconnect(); }
-        };
+      if (activeSoundSources[type]) {
+        const gn = activeSoundSources[type].gainNode;
+        gn.gain.cancelScheduledValues(audioCtx.currentTime);
+        gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.1);
+        if (vol === 0) {
+          setTimeout(() => {
+            if (ambientTracks[type] === 0 && activeSoundSources[type]) {
+              activeSoundSources[type].nodes.forEach(n => { try { n.stop(); n.disconnect(); } catch(e){} });
+              activeSoundSources[type] = null;
+            }
+          }, 150);
+        }
       }
     }
 
-    // --- DOM Elements ---
-    const startBtn = document.getElementById('startBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
-    const resetBtn = document.getElementById('resetBtn');
-    const skipBtn = document.getElementById('skipBtn');
-    const lapBtn = document.getElementById('lapBtn');
-    const stopwatchLapsContainer = document.getElementById('stopwatchLapsContainer');
+    function renderSoundMixerUI() {
+      const list = document.getElementById('soundLayerList');
+      list.innerHTML = '';
+      const sounds = [
+        { id: 'campfire', label: 'Campfire', icon: 'fa-fire' },
+        { id: 'waves', label: 'Waves', icon: 'fa-water' },
+        { id: 'cafe', label: 'Cafe', icon: 'fa-mug-hot' },
+        { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain' },
+        { id: 'alpha', label: 'Alpha', icon: 'fa-brain' },
+        { id: 'white', label: 'White', icon: 'fa-wind' },
+      ];
 
-    const modePomodoro = document.getElementById('modePomodoro');
-    const modeCountdown = document.getElementById('modeCountdown');
-    const modeStopwatch = document.getElementById('modeStopwatch');
-    const pomodoroStatus = document.getElementById('pomodoroStatus');
-    const countdownInputGroup = document.getElementById('countdownInputGroup');
-
-    const displayMinimal = document.getElementById('displayMinimal');
-    const displayRing = document.getElementById('displayRing');
-    const displayFlip = document.getElementById('displayFlip');
-    const ringTimeText = document.getElementById('ringTimeText');
-    const progressCircle = document.getElementById('progressCircle');
-
-    const quickEditModal = document.getElementById('quickEditModal');
-    const quickEditInput = document.getElementById('quickEditInput');
-
-    let pipWindow = null;
-
-    function getActiveWallpaperUrl() {
-      return customWallpaperUrl ? customWallpaperUrl : (wallpapers[currentWallpaper] || wallpapers.beach);
+      sounds.forEach(s => {
+        const val = ambientTracks[s.id] || 0;
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-1.5 px-2 py-1 rounded-xl glass-panel flex-shrink-0 text-xs text-slate-300';
+        div.innerHTML = `
+          <i class="fa-solid ${s.icon} text-[10px] ${val > 0 ? 'text-sky-400' : 'text-slate-500'}"></i>
+          <span class="text-[10px] font-mono">${s.label}</span>
+          <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-12 h-1 accent-sky-400" data-track="${s.id}">
+        `;
+        div.querySelector('input').addEventListener('input', (e) => {
+          const v = parseFloat(e.target.value);
+          setTrackVolume(s.id, v);
+          div.querySelector('i').className = `fa-solid ${s.icon} text-[10px] ${v > 0 ? 'text-sky-400' : 'text-slate-500'}`;
+        });
+        list.appendChild(div);
+      });
     }
 
-    function formatTime(totalSecs) {
-      const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
-      const s = Math.floor(totalSecs % 60).toString().padStart(2, '0');
-      return { m, s, formatted: `${m}:${s}` };
-    }
-
+    // --- Drift-Free Clock Engine ---
     function updateDisplay() {
       const timeObj = engineMode === 'stopwatch' ? formatTime(stopwatchSeconds) : formatTime(timeRemaining);
       
@@ -1208,15 +1416,26 @@
 
       document.title = `${timeObj.formatted} - SPRK-Timer`;
 
-      // Sync pro Document PiP
+      const pomoCard = document.getElementById('pomoCard');
+      if (timerState === 'running') {
+        if (engineMode === 'pomodoro') {
+          pomoCard.className = isWorkInterval 
+            ? "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow"
+            : "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow-rest";
+        } else {
+          pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow";
+        }
+      } else {
+        pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500";
+      }
+
       if (pipWindow && !pipWindow.closed) {
         const pipTime = pipWindow.document.getElementById('pipTimerDisplay');
         const pipMode = pipWindow.document.getElementById('pipModeLabel');
         const pipPlayBtn = pipWindow.document.getElementById('pipPlayBtn');
-        const pipTrack = pipWindow.document.getElementById('pipTrackLabel');
-        const pipBg = pipWindow.document.getElementById('pipBgLayer');
         const pipTask = pipWindow.document.getElementById('pipTaskLabel');
         const pipProgress = pipWindow.document.getElementById('pipProgressBar');
+        const pipBg = pipWindow.document.getElementById('pipBgLayer');
 
         if (pipBg) pipBg.style.backgroundImage = `url('${getActiveWallpaperUrl()}')`;
         if (pipTime) pipTime.textContent = timeObj.formatted;
@@ -1230,16 +1449,9 @@
             ? '<i class="fa-solid fa-pause"></i>' 
             : '<i class="fa-solid fa-play"></i>';
         }
-        if (pipTrack) {
-          if (localAudioQueue.length > 0) {
-            pipTrack.textContent = localAudioQueue[currentTrackIndex]?.name || 'Local Track';
-          } else {
-            pipTrack.textContent = activeSound !== 'none' ? `🎧 ${activeSound.toUpperCase()} AMBIENT` : 'SPRK-Timer • High Focus';
-          }
-        }
         if (pipTask) {
           const activeTask = tasks.find(t => t.id === activeTaskId);
-          pipTask.textContent = activeTask ? `🎯 ${activeTask.title}` : "Ready to focus";
+          pipTask.textContent = activeTask ? `🎯 ${activeTask.title}` : "SPRK Focus";
         }
         if (pipProgress && engineMode !== 'stopwatch') {
           const pct = Math.max(0, Math.min(100, ((totalDuration - timeRemaining) / totalDuration) * 100));
@@ -1248,20 +1460,35 @@
       }
     }
 
-    function tick() {
-      if (timerState === 'running') playTickSound();
+    function formatTime(totalSecs) {
+      const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
+      const s = Math.floor(totalSecs % 60).toString().padStart(2, '0');
+      return { m, s, formatted: `${m}:${s}` };
+    }
+
+    function timerFrameLoop() {
+      if (timerState !== 'running') return;
+
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - startTimeTimestamp) / 1000);
+
+      if (elapsedSeconds !== lastTickSecondLogged) {
+        lastTickSecondLogged = elapsedSeconds;
+        playTickSound();
+      }
 
       if (engineMode === 'stopwatch') {
-        stopwatchSeconds++;
+        stopwatchSeconds = initialRemainingAtStart + elapsedSeconds;
       } else {
-        if (timeRemaining > 0) {
-          timeRemaining--;
+        const currentRemaining = initialRemainingAtStart - elapsedSeconds;
+        if (currentRemaining > 0) {
+          timeRemaining = currentRemaining;
           if (engineMode === 'pomodoro' && isWorkInterval) {
             totalFocusSecondsCompleted++;
             localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
-            updateAnalytics();
           }
         } else {
+          timeRemaining = 0;
           playAlarmSound();
           if (engineMode === 'pomodoro') {
             if (isWorkInterval) {
@@ -1269,8 +1496,17 @@
               sessionCycleCount++;
               localStorage.setItem('aura_completedSessions', completedSessionsCount);
               
-              weeklyHistory[6] = (weeklyHistory[6] || 0) + 1;
-              localStorage.setItem('aura_weeklyHistory', JSON.stringify(weeklyHistory));
+              if (activeTaskId) {
+                const curTask = tasks.find(t => t.id === activeTaskId);
+                if (curTask) {
+                  curTask.actualPomos = (curTask.actualPomos || 0) + 1;
+                  saveTasksToStorage();
+                  renderTasks();
+                }
+              }
+
+              heatmapHistory[heatmapHistory.length - 1] = (heatmapHistory[heatmapHistory.length - 1] || 0) + 1;
+              localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
             }
             isWorkInterval = !isWorkInterval;
             switchPomoPhase();
@@ -1280,16 +1516,27 @@
           }
         }
       }
+
       updateDisplay();
+      if (timerState === 'running') {
+        timerAnimationId = requestAnimationFrame(timerFrameLoop);
+      }
     }
 
     function startTimer() {
       initAudio();
       if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
       timerState = 'running';
       startBtn.classList.add('hidden');
       pauseBtn.classList.remove('hidden');
-      if (!timerInterval) timerInterval = setInterval(tick, 1000);
+
+      startTimeTimestamp = Date.now();
+      initialRemainingAtStart = engineMode === 'stopwatch' ? stopwatchSeconds : timeRemaining;
+      lastTickSecondLogged = 0;
+
+      cancelAnimationFrame(timerAnimationId);
+      timerAnimationId = requestAnimationFrame(timerFrameLoop);
       requestWakeLock();
       updateDisplay();
     }
@@ -1298,8 +1545,7 @@
       timerState = 'paused';
       pauseBtn.classList.add('hidden');
       startBtn.classList.remove('hidden');
-      clearInterval(timerInterval);
-      timerInterval = null;
+      cancelAnimationFrame(timerAnimationId);
       releaseWakeLock();
       updateDisplay();
     }
@@ -1316,19 +1562,19 @@
       } else if (engineMode === 'stopwatch') {
         stopwatchSeconds = 0;
         stopwatchLaps = [];
+        localStorage.removeItem('aura_stopwatchLaps');
         renderStopwatchLaps();
       }
       updateDisplay();
     }
 
-    // --- Skip Phase Engine ---
     function skipCurrentPhase() {
       if (engineMode === 'pomodoro') {
         isWorkInterval = !isWorkInterval;
         switchPomoPhase();
         if (timerState === 'running') {
-          clearInterval(timerInterval);
-          timerInterval = setInterval(tick, 1000);
+          startTimeTimestamp = Date.now();
+          initialRemainingAtStart = timeRemaining;
         }
       } else if (engineMode === 'countdown') {
         resetTimer();
@@ -1356,6 +1602,7 @@
     lapBtn.addEventListener('click', () => {
       if (engineMode === 'stopwatch' && timerState === 'running') {
         stopwatchLaps.push(formatTime(stopwatchSeconds).formatted);
+        localStorage.setItem('aura_stopwatchLaps', JSON.stringify(stopwatchLaps));
         renderStopwatchLaps();
       }
     });
@@ -1445,86 +1692,64 @@
 
     document.getElementById('quickEditCancel').addEventListener('click', () => quickEditModal.classList.add('hidden'));
 
-    // --- Task Engine ---
+    // --- Advanced Kanban & Tag Task Engine ---
     const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
-    const taskPrioritySelect = document.getElementById('taskPrioritySelect');
+    const taskTagSelect = document.getElementById('taskTagSelect');
     const taskEstPomos = document.getElementById('taskEstPomos');
-    const taskList = document.getElementById('taskList');
     const activeTaskLabel = document.getElementById('currentTaskLabel');
     const taskBadge = document.getElementById('taskBadge');
 
     function saveTasksToStorage() {
       localStorage.setItem('aura_tasks', JSON.stringify(tasks));
-      if (activeTaskId) {
-        localStorage.setItem('aura_activeTaskId', activeTaskId);
-      } else {
-        localStorage.removeItem('aura_activeTaskId');
-      }
+      if (activeTaskId) localStorage.setItem('aura_activeTaskId', activeTaskId);
+      else localStorage.removeItem('aura_activeTaskId');
     }
 
-    function getPriorityBadge(priority) {
-      if (priority === 'high') return `<span class="px-1.5 py-0.5 text-[9px] font-mono uppercase font-bold rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">High</span>`;
-      if (priority === 'low') return `<span class="px-1.5 py-0.5 text-[9px] font-mono uppercase font-bold rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Low</span>`;
-      return `<span class="px-1.5 py-0.5 text-[9px] font-mono uppercase font-bold rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">Med</span>`;
+    function getTagColor(tag) {
+      if (tag === 'work') return 'bg-sky-500/20 text-sky-300 border-sky-500/30';
+      if (tag === 'study') return 'bg-violet-500/20 text-violet-300 border-violet-500/30';
+      if (tag === 'dev') return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+      return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
     }
 
     function renderTasks() {
-      taskList.innerHTML = '';
-      const pendingCount = tasks.filter(t => !t.completed).length;
-      
-      if (pendingCount > 0) {
-        taskBadge.textContent = pendingCount;
-        taskBadge.classList.remove('hidden');
-      } else {
-        taskBadge.classList.add('hidden');
-      }
+      const colTodo = document.getElementById('colTodo');
+      const colProgress = document.getElementById('colProgress');
+      const colDone = document.getElementById('colDone');
 
-      const activeTask = tasks.find(t => t.id === activeTaskId);
-      activeTaskLabel.textContent = activeTask ? activeTask.title : "No active task selected";
+      colTodo.innerHTML = ''; colProgress.innerHTML = ''; colDone.innerHTML = '';
 
-      tasks.forEach((task, index) => {
-        const item = document.createElement('div');
-        item.draggable = true;
-        item.dataset.index = index;
-        item.className = `glass-panel p-2.5 rounded-xl flex items-center justify-between text-xs transition cursor-grab active:cursor-grabbing ${task.id === activeTaskId ? 'border-sky-500/50 bg-sky-500/10' : ''}`;
+      let todoCount = 0, progCount = 0, doneCount = 0;
+
+      tasks.forEach((task) => {
+        if (!task.status) task.status = 'todo';
+        if (task.status === 'todo') todoCount++;
+        else if (task.status === 'in-progress') progCount++;
+        else doneCount++;
+
+        const card = document.createElement('div');
+        card.draggable = true;
+        card.dataset.id = task.id;
+        card.className = `glass-panel p-2 rounded-xl text-xs flex flex-col gap-1.5 transition cursor-grab active:cursor-grabbing border ${task.id === activeTaskId ? 'border-sky-400 bg-sky-500/10' : 'border-white/5'}`;
         
-        item.innerHTML = `
-          <div class="flex items-center gap-2 flex-1 min-w-0 select-task">
-            <i class="fa-solid fa-grip-vertical text-slate-600 text-[10px] mr-1"></i>
-            <input type="checkbox" ${task.completed ? 'checked' : ''} class="task-checkbox rounded border-white/20 bg-transparent text-sky-400 focus:ring-0">
-            <span class="truncate ${task.completed ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
-            <span class="text-[9px] font-mono text-slate-400">⏱ ${task.estPomos || 1}</span>
-            ${getPriorityBadge(task.priority)}
+        card.innerHTML = `
+          <div class="flex items-center justify-between gap-1">
+            <span class="font-medium truncate ${task.status === 'done' ? 'line-through text-slate-500' : 'text-slate-200'}">${task.title}</span>
+            <button class="delete-task text-slate-500 hover:text-rose-400 text-[10px]"><i class="fa-regular fa-trash-can"></i></button>
           </div>
-          <button class="delete-task text-slate-500 hover:text-rose-400 px-1.5 transition"><i class="fa-regular fa-trash-can"></i></button>
+          <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span class="px-1.5 py-0.5 rounded border text-[9px] ${getTagColor(task.tag || 'work')}">#${task.tag || 'work'}</span>
+            <span>🍅 ${task.actualPomos || 0}/${task.estPomos || 1}</span>
+          </div>
         `;
 
-        item.addEventListener('dragstart', (e) => {
-          draggedTaskIndex = index;
-          e.dataTransfer.effectAllowed = 'move';
+        card.addEventListener('dragstart', (e) => {
+          e.dataTransfer.setData('text/plain', task.id);
         });
 
-        item.addEventListener('dragover', (e) => {
-          e.preventDefault();
-          item.classList.add('border-sky-400');
-        });
-
-        item.addEventListener('dragleave', () => item.classList.remove('border-sky-400'));
-
-        item.addEventListener('drop', (e) => {
-          e.preventDefault();
-          item.classList.remove('border-sky-400');
-          if (draggedTaskIndex !== null && draggedTaskIndex !== index) {
-            const movedTask = tasks.splice(draggedTaskIndex, 1)[0];
-            tasks.splice(index, 0, movedTask);
-            saveTasksToStorage();
-            renderTasks();
-          }
-        });
-
-        item.querySelector('.select-task').addEventListener('click', (e) => {
-          if (e.target.tagName !== 'INPUT' && !e.target.classList.contains('fa-grip-vertical')) {
+        card.addEventListener('click', (e) => {
+          if (!e.target.closest('.delete-task')) {
             activeTaskId = task.id;
             saveTasksToStorage();
             renderTasks();
@@ -1532,37 +1757,63 @@
           }
         });
 
-        item.querySelector('.task-checkbox').addEventListener('change', (e) => {
-          task.completed = e.target.checked;
-          if (task.completed && activeTaskId === task.id) {
-            activeTaskId = null;
-          }
-          saveTasksToStorage();
-          renderTasks();
-          updateDisplay();
-        });
-
-        item.querySelector('.delete-task').addEventListener('click', () => {
-          if (activeTaskId === task.id) {
-            activeTaskId = null;
-          }
+        card.querySelector('.delete-task').addEventListener('click', () => {
+          if (activeTaskId === task.id) activeTaskId = null;
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasksToStorage();
           renderTasks();
           updateDisplay();
         });
 
-        taskList.appendChild(item);
+        if (task.status === 'todo') colTodo.appendChild(card);
+        else if (task.status === 'in-progress') colProgress.appendChild(card);
+        else colDone.appendChild(card);
       });
+
+      document.getElementById('countTodo').textContent = todoCount;
+      document.getElementById('countProgress').textContent = progCount;
+      document.getElementById('countDone').textContent = doneCount;
+
+      const pending = todoCount + progCount;
+      if (pending > 0) {
+        taskBadge.textContent = pending;
+        taskBadge.classList.remove('hidden');
+      } else {
+        taskBadge.classList.add('hidden');
+      }
+
+      const active = tasks.find(t => t.id === activeTaskId);
+      activeTaskLabel.textContent = active ? `[#${active.tag || 'focus'}] ${active.title}` : "No active task selected";
     }
+
+    document.querySelectorAll('.kanban-dropzone').forEach(zone => {
+      zone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        zone.classList.add('bg-white/5');
+      });
+      zone.addEventListener('dragleave', () => zone.classList.remove('bg-white/5'));
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('bg-white/5');
+        const id = parseInt(e.dataTransfer.getData('text/plain'));
+        const targetStatus = zone.dataset.status;
+        const task = tasks.find(t => t.id === id);
+        if (task && targetStatus) {
+          task.status = targetStatus;
+          saveTasksToStorage();
+          renderTasks();
+          updateDisplay();
+        }
+      });
+    });
 
     taskForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const title = taskInput.value.trim();
-      const priority = taskPrioritySelect.value;
+      const tag = taskTagSelect.value;
       const estPomos = parseInt(taskEstPomos.value) || 1;
       if (title) {
-        const newTask = { id: Date.now(), title, priority, estPomos, completed: false };
+        const newTask = { id: Date.now(), title, tag, estPomos, actualPomos: 0, status: 'todo' };
         tasks.push(newTask);
         if (!activeTaskId) activeTaskId = newTask.id;
         taskInput.value = '';
@@ -1572,60 +1823,266 @@
       }
     });
 
-    // --- Analytics & Weekly Trend Visualization ---
+    // --- Analytics, Heatmap & Export Hub ---
     function updateAnalytics() {
       const minutes = Math.floor(totalFocusSecondsCompleted / 60);
       document.getElementById('statTotalTime').textContent = `${minutes}m`;
       document.getElementById('statCompleted').textContent = completedSessionsCount;
+      document.getElementById('statStreak').textContent = `${Math.max(1, Math.min(completedSessionsCount, 14))} Days`;
 
       const targetPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
       const circumference = 50.2;
       const offset = circumference - (targetPercent / 100) * circumference;
       document.getElementById('goalRingCircle').style.strokeDashoffset = offset;
-
       document.getElementById('goalProgressText').textContent = `${completedSessionsCount} of ${dailyGoalTarget} blocks completed`;
-      document.getElementById('goalStatsLabel').textContent = `${completedSessionsCount} / ${dailyGoalTarget} Focus Blocks Completed`;
 
-      const progressPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
-      document.getElementById('streakBar').style.width = `${progressPercent}%`;
+      const heatmapGrid = document.getElementById('heatmapGrid');
+      heatmapGrid.innerHTML = '';
+      heatmapHistory.forEach((count, i) => {
+        const cell = document.createElement('div');
+        let bg = 'bg-slate-800/60';
+        if (count > 0 && count <= 2) bg = 'bg-sky-500/30';
+        else if (count > 2 && count <= 5) bg = 'bg-sky-500/60';
+        else if (count > 5) bg = 'bg-sky-400';
 
-      const weeklyContainer = document.getElementById('weeklyTrendBars');
-      weeklyContainer.innerHTML = '';
-      const days = ['M', 'T', 'W', 'T', 'F', 'S', 'Today'];
-      const maxVal = Math.max(...weeklyHistory, dailyGoalTarget, 1);
-      weeklyHistory.forEach((val, i) => {
-        const heightPercent = Math.min((val / maxVal) * 100, 100);
-        const col = document.createElement('div');
-        col.className = 'flex flex-col items-center gap-1 flex-1';
-        col.innerHTML = `
-          <div class="w-4 bg-slate-800 rounded-t-sm h-14 flex items-end overflow-hidden">
-            <div class="w-full bg-sky-400 rounded-t-sm" style="height: ${heightPercent}%"></div>
+        cell.className = `h-6 rounded-md ${bg} flex items-center justify-center text-[9px] font-mono text-slate-300 transition-all hover:scale-105`;
+        cell.title = `Day ${i + 1}: ${count} focus blocks`;
+        cell.textContent = count > 0 ? count : '';
+        heatmapGrid.appendChild(cell);
+      });
+
+      const tagDist = document.getElementById('tagDistributionList');
+      tagDist.innerHTML = '';
+      const tagCounts = {};
+      tasks.forEach(t => {
+        const tg = t.tag || 'general';
+        tagCounts[tg] = (tagCounts[tg] || 0) + (t.actualPomos || 0);
+      });
+
+      Object.entries(tagCounts).forEach(([tag, count]) => {
+        const row = document.createElement('div');
+        row.className = 'flex justify-between items-center py-1 border-b border-white/5';
+        row.innerHTML = `<span class="text-slate-300">#${tag}</span><span class="text-sky-400">${count * 25} mins (${count} pomos)</span>`;
+        tagDist.appendChild(row);
+      });
+      if (Object.keys(tagCounts).length === 0) {
+        tagDist.innerHTML = `<p class="text-slate-500 text-center py-1">No tagged pomodoros recorded yet</p>`;
+      }
+    }
+
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      let csv = 'Timestamp,EngineMode,CompletedSessions,TotalFocusMinutes\n';
+      csv += `${new Date().toISOString()},${engineMode},${completedSessionsCount},${Math.floor(totalFocusSecondsCompleted / 60)}\n\n`;
+      csv += 'TaskID,Title,Tag,Status,EstPomos,ActualPomos\n';
+      tasks.forEach(t => {
+        csv += `${t.id},"${t.title.replace(/"/g, '""')}",${t.tag},${t.status},${t.estPomos},${t.actualPomos || 0}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `SPRK_Focus_Report_${Date.now()}.csv`;
+      a.click();
+    });
+
+    document.getElementById('exportJsonBtn').addEventListener('click', () => {
+      const data = {
+        tasks, completedSessionsCount, totalFocusSecondsCompleted, heatmapHistory,
+        workDurationSecs, breakDurationSecs, dailyGoalTarget, ambientTracks
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `SPRK_Backup_${Date.now()}.json`;
+      a.click();
+    });
+
+    document.getElementById('importJsonInput').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (imported.tasks) tasks = imported.tasks;
+          if (imported.heatmapHistory) heatmapHistory = imported.heatmapHistory;
+          if (imported.completedSessionsCount !== undefined) completedSessionsCount = imported.completedSessionsCount;
+          if (imported.totalFocusSecondsCompleted !== undefined) totalFocusSecondsCompleted = imported.totalFocusSecondsCompleted;
+          saveTasksToStorage();
+          updateAnalytics();
+          renderTasks();
+          alert('Workspace state restored successfully!');
+        } catch(err) {
+          alert('Failed to parse backup JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    // --- Visualizer Bar Canvas Integration ---
+    function startVisualizers() {
+      const mainCanvas = document.getElementById('mainAudioVisualizer');
+      const mainCtx = mainCanvas.getContext('2d');
+
+      function drawVisualizer() {
+        requestAnimationFrame(drawVisualizer);
+        mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+
+        if (analyserNode && (timerState === 'running' || isLocalPlaying || Object.values(ambientTracks).some(v => v > 0))) {
+          const bufferLength = analyserNode.frequencyBinCount;
+          const dataArray = new Uint8Array(bufferLength);
+          analyserNode.getByteFrequencyData(dataArray);
+
+          const barWidth = (mainCanvas.width / bufferLength) * 1.5;
+          let x = 0;
+
+          for (let i = 0; i < bufferLength; i++) {
+            const barHeight = (dataArray[i] / 255) * mainCanvas.height;
+            mainCtx.fillStyle = `rgba(56, 189, 248, ${Math.max(dataArray[i] / 255, 0.2)})`;
+            mainCtx.fillRect(x, mainCanvas.height - barHeight, barWidth - 1, barHeight);
+            x += barWidth + 1;
+          }
+
+          if (pipWindow && !pipWindow.closed) {
+            const pipCanvas = pipWindow.document.getElementById('pipVisualizer');
+            if (pipCanvas) {
+              const pCtx = pipCanvas.getContext('2d');
+              pCtx.clearRect(0, 0, pipCanvas.width, pipCanvas.height);
+              let px = 0;
+              const pBarWidth = (pipCanvas.width / bufferLength) * 1.5;
+              for (let i = 0; i < bufferLength; i++) {
+                const pBarHeight = (dataArray[i] / 255) * pipCanvas.height;
+                pCtx.fillStyle = '#38bdf8';
+                pCtx.fillRect(px, pipCanvas.height - pBarHeight, pBarWidth - 1, pBarHeight);
+                px += pBarWidth + 1;
+              }
+            }
+          }
+        }
+      }
+      drawVisualizer();
+    }
+
+    // --- Command Palette Engine (Ctrl+K / ⌘K) ---
+    const cmdPaletteModal = document.getElementById('cmdPaletteModal');
+    const cmdInput = document.getElementById('cmdInput');
+    const cmdResults = document.getElementById('cmdResults');
+
+    const commandList = [
+      { name: "Start Focus Timer", action: () => startTimer(), icon: "fa-play" },
+      { name: "Pause Timer", action: () => pauseTimer(), icon: "fa-pause" },
+      { name: "Reset Timer", action: () => resetTimer(), icon: "fa-rotate-right" },
+      { name: "Skip to Next Phase", action: () => skipCurrentPhase(), icon: "fa-forward-step" },
+      { name: "Toggle Zen Mode", action: () => toggleZenMode(), icon: "fa-expand" },
+      { name: "Open Mini Document PiP", action: () => togglePiP(), icon: "fa-window-restore" },
+      { name: "Set 25m Pomodoro Preset", action: () => setPreset(25, 5, 15), icon: "fa-bolt" },
+      { name: "Set 50m Deep Work Preset", action: () => setPreset(50, 10, 20), icon: "fa-bolt" },
+      { name: "Theme: OLED Pitch Black", action: () => applyThemeSelection('oled-black'), icon: "fa-moon" },
+      { name: "Theme: Ocean Coast Beach", action: () => applyThemeSelection('beach'), icon: "fa-umbrella-beach" },
+      { name: "Theme: Animated Aurora", action: () => applyThemeSelection('aurora-canvas'), icon: "fa-wand-magic-sparkles" },
+      { name: "Open Analytics Dashboard", action: () => document.getElementById('analyticsToggleBtn').click(), icon: "fa-chart-simple" },
+      { name: "Open Kanban Tasks", action: () => document.getElementById('taskToggleBtn').click(), icon: "fa-list-check" }
+    ];
+
+    function setPreset(w, b, l) {
+      workDurationSecs = w * 60; breakDurationSecs = b * 60; longBreakDurationSecs = l * 60;
+      localStorage.setItem('aura_workMins', w); localStorage.setItem('aura_breakMins', b);
+      setEngineMode('pomodoro');
+    }
+
+    function renderCommandResults(query = '') {
+      cmdResults.innerHTML = '';
+      const filtered = commandList.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
+      filtered.forEach((cmd, idx) => {
+        const item = document.createElement('div');
+        item.className = `p-2 rounded-xl flex items-center justify-between glass-panel cursor-pointer hover:bg-sky-500/20 text-slate-200 transition ${idx === 0 ? 'bg-white/10' : ''}`;
+        item.innerHTML = `
+          <div class="flex items-center gap-2">
+            <i class="fa-solid ${cmd.icon} text-sky-400 text-xs w-4"></i>
+            <span>${cmd.name}</span>
           </div>
-          <span class="text-[9px] font-mono text-slate-500">${days[i]}</span>
+          <span class="text-[10px] text-slate-500 font-mono">Jump</span>
         `;
-        weeklyContainer.appendChild(col);
+        item.addEventListener('click', () => {
+          cmd.action();
+          closeCmdPalette();
+        });
+        cmdResults.appendChild(item);
       });
     }
 
-    document.getElementById('resetStatsBtn').addEventListener('click', () => {
-      if (confirm("Reset focus stats for today?")) {
-        completedSessionsCount = 0;
-        totalFocusSecondsCompleted = 0;
-        localStorage.setItem('aura_completedSessions', 0);
-        localStorage.setItem('aura_focusSeconds', 0);
-        weeklyHistory[6] = 0;
-        localStorage.setItem('aura_weeklyHistory', JSON.stringify(weeklyHistory));
-        updateAnalytics();
-      }
-    });
+    function openCmdPalette() {
+      cmdPaletteModal.classList.remove('opacity-0', 'pointer-events-none');
+      cmdInput.value = '';
+      renderCommandResults();
+      cmdInput.focus();
+    }
 
-    // --- Settings & UI Logic ---
+    function closeCmdPalette() {
+      cmdPaletteModal.classList.add('opacity-0', 'pointer-events-none');
+    }
+
+    document.getElementById('cmdPaletteBtn').addEventListener('click', openCmdPalette);
+    cmdInput.addEventListener('input', (e) => renderCommandResults(e.target.value));
+
+    // --- Settings & UI Helpers ---
+    function getActiveWallpaperUrl() {
+      return customWallpaperUrl ? customWallpaperUrl : (wallpapers[currentWallpaper] || wallpapers.beach);
+    }
+
     function applyWallpaper(url) {
       document.getElementById('bgLayer').style.backgroundImage = `url('${url}')`;
       if (pipWindow && !pipWindow.closed) {
         const pipBg = pipWindow.document.getElementById('pipBgLayer');
         if (pipBg) pipBg.style.backgroundImage = `url('${url}')`;
       }
+    }
+
+    function applyThemeSelection(themeKey) {
+      currentWallpaper = themeKey;
+      localStorage.setItem('aura_wallpaper', currentWallpaper);
+      localStorage.removeItem('aura_customBg');
+      customWallpaperUrl = '';
+
+      const bgLayer = document.getElementById('bgLayer');
+      const themeCanvas = document.getElementById('themeCanvas');
+
+      if (themeKey === 'oled-black') {
+        bgLayer.style.backgroundImage = 'none';
+        bgLayer.style.backgroundColor = '#000000';
+        themeCanvas.classList.add('hidden');
+      } else if (themeKey === 'aurora-canvas') {
+        bgLayer.style.backgroundImage = 'none';
+        themeCanvas.classList.remove('hidden');
+        startAuroraCanvas();
+      } else {
+        themeCanvas.classList.add('hidden');
+        applyWallpaper(wallpapers[themeKey] || wallpapers.beach);
+      }
+    }
+
+    let auroraAnimId = null;
+    function startAuroraCanvas() {
+      const tCanvas = document.getElementById('themeCanvas');
+      const tCtx = tCanvas.getContext('2d');
+      tCanvas.width = window.innerWidth; tCanvas.height = window.innerHeight;
+
+      let step = 0;
+      function renderAurora() {
+        if (currentWallpaper !== 'aurora-canvas') return;
+        step += 0.004;
+        const g = tCtx.createLinearGradient(0, 0, tCanvas.width, tCanvas.height);
+        const r1 = Math.sin(step) * 40 + 15;
+        const g1 = Math.cos(step * 0.7) * 40 + 20;
+        g.addColorStop(0, `rgb(${r1}, ${g1}, 50)`);
+        g.addColorStop(0.5, '#090d16');
+        g.addColorStop(1, `rgb(20, ${r1 + 20}, ${g1 + 60})`);
+        tCtx.fillStyle = g;
+        tCtx.fillRect(0, 0, tCanvas.width, tCanvas.height);
+        auroraAnimId = requestAnimationFrame(renderAurora);
+      }
+      cancelAnimationFrame(auroraAnimId);
+      renderAurora();
     }
 
     document.getElementById('displaySelect').value = displayStyle;
@@ -1651,20 +2108,14 @@
       applyWallpaper(customWallpaperUrl);
     } else {
       bgSelect.value = currentWallpaper;
-      applyWallpaper(wallpapers[currentWallpaper] || wallpapers.beach);
+      applyThemeSelection(currentWallpaper);
     }
 
-    bgSelect.addEventListener('change', (e) => {
-      currentWallpaper = e.target.value;
-      localStorage.setItem('aura_wallpaper', currentWallpaper);
-      localStorage.removeItem('aura_customBg');
-      customBgInput.value = '';
-      applyWallpaper(wallpapers[currentWallpaper]);
-    });
-
+    bgSelect.addEventListener('change', (e) => applyThemeSelection(e.target.value));
     customBgInput.addEventListener('change', (e) => {
       const url = e.target.value.trim();
       if (url) {
+        customWallpaperUrl = url;
         localStorage.setItem('aura_customBg', url);
         applyWallpaper(url);
       }
@@ -1681,27 +2132,29 @@
       localStorage.setItem('aura_workMins', val);
       if (engineMode === 'pomodoro' && isWorkInterval) resetTimer();
     });
-
     document.getElementById('settingPomoBreak').addEventListener('change', (e) => {
       const val = parseInt(e.target.value) || 5;
       breakDurationSecs = val * 60;
       localStorage.setItem('aura_breakMins', val);
       if (engineMode === 'pomodoro' && !isWorkInterval) resetTimer();
     });
-
     document.getElementById('settingPomoLongBreak').addEventListener('change', (e) => {
       const val = parseInt(e.target.value) || 15;
       longBreakDurationSecs = val * 60;
       localStorage.setItem('aura_longBreakMins', val);
     });
-
     document.getElementById('settingDailyGoal').addEventListener('change', (e) => {
       dailyGoalTarget = parseInt(e.target.value) || 8;
       localStorage.setItem('aura_dailyGoal', dailyGoalTarget);
       updateAnalytics();
     });
 
-    // Metronome setting
+    document.getElementById('alarmToneSelect').value = alarmTone;
+    document.getElementById('alarmToneSelect').addEventListener('change', (e) => {
+      alarmTone = e.target.value;
+      localStorage.setItem('aura_alarmTone', alarmTone);
+    });
+
     const settingTickingSound = document.getElementById('settingTickingSound');
     settingTickingSound.checked = isTickingEnabled;
     settingTickingSound.addEventListener('change', (e) => {
@@ -1709,63 +2162,31 @@
       localStorage.setItem('aura_tickingSound', isTickingEnabled);
     });
 
-    // Test Chime Alarm Button
     document.getElementById('testChimeBtn').addEventListener('click', playAlarmSound);
 
-    // Wake Lock setting toggle
     const settingWakeLock = document.getElementById('settingWakeLock');
     settingWakeLock.checked = isWakeLockEnabled;
     settingWakeLock.addEventListener('change', (e) => {
       isWakeLockEnabled = e.target.checked;
       localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
-      if (isWakeLockEnabled && timerState === 'running') {
-        requestWakeLock();
-      } else {
-        releaseWakeLock();
-      }
+      if (isWakeLockEnabled && timerState === 'running') requestWakeLock();
+      else releaseWakeLock();
       updateWakeLockUI();
     });
 
-    // Desktop Notification Request
     document.getElementById('requestNotifBtn').addEventListener('click', () => {
       if ('Notification' in window) {
         Notification.requestPermission().then(permission => {
-          if (permission === 'granted') alert('Notifications enabled successfully!');
+          if (permission === 'granted') alert('Desktop Notifications enabled successfully!');
         });
       }
-    });
-
-    // Soundscape Setup
-    document.querySelectorAll('.sound-btn').forEach(btn => {
-      if (btn.dataset.sound === activeSound) {
-        btn.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap flex-shrink-0 transition";
-      } else {
-        btn.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0";
-      }
-      btn.addEventListener('click', (e) => {
-        document.querySelectorAll('.sound-btn').forEach(b => {
-          b.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel text-slate-400 hover:text-white transition whitespace-nowrap flex-shrink-0";
-        });
-        e.target.className = "sound-btn px-3 py-1.5 rounded-xl text-xs glass-panel bg-white/15 text-white font-medium whitespace-nowrap flex-shrink-0 transition";
-        activeSound = e.target.dataset.sound;
-        localStorage.setItem('aura_activeSound', activeSound);
-        playAmbient(activeSound);
-        updateDisplay();
-      });
     });
 
     document.getElementById('volumeControl').addEventListener('input', (e) => {
-      const vol = parseFloat(e.target.value);
-      localStorage.setItem('aura_volume', vol);
-      if (ambientGainNode) ambientGainNode.gain.value = vol;
-      localAudio.volume = vol;
-      if (pipWindow && !pipWindow.closed) {
-        const pipVol = pipWindow.document.getElementById('pipVolControl');
-        if (pipVol) pipVol.value = vol;
-      }
+      setMasterVolume(parseFloat(e.target.value));
     });
 
-    // Drawer & Modal Toggles
+    // Drawer Toggles
     const settingsDrawer = document.getElementById('settingsDrawer');
     const taskDrawer = document.getElementById('taskDrawer');
     const analyticsModal = document.getElementById('analyticsModal');
@@ -1773,11 +2194,8 @@
     const mainFooter = document.getElementById('mainFooter');
 
     function updateMusicBarVisibility() {
-      if (isMusicBarVisible) {
-        mainFooter.classList.remove('music-bar-hidden');
-      } else {
-        mainFooter.classList.add('music-bar-hidden');
-      }
+      if (isMusicBarVisible) mainFooter.classList.remove('music-bar-hidden');
+      else mainFooter.classList.add('music-bar-hidden');
     }
 
     function toggleMusicBar() {
@@ -1787,11 +2205,10 @@
     }
 
     document.getElementById('soundscapeToggleBtn').addEventListener('click', toggleMusicBar);
-
     document.getElementById('settingsToggleBtn').addEventListener('click', () => settingsDrawer.classList.remove('translate-x-full'));
     document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsDrawer.classList.add('translate-x-full'));
-
     document.getElementById('taskToggleBtn').addEventListener('click', () => taskDrawer.classList.remove('translate-x-full'));
+    document.getElementById('activeTaskDisplay').addEventListener('click', () => taskDrawer.classList.remove('translate-x-full'));
     document.getElementById('closeTaskBtn').addEventListener('click', () => taskDrawer.classList.add('translate-x-full'));
 
     document.getElementById('analyticsToggleBtn').addEventListener('click', () => {
@@ -1803,11 +2220,10 @@
     document.getElementById('mediaToggleBtn').addEventListener('click', () => mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
     document.getElementById('closeMediaBtn').addEventListener('click', () => mediaModal.classList.add('opacity-0', 'pointer-events-none'));
 
-    // --- Productivity Feature 1: Scratchpad Logic ---
+    // Scratchpad Logic
     const notesModal = document.getElementById('notesModal');
     const scratchpadArea = document.getElementById('scratchpadArea');
     const scratchpadMeta = document.getElementById('scratchpadMeta');
-
     scratchpadArea.value = localStorage.getItem('aura_scratchpad') || '';
 
     function updateScratchpadCounts() {
@@ -1827,9 +2243,7 @@
       notesModal.classList.remove('opacity-0', 'pointer-events-none');
       scratchpadArea.focus();
     });
-    document.getElementById('closeNotesBtn').addEventListener('click', () => {
-      notesModal.classList.add('opacity-0', 'pointer-events-none');
-    });
+    document.getElementById('closeNotesBtn').addEventListener('click', () => notesModal.classList.add('opacity-0', 'pointer-events-none'));
 
     document.getElementById('copyNotesBtn').addEventListener('click', () => {
       if (scratchpadArea.value) {
@@ -1848,49 +2262,25 @@
       }
     });
 
-    // --- Productivity Feature 2: Presets Selector Logic ---
+    // Presets Modal
     const presetsModal = document.getElementById('presetsModal');
-
-    document.getElementById('presetsToggleBtn').addEventListener('click', () => {
-      presetsModal.classList.remove('opacity-0', 'pointer-events-none');
-    });
-    document.getElementById('closePresetsBtn').addEventListener('click', () => {
-      presetsModal.classList.add('opacity-0', 'pointer-events-none');
-    });
+    document.getElementById('presetsToggleBtn').addEventListener('click', () => presetsModal.classList.remove('opacity-0', 'pointer-events-none'));
+    document.getElementById('closePresetsBtn').addEventListener('click', () => presetsModal.classList.add('opacity-0', 'pointer-events-none'));
 
     document.querySelectorAll('.preset-choice-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const work = parseInt(btn.dataset.work);
-        const brk = parseInt(btn.dataset.break);
-        const lng = parseInt(btn.dataset.long);
-
-        workDurationSecs = work * 60;
-        breakDurationSecs = brk * 60;
-        longBreakDurationSecs = lng * 60;
-
-        localStorage.setItem('aura_workMins', work);
-        localStorage.setItem('aura_breakMins', brk);
-        localStorage.setItem('aura_longBreakMins', lng);
-
-        document.getElementById('settingPomoWork').value = work;
-        document.getElementById('settingPomoBreak').value = brk;
-        document.getElementById('settingPomoLongBreak').value = lng;
-
-        setEngineMode('pomodoro');
+        setPreset(parseInt(btn.dataset.work), parseInt(btn.dataset.break), parseInt(btn.dataset.long));
         presetsModal.classList.add('opacity-0', 'pointer-events-none');
       });
     });
 
-    // --- Automatic URL Parsing for Spotify & YouTube Embeds ---
+    // Online Streams & Bookmark Engine
     function parseMediaUrl(input) {
       if (input.includes('<iframe')) return input;
-      
       if (input.includes('spotify.com')) {
         const urlObj = new URL(input);
-        const pathname = urlObj.pathname;
-        return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+        return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${urlObj.pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
       }
-
       if (input.includes('youtube.com') || input.includes('youtu.be')) {
         let embedUrl = '';
         if (input.includes('list=')) {
@@ -1904,19 +2294,22 @@
           embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
         }
         if (embedUrl) {
-          return `<iframe width="100%" height="100%" src="${embedUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+          return `<iframe width="100%" height="100%" src="${embedUrl}" title="YouTube player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
         }
       }
-
       return `<iframe src="${input}" width="100%" height="100%" frameborder="0" allow="encrypted-media; autoplay"></iframe>`;
     }
 
     document.getElementById('loadMediaBtn').addEventListener('click', () => {
       const input = document.getElementById('mediaUrlInput').value.trim();
-      const container = document.getElementById('mediaEmbedContainer');
-      if (input) {
-        container.innerHTML = parseMediaUrl(input);
-      }
+      if (input) document.getElementById('mediaEmbedContainer').innerHTML = parseMediaUrl(input);
+    });
+
+    document.querySelectorAll('.stream-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.getElementById('mediaUrlInput').value = chip.dataset.url;
+        document.getElementById('mediaEmbedContainer').innerHTML = parseMediaUrl(chip.dataset.url);
+      });
     });
 
     document.getElementById('tabOnlineMedia').addEventListener('click', () => {
@@ -1933,49 +2326,45 @@
       document.getElementById('tabOnlineMedia').className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
     });
 
-    // --- Local MP3 File Loader & Queue Engine ---
-    const localFileInput = document.getElementById('localFileInput');
-    const localPlaylistContainer = document.getElementById('localPlaylistContainer');
-    const localAudioControlsBar = document.getElementById('localAudioControlsBar');
-    const nowPlayingBarText = document.getElementById('nowPlayingBarText');
-    const toggleLocalPlayBtn = document.getElementById('toggleLocalPlayBtn');
-    const localPlayIcon = document.getElementById('localPlayIcon');
+    // Local Audio Queue
+    let localAudioQueue = [];
+    let currentTrackIndex = 0;
+    const localAudio = new Audio();
+    let isLocalPlaying = false;
 
-    localFileInput.addEventListener('change', (e) => {
+    document.getElementById('localFileInput').addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
       if (!files.length) return;
-
       localAudioQueue = files.map(file => ({
         name: file.name.replace(/\.[^/.]+$/, ""),
         url: URL.createObjectURL(file)
       }));
-
       currentTrackIndex = 0;
       loadLocalTrack(currentTrackIndex);
       renderLocalPlaylistUI();
-      localAudioControlsBar.classList.remove('hidden');
+      document.getElementById('localAudioControlsBar').classList.remove('hidden');
     });
 
     function loadLocalTrack(index) {
       if (!localAudioQueue[index]) return;
       localAudio.src = localAudioQueue[index].url;
       localAudio.volume = parseFloat(document.getElementById('volumeControl').value);
-      nowPlayingBarText.textContent = localAudioQueue[index].name;
+      document.getElementById('nowPlayingBarText').textContent = localAudioQueue[index].name;
       renderLocalPlaylistUI();
     }
 
     function toggleLocalPlay() {
       if (localAudioQueue.length === 0) return;
+      const icon = document.getElementById('localPlayIcon');
       if (isLocalPlaying) {
         localAudio.pause();
         isLocalPlaying = false;
-        localPlayIcon.className = "fa-solid fa-play";
+        icon.className = "fa-solid fa-play";
       } else {
         localAudio.play();
         isLocalPlaying = true;
-        localPlayIcon.className = "fa-solid fa-pause";
+        icon.className = "fa-solid fa-pause";
       }
-      updateDisplay();
     }
 
     function nextLocalTrack() {
@@ -1983,7 +2372,6 @@
       currentTrackIndex = (currentTrackIndex + 1) % localAudioQueue.length;
       loadLocalTrack(currentTrackIndex);
       if (isLocalPlaying) localAudio.play();
-      updateDisplay();
     }
 
     function prevLocalTrack() {
@@ -1991,16 +2379,16 @@
       currentTrackIndex = (currentTrackIndex - 1 + localAudioQueue.length) % localAudioQueue.length;
       loadLocalTrack(currentTrackIndex);
       if (isLocalPlaying) localAudio.play();
-      updateDisplay();
     }
 
     localAudio.addEventListener('ended', nextLocalTrack);
-    toggleLocalPlayBtn.addEventListener('click', toggleLocalPlay);
+    document.getElementById('toggleLocalPlayBtn').addEventListener('click', toggleLocalPlay);
     document.getElementById('nextTrackBtn').addEventListener('click', nextLocalTrack);
     document.getElementById('prevTrackBtn').addEventListener('click', prevLocalTrack);
 
     function renderLocalPlaylistUI() {
-      localPlaylistContainer.innerHTML = '';
+      const container = document.getElementById('localPlaylistContainer');
+      container.innerHTML = '';
       localAudioQueue.forEach((track, idx) => {
         const item = document.createElement('div');
         item.className = `p-2 rounded-xl flex items-center justify-between text-xs glass-panel cursor-pointer transition ${idx === currentTrackIndex ? 'border-sky-400/50 bg-sky-500/10 text-sky-300' : 'text-slate-300 hover:bg-white/5'}`;
@@ -2016,255 +2404,13 @@
           loadLocalTrack(idx);
           localAudio.play();
           isLocalPlaying = true;
-          localPlayIcon.className = "fa-solid fa-pause";
-          updateDisplay();
+          document.getElementById('localPlayIcon').className = "fa-solid fa-pause";
         });
-        localPlaylistContainer.appendChild(item);
+        container.appendChild(item);
       });
     }
 
-    // --- Spotify-Grade Mini-Screen (Document Picture-in-Picture) ---
-    async function openPiPWindow() {
-      if (pipWindow && !pipWindow.closed) return;
-
-      if ('documentPictureInPicture' in window) {
-        try {
-          pipWindow = await window.documentPictureInPicture.requestWindow({
-            width: 360,
-            height: 220,
-          });
-
-          const linkFont = pipWindow.document.createElement('link');
-          linkFont.rel = 'stylesheet';
-          linkFont.href = 'https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap';
-          pipWindow.document.head.appendChild(linkFont);
-
-          const linkFa = pipWindow.document.createElement('link');
-          linkFa.rel = 'stylesheet';
-          linkFa.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-          pipWindow.document.head.appendChild(linkFa);
-
-          const styleEl = pipWindow.document.createElement('style');
-          styleEl.textContent = `
-            * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
-            body {
-              font-family: 'Plus Jakarta Sans', sans-serif;
-              background: #090d16;
-              color: #f8fafc;
-              height: 100vh;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-              padding: 12px 14px;
-              overflow: hidden;
-              position: relative;
-            }
-            .pip-bg {
-              position: absolute;
-              inset: 0;
-              background-size: cover;
-              background-position: center;
-              filter: blur(28px) brightness(0.35);
-              transform: scale(1.2);
-              z-index: 0;
-            }
-            .pip-container {
-              position: relative;
-              z-index: 2;
-              display: flex;
-              flex-direction: column;
-              height: 100%;
-              justify-content: space-between;
-            }
-            .pip-top-bar {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              font-family: 'Space Mono', monospace;
-              font-size: 10px;
-            }
-            .pip-badge {
-              background: rgba(56, 189, 248, 0.15);
-              border: 1px solid rgba(56, 189, 248, 0.3);
-              color: #38bdf8;
-              padding: 2px 8px;
-              border-radius: 9999px;
-              font-weight: 700;
-              letter-spacing: 1px;
-            }
-            .pip-task {
-              color: #94a3b8;
-              max-width: 190px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              font-size: 11px;
-              font-weight: 500;
-            }
-            .pip-center-deck {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              margin: 4px 0;
-            }
-            .pip-timer {
-              font-family: 'Space Mono', monospace;
-              font-size: 44px;
-              font-weight: 800;
-              color: #ffffff;
-              letter-spacing: -2px;
-              line-height: 1;
-              text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
-            }
-            .pip-controls {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            }
-            .pip-btn {
-              background: rgba(255, 255, 255, 0.08);
-              border: 1px solid rgba(255, 255, 255, 0.12);
-              color: #f1f5f9;
-              border-radius: 50%;
-              width: 32px;
-              height: 32px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              cursor: pointer;
-              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-              font-size: 12px;
-            }
-            .pip-btn:hover {
-              background: rgba(255, 255, 255, 0.2);
-              transform: scale(1.06);
-            }
-            .pip-btn-play {
-              width: 42px;
-              height: 42px;
-              background: #38bdf8;
-              color: #041421;
-              border: none;
-              font-size: 15px;
-              box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
-            }
-            .pip-btn-play:hover {
-              background: #7dd3fc;
-              color: #000;
-              transform: scale(1.08);
-            }
-            .pip-progress-track {
-              width: 100%;
-              height: 3px;
-              background: rgba(255, 255, 255, 0.15);
-              border-radius: 9999px;
-              overflow: hidden;
-              margin: 4px 0 8px 0;
-            }
-            .pip-progress-fill {
-              height: 100%;
-              background: linear-gradient(90deg, #38bdf8, #22c55e);
-              width: 0%;
-              transition: width 0.3s linear;
-            }
-            .pip-bottom-bar {
-              display: flex;
-              align-items: center;
-              justify-content: space-between;
-              font-size: 11px;
-              font-family: 'Space Mono', monospace;
-              color: #cbd5e1;
-            }
-            .pip-track-name {
-              max-width: 170px;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              display: flex;
-              align-items: center;
-              gap: 6px;
-            }
-            .pip-vol {
-              width: 55px;
-              height: 4px;
-              accent-color: #38bdf8;
-              cursor: pointer;
-            }
-          `;
-          pipWindow.document.head.appendChild(styleEl);
-
-          pipWindow.document.body.innerHTML = `
-            <div id="pipBgLayer" class="pip-bg" style="background-image: url('${getActiveWallpaperUrl()}');"></div>
-            <div class="pip-container">
-              <div class="pip-top-bar">
-                <span id="pipModeLabel" class="pip-badge">FOCUS</span>
-                <span id="pipTaskLabel" class="pip-task">🎯 SPRK Flow</span>
-              </div>
-              <div class="pip-center-deck">
-                <div id="pipTimerDisplay" class="pip-timer">25:00</div>
-                <div class="pip-controls">
-                  <button id="pipResetBtn" class="pip-btn" title="Reset (R)"><i class="fa-solid fa-rotate-right"></i></button>
-                  <button id="pipPlayBtn" class="pip-btn pip-btn-play" title="Play/Pause (Space)"><i class="fa-solid fa-play"></i></button>
-                  <button id="pipSkipBtn" class="pip-btn" title="Skip Phase (S)"><i class="fa-solid fa-forward-step"></i></button>
-                </div>
-              </div>
-              <div class="pip-progress-track">
-                <div id="pipProgressBar" class="pip-progress-fill"></div>
-              </div>
-              <div class="pip-bottom-bar">
-                <div class="pip-track-name">
-                  <i class="fa-solid fa-compact-disc text-sky-400" id="pipTrackIcon"></i>
-                  <span id="pipTrackLabel">SPRK-Timer</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <i class="fa-solid fa-volume-low text-[10px] text-slate-400"></i>
-                  <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" class="pip-vol" title="Volume">
-                </div>
-              </div>
-            </div>
-          `;
-
-          pipWindow.document.getElementById('pipPlayBtn').addEventListener('click', () => {
-            timerState === 'running' ? pauseTimer() : startTimer();
-          });
-
-          pipWindow.document.getElementById('pipResetBtn').addEventListener('click', resetTimer);
-          pipWindow.document.getElementById('pipSkipBtn').addEventListener('click', skipCurrentPhase);
-
-          pipWindow.document.getElementById('pipVolControl').addEventListener('input', (e) => {
-            const vol = parseFloat(e.target.value);
-            document.getElementById('volumeControl').value = vol;
-            if (ambientGainNode) ambientGainNode.gain.value = vol;
-            localAudio.volume = vol;
-            localStorage.setItem('aura_volume', vol);
-          });
-
-          pipWindow.addEventListener('pagehide', () => {
-            pipWindow = null;
-            autoOpenedPiP = false;
-          });
-
-          updateDisplay();
-        } catch (err) {
-          console.error("Document PiP error:", err);
-        }
-      }
-    }
-
-    async function togglePiP() {
-      if (pipWindow && !pipWindow.closed) {
-        pipWindow.close();
-        pipWindow = null;
-        autoOpenedPiP = false;
-      } else {
-        autoOpenedPiP = false;
-        await openPiPWindow();
-      }
-    }
-
-    document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
-
-    // --- Enhanced Zen Mode with Auto Fullscreen ---
+    // Zen Mode
     async function toggleZenMode() {
       isZenMode = !isZenMode;
       const header = document.getElementById('mainHeader');
@@ -2281,12 +2427,7 @@
         taskDisplay.classList.add('zen-hidden');
         tooltip.classList.add('zen-hidden');
         if (zenIcon) zenIcon.className = "fa-solid fa-compress text-xs text-amber-400";
-
-        try {
-          if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen();
-          }
-        } catch (e) {}
+        try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch (e) {}
       } else {
         header.classList.remove('zen-hidden');
         if (isMusicBarVisible) footer.classList.remove('zen-hidden');
@@ -2294,25 +2435,29 @@
         taskDisplay.classList.remove('zen-hidden');
         tooltip.classList.remove('zen-hidden');
         if (zenIcon) zenIcon.className = "fa-solid fa-expand text-xs text-amber-400";
-
-        try {
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          }
-        } catch (e) {}
+        try { if (document.fullscreenElement) await document.exitFullscreen(); } catch (e) {}
       }
     }
 
     document.getElementById('zenToggleBtn').addEventListener('click', toggleZenMode);
-
     document.addEventListener('fullscreenchange', () => {
-      if (!document.fullscreenElement && isZenMode) {
-        toggleZenMode();
-      }
+      if (!document.fullscreenElement && isZenMode) toggleZenMode();
     });
 
+    // Global Hotkeys Engine
     window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        openCmdPalette();
+        return;
+      }
+      if (e.key === 'Escape') {
+        closeCmdPalette();
+        return;
+      }
+
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
       if (e.code === 'Space') {
         e.preventDefault();
         timerState === 'running' ? pauseTimer() : startTimer();
@@ -2337,7 +2482,7 @@
       }
     });
 
-    // --- Particle Engine ---
+    // Atmospheric Particle Engine
     const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
     let particles = [];
@@ -2354,61 +2499,38 @@
       reset() {
         this.x = Math.random() * canvas.width;
         this.size = Math.random() * 2 + 0.8;
-        this.baseSpeedX = Math.random() * 0.6 - 0.3;
-        this.baseSpeedY = Math.random() * 0.8 + 0.2;
+        this.speedX = Math.random() * 0.6 - 0.3;
+        this.speedY = Math.random() * 0.8 + 0.2;
         this.opacity = Math.random() * 0.5 + 0.1;
         this.angle = Math.random() * Math.PI * 2;
-        this.oscillationSpeed = Math.random() * 0.03 + 0.01;
-
-        if (particleMode === 'snow') {
-          this.y = -10;
-        } else if (particleMode === 'stardust') {
-          this.y = Math.random() * canvas.height;
-          this.pulse = Math.random() * 0.02 + 0.005;
-        } else if (particleMode === 'bubbles') {
-          this.y = canvas.height + 10;
-          this.size = Math.random() * 3 + 1.5;
-        } else if (particleMode === 'fireflies') {
-          this.y = Math.random() * canvas.height;
-          this.size = Math.random() * 2.5 + 1.0;
-        } else {
-          this.y = canvas.height + 10;
-        }
+        if (particleMode === 'snow') this.y = -10;
+        else if (particleMode === 'stardust' || particleMode === 'fireflies') this.y = Math.random() * canvas.height;
+        else this.y = canvas.height + 10;
       }
-
       update() {
-        const speed = particleSpeedMultiplier;
         if (particleMode === 'snow') {
-          this.x += this.baseSpeedX * speed;
-          this.y += this.baseSpeedY * speed;
+          this.x += this.speedX; this.y += this.speedY;
           if (this.y > canvas.height) this.reset();
         } else if (particleMode === 'embers') {
-          this.x += this.baseSpeedX * speed;
-          this.y -= this.baseSpeedY * speed;
+          this.x += this.speedX; this.y -= this.speedY;
           if (this.y < 0) this.reset();
         } else if (particleMode === 'stardust') {
-          this.x += this.baseSpeedX * 0.2 * speed;
-          this.angle += this.pulse;
+          this.angle += 0.02;
           this.opacity = Math.abs(Math.sin(this.angle)) * 0.7 + 0.1;
-        } else if (particleMode === 'bubbles') {
-          this.angle += this.oscillationSpeed;
-          this.x += Math.sin(this.angle) * 0.8 * speed;
-          this.y -= (this.baseSpeedY * 0.7) * speed;
-          if (this.y < -10) this.reset();
         } else if (particleMode === 'fireflies') {
           this.angle += 0.02;
-          this.x += Math.cos(this.angle) * 0.8 * speed;
-          this.y += Math.sin(this.angle) * 0.8 * speed;
+          this.x += Math.cos(this.angle) * 0.8;
+          this.y += Math.sin(this.angle) * 0.8;
           this.opacity = Math.abs(Math.sin(this.angle * 0.5)) * 0.8 + 0.2;
+        } else {
+          this.y -= this.speedY;
+          if (this.y < -10) this.reset();
         }
       }
-
       draw() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         if (particleMode === 'snow') ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-        else if (particleMode === 'stardust') ctx.fillStyle = `rgba(224, 242, 254, ${this.opacity})`;
-        else if (particleMode === 'bubbles') ctx.fillStyle = `rgba(56, 189, 248, ${this.opacity * 0.6})`;
         else if (particleMode === 'fireflies') ctx.fillStyle = `rgba(250, 204, 21, ${this.opacity})`;
         else ctx.fillStyle = `rgba(56, 189, 248, ${this.opacity})`;
         ctx.fill();
@@ -2418,51 +2540,34 @@
     function initParticles() {
       particles = [];
       if (particleMode === 'off') return;
-      for (let i = 0; i < particleDensity; i++) particles.push(new Particle());
+      for (let i = 0; i < 45; i++) particles.push(new Particle());
     }
 
     function animateParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (particleMode !== 'off') {
-        particles.forEach(p => { p.update(); p.draw(); });
-      }
+      if (particleMode !== 'off') particles.forEach(p => { p.update(); p.draw(); });
       requestAnimationFrame(animateParticles);
     }
 
     document.getElementById('particleSelect').value = particleMode;
-    document.getElementById('particleDensitySlider').value = particleDensity;
-    document.getElementById('densityVal').textContent = particleDensity;
-    document.getElementById('particleSpeedSlider').value = particleSpeedMultiplier;
-    document.getElementById('speedVal').textContent = `${particleSpeedMultiplier.toFixed(1)}x`;
-
     document.getElementById('particleSelect').addEventListener('change', (e) => {
       particleMode = e.target.value;
       localStorage.setItem('aura_particleMode', particleMode);
       initParticles();
     });
 
-    document.getElementById('particleDensitySlider').addEventListener('input', (e) => {
-      particleDensity = parseInt(e.target.value);
-      document.getElementById('densityVal').textContent = particleDensity;
-      localStorage.setItem('aura_particleDensity', particleDensity);
-      initParticles();
-    });
-
-    document.getElementById('particleSpeedSlider').addEventListener('input', (e) => {
-      particleSpeedMultiplier = parseFloat(e.target.value);
-      document.getElementById('speedVal').textContent = `${particleSpeedMultiplier.toFixed(1)}x`;
-      localStorage.setItem('aura_particleSpeed', particleSpeedMultiplier);
-    });
-
-    // Boot
+    // Boot Application
     applyDisplayStyle(displayStyle);
     initParticles();
     animateParticles();
     renderTasks();
+    renderSoundMixerUI();
+    renderStopwatchLaps();
     updateDisplay();
     updateAnalytics();
     updateMusicBarVisibility();
     updateWakeLockUI();
+    startVisualizers();
   </script>
 </body>
 </html>
