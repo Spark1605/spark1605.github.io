@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPRK Analytics & Performance Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#030712',
+                            900: '#0f172a',
+                            850: '#111827',
+                            800: '#1e293b'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Space Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+      .brand-main {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 50%, #7f00ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-sub::after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #00f2fe;
+            border-radius: 50%;
+            top: 25%;
+            right: -10px;
+            box-shadow: 0 0 8px #00f2fe, 0 0 15px #00f2fe;
+            animation: pulse 2s infinite alternate;
+        }
+
+        .logo-underline {
+            width: 25px;
+            height: 3px;
+            background: linear-gradient(90deg, #00f2fe, #7f00ff);
+            margin-top: 2px;
+            border-radius: 2px;
+            box-shadow: 0 2px 6px rgba(0, 242, 254, 0.4);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .brand-logo-container:hover .logo-underline {
+            width: 100%;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* Custom Scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        body {
+            background-color: #030712;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
+                radial-gradient(at 50% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-panel-glow {
+            position: relative;
+        }
+
+        .glass-panel-glow::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.02));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen antialiased custom-scrollbar selection:bg-sky-500 selection:text-white pb-12">
+
+    <header class="border-b border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 w-full transition-colors">
+        <div class="max-w-6xl mx-auto px-6 py-3.5 flex justify-between items-center w-full">
+            <div class="brand-logo-container flex flex-col items-center cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="flex items-center text-xl font-black uppercase tracking-wider select-none">
+                    <span class="brand-main">Sprk</span>
+                    <span class="brand-sub relative text-slate-800 dark:text-white font-light ml-0.5">-Analytics</span>
+                </div>
+                <div class="logo-underline"></div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <button id="theme-toggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-300 shadow-xs cursor-pointer active:scale-95 transition" aria-label="Toggle theme">
+                    <i id="theme-icon" data-lucide="moon" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            
+            <div class="glass-panel glass-panel-glow p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-sky-500/10 rounded-full blur-xl group-hover:bg-sky-500/20 transition-all"></div>
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Focus</span>
+                    <div class="p-2 rounded-lg bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="kpi-focus-time" class="text-2xl font-bold font-mono tracking-tight text-white">0h 0m</div>
+                    <div class="text-xs text-slate-400 mt-1">Cumulative time</div>
+                </div>
+            </div>
+
+            <div class="glass-panel glass-panel-glow p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Completed</span>
+                    <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="kpi-sessions" class="text-2xl font-bold font-mono tracking-tight text-white">0</div>
+                    <div class="text-xs text-slate-400 mt-1">Total Pomodoro blocks</div>
+                </div>
+            </div>
+
+            <div class="glass-panel glass-panel-glow p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-violet-500/10 rounded-full blur-xl group-hover:bg-violet-500/20 transition-all"></div>
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Task Completion</span>
+                    <div class="p-2 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                        <i class="fa-solid fa-list-check"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="kpi-completion-rate" class="text-2xl font-bold font-mono tracking-tight text-white">0%</div>
+                    <div class="text-xs text-slate-400 mt-1"><span id="kpi-completed-tasks-count">0</span> completed tasks</div>
+                </div>
+            </div>
+
+            <div class="glass-panel glass-panel-glow p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-amber-500/10 rounded-full blur-xl group-hover:bg-amber-500/20 transition-all"></div>
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Accuracy Index</span>
+                    <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <i class="fa-solid fa-bullseye"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="kpi-accuracy" class="text-2xl font-bold font-mono tracking-tight text-white">100%</div>
+                    <div id="kpi-accuracy-sub" class="text-xs text-slate-400 mt-1">Actual vs Estimated</div>
+                </div>
+            </div>
+
+            <div class="glass-panel glass-panel-glow p-5 rounded-2xl flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition-all"></div>
+                <div class="flex justify-between items-start">
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Daily Target</span>
+                    <div class="p-2 rounded-lg bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                        <i class="fa-solid fa-fire"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <div id="kpi-daily-goal" class="text-2xl font-bold font-mono tracking-tight text-white">0%</div>
+                    <div id="kpi-daily-sub" class="text-xs text-slate-400 mt-1">0 / 8 sessions today</div>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Focus Activity Trend</h3>
+                        <p class="text-xs text-slate-400">28-day historical session frequency curve</p>
+                    </div>
+                    <span class="text-xs font-mono bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-slate-300">Last 4 Weeks</span>
+                </div>
+                <div class="h-64 relative w-full">
+                    <canvas id="chart-focus-trend"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Tag Breakdown</h3>
+                        <p class="text-xs text-slate-400">Time allocation across domains</p>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full flex items-center justify-center">
+                    <canvas id="chart-tag-dist"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Task Estimation vs Actual Performance</h3>
+                        <p class="text-xs text-slate-400">Comparing estimated Pomodoros against actual time logged</p>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full">
+                    <canvas id="chart-efficiency"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Pipeline Status</h3>
+                        <p class="text-xs text-slate-400">Task distribution by progress state</p>
+                    </div>
+                </div>
+                <div class="h-64 relative w-full flex items-center justify-center">
+                    <canvas id="chart-pipeline"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel p-6 rounded-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h3 class="text-base font-bold text-white">28-Day Consistency Heatmap</h3>
+                    <p class="text-xs text-slate-400">Hover over matrix cells to inspect past daily activity details</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-slate-400">
+                    <span>Less</span>
+                    <div class="w-3 h-3 rounded-sm bg-slate-800 border border-white/5"></div>
+                    <div class="w-3 h-3 rounded-sm bg-sky-950 border border-sky-800"></div>
+                    <div class="w-3 h-3 rounded-sm bg-sky-700 border border-sky-600"></div>
+                    <div class="w-3 h-3 rounded-sm bg-sky-500 border border-sky-400"></div>
+                    <div class="w-3 h-3 rounded-sm bg-sky-400 border border-sky-300"></div>
+                    <span>More</span>
+                </div>
+            </div>
+
+            <div id="heatmap-grid" class="grid grid-cols-7 gap-2">
+                </div>
+        </section>
+
+        <section class="glass-panel p-6 rounded-2xl overflow-hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                    <h3 class="text-base font-bold text-white">Task Productivity Matrix</h3>
+                    <p class="text-xs text-slate-400">Detailed list of tasks synced from SPRK-Web Timer</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative min-w-[200px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400"></i>
+                        <input id="table-search" type="text" placeholder="Search tasks..." oninput="renderTable()" class="w-full pl-8 pr-3 py-1.5 bg-slate-900/80 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-all">
+                    </div>
+
+                    <select id="filter-tag" onchange="renderTable()" class="bg-slate-900/80 border border-white/10 rounded-xl text-xs text-slate-300 px-3 py-1.5 focus:outline-none focus:border-sky-500">
+                        <option value="all">All Tags</option>
+                        <option value="work">Work</option>
+                        <option value="study">Study</option>
+                        <option value="dev">Dev</option>
+                        <option value="personal">Personal</option>
+                    </select>
+
+                    <select id="filter-status" onchange="renderTable()" class="bg-slate-900/80 border border-white/10 rounded-xl text-xs text-slate-300 px-3 py-1.5 focus:outline-none focus:border-sky-500">
+                        <option value="all">All Statuses</option>
+                        <option value="todo">To Do</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-white/10 text-[11px] uppercase tracking-wider text-slate-400 font-semibold bg-white/5">
+                            <th class="p-3.5 rounded-l-xl">Task Title</th>
+                            <th class="p-3.5">Tag</th>
+                            <th class="p-3.5">Est. vs Actual</th>
+                            <th class="p-3.5">Status</th>
+                            <th class="p-3.5 rounded-r-xl">ID / Created</th>
+                        </tr>
+                    </thead>
+                    <tbody id="task-table-body" class="divide-y divide-white/5 text-xs text-slate-300">
+                        </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-note-sticky text-amber-400"></i>
+                        <h3 class="text-base font-bold text-white">Scratchpad Workspace Snapshot</h3>
+                    </div>
+                    <span id="scratchpad-badge" class="text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-full">Active</span>
+                </div>
+                <div class="bg-slate-900/60 border border-white/5 rounded-xl p-4 text-xs font-mono text-slate-300 h-32 overflow-y-auto custom-scrollbar whitespace-pre-wrap" id="scratchpad-preview">
+                    No active scratchpad contents synced.
+                </div>
+                <div class="mt-4 flex justify-between items-center text-xs text-slate-400 font-mono">
+                    <div>Words: <span id="scratch-words" class="text-white">0</span></div>
+                    <div>Characters: <span id="scratch-chars" class="text-white">0</span></div>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-stopwatch text-sky-400"></i>
+                        <h3 class="text-base font-bold text-white">Stopwatch Recorded Laps</h3>
+                    </div>
+                    <span id="laps-count" class="text-[10px] font-mono bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2 py-0.5 rounded-full">0 Laps</span>
+                </div>
+                <div class="bg-slate-900/60 border border-white/5 rounded-xl p-3 h-32 overflow-y-auto custom-scrollbar">
+                    <ul id="laps-list" class="space-y-2 text-xs font-mono text-slate-300">
+                        <li class="text-slate-500 italic text-center py-4">No lap recordings found</li>
+                    </ul>
+                </div>
+                <div class="mt-4 text-xs text-slate-500 flex justify-between items-center">
+                    <span>Recent session timestamps</span>
+                    <i class="fa-solid fa-flag-checkered"></i>
+                </div>
+            </div>
+
+        </section>
+
+        <section class="glass-panel p-6 rounded-2xl border-t-2 border-t-sky-500/30">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-database text-sky-400"></i>
+                        Data Storage & Synchronization Hub
+                    </h3>
+                    <p class="text-xs text-slate-400">Backup, restore, export, or manage your localStorage workspace state</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button onclick="exportCSV()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span>Export CSV</span>
+                    </button>
+
+                    <button onclick="exportJSON()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 hover:bg-sky-500/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-file-code"></i>
+                        <span>Export JSON</span>
+                    </button>
+
+                    <label class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20 hover:bg-violet-500/20 transition-all cursor-pointer flex items-center gap-2">
+                        <i class="fa-solid fa-file-import"></i>
+                        <span>Import Backup</span>
+                        <input type="file" id="import-file" accept=".json" class="hidden" onchange="importJSON(event)">
+                    </label>
+
+                    <button onclick="clearAnalyticsData()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-trash-can"></i>
+                        <span>Reset Data</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- Chart Storage Containers ---
+        let chartFocusTrend = null;
+        let chartTagDist = null;
+        let chartEfficiency = null;
+        let chartPipeline = null;
+
+        // --- Core Application State & Data Handlers ---
+        function getStorageData() {
+            return {
+                focusSeconds: parseInt(localStorage.getItem('aura_focusSeconds')) || 0,
+                completedSessions: parseInt(localStorage.getItem('aura_completedSessions')) || 0,
+                dailyGoal: parseInt(localStorage.getItem('aura_dailyGoal')) || 8,
+                heatmapHistory: parseJSONSafe(localStorage.getItem('aura_heatmapHistory'), [
+                    2, 4, 1, 5, 8, 3, 0,
+                    6, 7, 4, 2, 9, 5, 1,
+                    3, 6, 8, 4, 5, 7, 2,
+                    4, 3, 6, 8, 5, 7, 6
+                ]),
+                tasks: parseJSONSafe(localStorage.getItem('aura_tasks'), [
+                    { id: 1711928000000, title: "Build Auth API", tag: "dev", status: "done", estPomos: 4, actualPomos: 3 },
+                    { id: 1711928100000, title: "Design Landing Page Glassmorphic UI", tag: "work", status: "done", estPomos: 6, actualPomos: 5 },
+                    { id: 1711928200000, title: "Read System Design Chapter 4", tag: "study", status: "in-progress", estPomos: 3, actualPomos: 2 },
+                    { id: 1711928300000, title: "Weekly Fitness & Workout", tag: "personal", status: "todo", estPomos: 2, actualPomos: 0 }
+                ]),
+                scratchpad: localStorage.getItem('aura_scratchpad') || "Focus on deep work blocks today. Complete system design docs.",
+                stopwatchLaps: parseJSONSafe(localStorage.getItem('aura_stopwatchLaps'), ["00:12.45", "01:45.10", "03:10.02"])
+            };
+        }
+
+        function parseJSONSafe(str, fallback) {
+            try {
+                return str ? JSON.parse(str) : fallback;
+            } catch (e) {
+                return fallback;
+            }
+        }
+
+        // --- Demo Seeding Function ---
+        function seedMockData() {
+            const mockHeatmap = Array.from({ length: 28 }, () => Math.floor(Math.random() * 10));
+            const mockTasks = [
+                { id: Date.now() - 500000, title: "Implement OAuth2 Flow", tag: "dev", status: "done", estPomos: 5, actualPomos: 4 },
+                { id: Date.now() - 400000, title: "Optimize DB Indexing", tag: "dev", status: "done", estPomos: 3, actualPomos: 3 },
+                { id: Date.now() - 300000, title: "Study Quantum Mechanics", tag: "study", status: "in-progress", estPomos: 6, actualPomos: 4 },
+                { id: Date.now() - 200000, title: "Client Strategy Presentation", tag: "work", status: "done", estPomos: 4, actualPomos: 5 },
+                { id: Date.now() - 100000, title: "Meditation & Journaling", tag: "personal", status: "todo", estPomos: 1, actualPomos: 0 }
+            ];
+
+            localStorage.setItem('aura_focusSeconds', '34200'); // ~9.5 hours
+            localStorage.setItem('aura_completedSessions', '18');
+            localStorage.setItem('aura_dailyGoal', '8');
+            localStorage.setItem('aura_heatmapHistory', JSON.stringify(mockHeatmap));
+            localStorage.setItem('aura_tasks', JSON.stringify(mockTasks));
+            localStorage.setItem('aura_scratchpad', "Refactor state management in SPRK timer app.\nReview analytics design system.");
+            localStorage.setItem('aura_stopwatchLaps', JSON.stringify(["00:24.12", "02:15.80", "05:40.33"]));
+
+            syncData();
+        }
+
+        // --- Render UI Components ---
+        function renderDashboard() {
+            const data = getStorageData();
+
+            // 1. Render KPIs
+            const totalHours = Math.floor(data.focusSeconds / 3600);
+            const totalMinutes = Math.floor((data.focusSeconds % 3600) / 60);
+            document.getElementById('kpi-focus-time').innerText = `${totalHours}h ${totalMinutes}m`;
+            document.getElementById('kpi-sessions').innerText = data.completedSessions;
+
+            const completedTasks = data.tasks.filter(t => t.status === 'done').length;
+            const completionRate = data.tasks.length ? Math.round((completedTasks / data.tasks.length) * 100) : 0;
+            document.getElementById('kpi-completion-rate').innerText = `${completionRate}%`;
+            document.getElementById('kpi-completed-tasks-count').innerText = completedTasks;
+
+            // Accuracy Index
+            let totalEst = 0, totalAct = 0;
+            data.tasks.forEach(t => {
+                totalEst += (t.estPomos || 0);
+                totalAct += (t.actualPomos || 0);
+            });
+            const accuracy = totalEst > 0 ? Math.round((totalAct / totalEst) * 100) : 100;
+            document.getElementById('kpi-accuracy').innerText = `${accuracy}%`;
+            document.getElementById('kpi-accuracy-sub').innerText = `${totalAct} actual vs ${totalEst} est`;
+
+            // Daily Goal
+            const todaySessions = data.heatmapHistory[data.heatmapHistory.length - 1] || 0;
+            const dailyPct = data.dailyGoal > 0 ? Math.min(100, Math.round((todaySessions / data.dailyGoal) * 100)) : 0;
+            document.getElementById('kpi-daily-goal').innerText = `${dailyPct}%`;
+            document.getElementById('kpi-daily-sub').innerText = `${todaySessions} / ${data.dailyGoal} target today`;
+
+            // 2. Heatmap
+            renderHeatmap(data.heatmapHistory);
+
+            // 3. Table
+            renderTable();
+
+            // 4. Scratchpad & Laps
+            document.getElementById('scratchpad-preview').innerText = data.scratchpad || "Scratchpad empty";
+            const words = data.scratchpad.trim() ? data.scratchpad.trim().split(/\s+/).length : 0;
+            document.getElementById('scratch-words').innerText = words;
+            document.getElementById('scratch-chars').innerText = data.scratchpad.length;
+
+            const lapsList = document.getElementById('laps-list');
+            document.getElementById('laps-count').innerText = `${data.stopwatchLaps.length} Laps`;
+            if (data.stopwatchLaps.length > 0) {
+                lapsList.innerHTML = data.stopwatchLaps.map((lap, idx) => `
+                    <li class="flex items-center justify-between bg-white/5 px-3 py-1.5 rounded-lg border border-white/5">
+                        <span class="text-slate-400">Lap ${idx + 1}</span>
+                        <span class="text-sky-400 font-bold">${lap}</span>
+                    </li>
+                `).join('');
+            } else {
+                lapsList.innerHTML = `<li class="text-slate-500 italic text-center py-4">No lap recordings found</li>`;
+            }
+
+            // 5. Render Chart.js Visualizations
+            renderCharts(data);
+        }
+
+        // --- Heatmap Generator ---
+        function renderHeatmap(history) {
+            const grid = document.getElementById('heatmap-grid');
+            grid.innerHTML = '';
+
+            for (let i = 0; i < 28; i++) {
+                const count = history[i] || 0;
+                const estMins = count * 25; // standard Pomodoro block = 25m
+
+                let colorClass = 'bg-slate-800/60 border-white/5';
+                if (count >= 1 && count <= 2) colorClass = 'bg-sky-950 border-sky-800 text-sky-300';
+                else if (count >= 3 && count <= 5) colorClass = 'bg-sky-700/80 border-sky-600 text-white';
+                else if (count >= 6 && count <= 8) colorClass = 'bg-sky-500 border-sky-400 text-white';
+                else if (count > 8) colorClass = 'bg-sky-400 border-sky-300 text-slate-950 font-bold';
+
+                const cell = document.createElement('div');
+                cell.className = `group relative h-12 rounded-xl border flex flex-col items-center justify-center transition-all cursor-pointer hover:scale-105 ${colorClass}`;
+                cell.innerHTML = `
+                    <span class="text-xs font-mono">${count}</span>
+                    <div class="absolute bottom-full mb-2 hidden group-hover:flex flex-col items-center z-30 pointer-events-none">
+                        <div class="bg-slate-900 text-white border border-white/10 text-[10px] rounded-lg px-2.5 py-1.5 whitespace-nowrap shadow-xl">
+                            <span class="font-bold text-sky-400">Day ${i + 1}</span>: ${count} sessions (~${estMins} mins)
+                        </div>
+                        <div class="w-2 h-2 bg-slate-900 border-r border-b border-white/10 rotate-45 -mt-1"></div>
+                    </div>
+                `;
+                grid.appendChild(cell);
+            }
+        }
+
+        // --- Filterable Task Table ---
+        function renderTable() {
+            const data = getStorageData();
+            const searchVal = document.getElementById('table-search').value.toLowerCase();
+            const tagFilter = document.getElementById('filter-tag').value;
+            const statusFilter = document.getElementById('filter-status').value;
+
+            const tbody = document.getElementById('task-table-body');
+            tbody.innerHTML = '';
+
+            const filtered = data.tasks.filter(t => {
+                const matchesSearch = t.title.toLowerCase().includes(searchVal);
+                const matchesTag = tagFilter === 'all' || t.tag === tagFilter;
+                const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+                return matchesSearch && matchesTag && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-500 italic">No matching tasks found</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(t => {
+                // Tag Badges
+                let tagBadge = '';
+                switch (t.tag) {
+                    case 'work': tagBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">#work</span>'; break;
+                    case 'study': tagBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-400 border border-violet-500/20">#study</span>'; break;
+                    case 'dev': tagBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">#dev</span>'; break;
+                    case 'personal': tagBadge = '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">#personal</span>'; break;
+                    default: tagBadge = `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-500/10 text-slate-400 border border-slate-500/20">#${t.tag||'general'}</span>`;
+                }
+
+                // Status Badges
+                let statusBadge = '';
+                switch (t.status) {
+                    case 'done': statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-circle-check text-[8px]"></i> Done</span>'; break;
+                    case 'in-progress': statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20"><i class="fa-solid fa-spinner text-[8px] animate-spin"></i> In Progress</span>'; break;
+                    default: statusBadge = '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-medium bg-slate-500/10 text-slate-400 border border-slate-500/20"><i class="fa-regular fa-circle text-[8px]"></i> To Do</span>';
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-white/[0.02] transition-colors';
+                tr.innerHTML = `
+                    <td class="p-3.5 font-medium text-white">${escapeHTML(t.title)}</td>
+                    <td class="p-3.5">${tagBadge}</td>
+                    <td class="p-3.5 font-mono"><span class="text-sky-400">${t.actualPomos || 0}</span> / <span class="text-slate-400">${t.estPomos || 0}</span> pomos</td>
+                    <td class="p-3.5">${statusBadge}</td>
+                    <td class="p-3.5 font-mono text-[10px] text-slate-500">${t.id ? new Date(t.id).toLocaleDateString() : 'N/A'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Utility to prevent XSS
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+
+        // --- Chart.js Visualizations ---
+        function renderCharts(data) {
+            // Configure default Chart.js settings
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = 'Plus Jakarta Sans';
+
+            // 1. Focus Trend Chart
+            const ctxTrend = document.getElementById('chart-focus-trend').getContext('2d');
+            if (chartFocusTrend) chartFocusTrend.destroy();
+
+            const trendGradient = ctxTrend.createLinearGradient(0, 0, 0, 200);
+            trendGradient.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+            trendGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+            chartFocusTrend = new Chart(ctxTrend, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 28 }, (_, i) => `Day ${i + 1}`),
+                    datasets: [{
+                        label: 'Sessions',
+                        data: data.heatmapHistory,
+                        borderColor: '#38bdf8',
+                        borderWidth: 2,
+                        backgroundColor: trendGradient,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#38bdf8',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // 2. Tag Distribution Doughnut Chart
+            const ctxTag = document.getElementById('chart-tag-dist').getContext('2d');
+            if (chartTagDist) chartTagDist.destroy();
+
+            const tagCounts = { work: 0, study: 0, dev: 0, personal: 0 };
+            data.tasks.forEach(t => {
+                if (tagCounts[t.tag] !== undefined) tagCounts[t.tag] += (t.actualPomos || 1);
+                else tagCounts.work += 1;
+            });
+
+            chartTagDist = new Chart(ctxTag, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Work', 'Study', 'Dev', 'Personal'],
+                    datasets: [{
+                        data: [tagCounts.work, tagCounts.study, tagCounts.dev, tagCounts.personal],
+                        backgroundColor: ['#38bdf8', '#8b5cf6', '#10b981', '#f59e0b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+
+            // 3. Efficiency Bar Chart
+            const ctxEff = document.getElementById('chart-efficiency').getContext('2d');
+            if (chartEfficiency) chartEfficiency.destroy();
+
+            const taskTitles = data.tasks.slice(0, 6).map(t => t.title.length > 14 ? t.title.substring(0, 14) + '...' : t.title);
+            const estData = data.tasks.slice(0, 6).map(t => t.estPomos || 0);
+            const actData = data.tasks.slice(0, 6).map(t => t.actualPomos || 0);
+
+            chartEfficiency = new Chart(ctxEff, {
+                type: 'bar',
+                data: {
+                    labels: taskTitles.length ? taskTitles : ['No Tasks'],
+                    datasets: [
+                        { label: 'Estimated', data: estData, backgroundColor: 'rgba(255, 255, 255, 0.15)', borderRadius: 6 },
+                        { label: 'Actual', data: actData, backgroundColor: '#38bdf8', borderRadius: 6 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, beginAtZero: true }
+                    }
+                }
+            });
+
+            // 4. Pipeline Doughnut Chart
+            const ctxPipe = document.getElementById('chart-pipeline').getContext('2d');
+            if (chartPipeline) chartPipeline.destroy();
+
+            const pipeCounts = { todo: 0, 'in-progress': 0, done: 0 };
+            data.tasks.forEach(t => {
+                if (pipeCounts[t.status] !== undefined) pipeCounts[t.status]++;
+                else pipeCounts.todo++;
+            });
+
+            chartPipeline = new Chart(ctxPipe, {
+                type: 'doughnut',
+                data: {
+                    labels: ['To Do', 'In Progress', 'Done'],
+                    datasets: [{
+                        data: [pipeCounts.todo, pipeCounts['in-progress'], pipeCounts.done],
+                        backgroundColor: ['#64748b', '#38bdf8', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
+        // --- Sync Button Animation & Handler ---
+        function syncData() {
+            const icon = document.getElementById('sync-icon');
+            icon.classList.add('animate-spin');
+            renderDashboard();
+            setTimeout(() => {
+                icon.classList.remove('animate-spin');
+            }, 500);
+        }
+
+        // --- Data Management Functions ---
+        function exportCSV() {
+            const data = getStorageData();
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Tasks Section
+            csvContent += "TASK ID,TITLE,TAG,STATUS,ESTIMATED_POMOS,ACTUAL_POMOS\n";
+            data.tasks.forEach(t => {
+                csvContent += `"${t.id}","${t.title}","${t.tag}","${t.status}",${t.estPomos},${t.actualPomos}\n`;
+            });
+
+            // Metrics Summary
+            csvContent += "\nMETRIC,VALUE\n";
+            csvContent += `Total Focus Seconds,${data.focusSeconds}\n`;
+            csvContent += `Total Completed Sessions,${data.completedSessions}\n`;
+            csvContent += `Daily Goal Target,${data.dailyGoal}\n`;
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `SPRK_Analytics_Export_${Date.now()}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportJSON() {
+            const data = getStorageData();
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `SPRK_Workspace_Backup_${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.focusSeconds !== undefined) localStorage.setItem('aura_focusSeconds', imported.focusSeconds);
+                    if (imported.completedSessions !== undefined) localStorage.setItem('aura_completedSessions', imported.completedSessions);
+                    if (imported.dailyGoal !== undefined) localStorage.setItem('aura_dailyGoal', imported.dailyGoal);
+                    if (imported.heatmapHistory) localStorage.setItem('aura_heatmapHistory', JSON.stringify(imported.heatmapHistory));
+                    if (imported.tasks) localStorage.setItem('aura_tasks', JSON.stringify(imported.tasks));
+                    if (imported.scratchpad !== undefined) localStorage.setItem('aura_scratchpad', imported.scratchpad);
+                    if (imported.stopwatchLaps) localStorage.setItem('aura_stopwatchLaps', JSON.stringify(imported.stopwatchLaps));
+
+                    alert("Backup imported successfully!");
+                    syncData();
+                } catch (err) {
+                    alert("Invalid JSON file format.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAnalyticsData() {
+            if (confirm("Are you sure you want to clear analytics data?")) {
+                if (confirm("Double Confirmation: This action will reset all local storage metrics!")) {
+                    localStorage.removeItem('aura_focusSeconds');
+                    localStorage.removeItem('aura_completedSessions');
+                    localStorage.removeItem('aura_dailyGoal');
+                    localStorage.removeItem('aura_heatmapHistory');
+                    localStorage.removeItem('aura_tasks');
+                    localStorage.removeItem('aura_scratchpad');
+                    localStorage.removeItem('aura_stopwatchLaps');
+                    syncData();
+                }
+            }
+        }
+
+        // --- Window Storage Listener for Live Updates Across Tabs ---
+        window.addEventListener('storage', (e) => {
+            if (e.key && e.key.startsWith('aura_')) {
+                syncData();
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderDashboard();
+        });
+    </script>
+</body>
+</html>
