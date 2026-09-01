@@ -446,6 +446,14 @@
         <i class="fa-solid fa-volume-high text-xs text-cyan-400"></i>
         <input type="range" id="volumeControl" min="0" max="1" step="0.01" value="0.5" class="w-16 sm:w-24" title="Master Ambient Volume">
       </div>
+
+      <div class="hidden md:flex items-center gap-1 font-mono text-[10px]">
+          <button onclick="applySoundPreset({rain: 0.6, cafe: 0.3, brown: 0.2})" class="px-2 py-1 glass-panel rounded-lg hover:text-cyan-300 text-slate-400" title="Cozy Rain Cafe">🌧️ Cafe</button>
+          <button onclick="applySoundPreset({theta: 0.7, wind: 0.25, rain: 0.3})" class="px-2 py-1 glass-panel rounded-lg hover:text-purple-300 text-slate-400" title="Deep Flow">🧘 Flow</button>
+          <button onclick="applySoundPreset({campfire: 0.7, wind: 0.4, thunder: 0.3})" class="px-2 py-1 glass-panel rounded-lg hover:text-amber-300 text-slate-400" title="Stormy Camp">🔥 Storm</button>
+          <button onclick="clearAllAmbientTracks()" class="px-2 py-1 glass-panel hover:bg-rose-500/20 text-rose-400 rounded-lg" title="Mute All Sounds"><i class="fa-solid fa-volume-xmark"></i></button>
+      </div>
+      </div>
     </div>
   </footer>
 
@@ -840,14 +848,25 @@
     let currentWallpaper = localStorage.getItem('aura_wallpaper') || 'beach';
     let customWallpaperUrl = localStorage.getItem('aura_customBg') || '';
 
-    let ambientTracks = {
-      campfire: parseFloat(localStorage.getItem('aura_vol_campfire') || '0'),
-      waves: parseFloat(localStorage.getItem('aura_vol_waves') || '0'),
-      cafe: parseFloat(localStorage.getItem('aura_vol_cafe') || '0'),
-      rain: parseFloat(localStorage.getItem('aura_vol_rain') || '0'),
-      alpha: parseFloat(localStorage.getItem('aura_vol_alpha') || '0'),
-      white: parseFloat(localStorage.getItem('aura_vol_white') || '0')
-    };
+    const soundDefinitions = [
+    { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain' },
+    { id: 'thunder', label: 'Thunder', icon: 'fa-bolt-lightning' },
+    { id: 'campfire', label: 'Campfire', icon: 'fa-fire' },
+    { id: 'waves', label: 'Ocean Waves', icon: 'fa-water' },
+    { id: 'wind', label: 'Wind Storm', icon: 'fa-wind' },
+    { id: 'birds', label: 'Birds', icon: 'fa-dove' },
+    { id: 'cafe', label: 'Cafe Chatter', icon: 'fa-mug-hot' },
+    { id: 'alpha', label: 'Alpha 10Hz', icon: 'fa-brain' },
+    { id: 'theta', label: 'Theta 6Hz', icon: 'fa-spa' },
+    { id: 'white', label: 'White Noise', icon: 'fa-wave-square' },
+    { id: 'pink', label: 'Pink Noise', icon: 'fa-sliders' },
+    { id: 'brown', label: 'Brown Noise', icon: 'fa-water' }
+    ];
+
+    let ambientTracks = {};
+    soundDefinitions.forEach(s => {
+    ambientTracks[s.id] = parseFloat(localStorage.getItem(`aura_vol_${s.id}`) || '0');
+    });
 
     // DOM References
     const startBtn = document.getElementById('startBtn');
@@ -1277,144 +1296,242 @@
     }
 
     function createSoundSource(type) {
-      const sampleRate = audioCtx.sampleRate;
-      const gainNode = audioCtx.createGain();
-      gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-      gainNode.connect(masterGainNode);
+        const sampleRate = audioCtx.sampleRate;
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+        gainNode.connect(masterGainNode);
 
-      let nodes = [];
+        let nodes = [];
+        let intervals = [];
 
-      if (type === 'campfire' || type === 'white') {
-        const bufferSize = sampleRate * 2;
-        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
-        let b0=0, b1=0, b2=0, b3=0;
-        for (let i = 0; i < bufferSize; i++) {
-          const white = Math.random() * 2 - 1;
-          b0 = 0.99886 * b0 + white * 0.0555;
-          b1 = 0.99332 * b1 + white * 0.0750;
-          b2 = 0.96900 * b2 + white * 0.1538;
-          data[i] = (b0 + b1 + b2 + white * 0.5) * 0.04;
+        if (type === 'white' || type === 'pink' || type === 'brown' || type === 'rain' || type === 'campfire' || type === 'wind' || type === 'thunder') {
+            const bufferSize = sampleRate * 3;
+            const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+            const data = buffer.getChannelData(0);
+            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
+
+            for (let i = 0; i < bufferSize; i++) {
+            const white = Math.random() * 2 - 1;
+            if (type === 'white') {
+                data[i] = white * 0.12;
+            } else if (type === 'pink') {
+                b0 = 0.99886 * b0 + white * 0.0555179;
+                b1 = 0.99332 * b1 + white * 0.0750759;
+                b2 = 0.96900 * b2 + white * 0.1538520;
+                b3 = 0.86650 * b3 + white * 0.3104856;
+                b4 = 0.55000 * b4 + white * 0.5329522;
+                b5 = -0.7616 * b5 - white * 0.0168980;
+                data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+                b6 = white * 0.115926;
+            } else if (type === 'brown' || type === 'thunder') {
+                last = (last + (0.02 * white)) / 1.02;
+                data[i] = last * 1.5;
+            } else if (type === 'wind') {
+                last = (last + (0.04 * white)) / 1.04;
+                data[i] = last * 0.8;
+            } else if (type === 'rain') {
+                data[i] = white * 0.2;
+            } else if (type === 'campfire') {
+                const crackle = Math.random() > 0.994 ? (Math.random() * 2 - 1) * 2.5 : 0;
+                b0 = 0.99886 * b0 + white * 0.0555;
+                b1 = 0.99332 * b1 + white * 0.0750;
+                data[i] = ((b0 + b1 + white * 0.5) * 0.04) + crackle;
+            }
+            }
+
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer;
+            src.loop = true;
+
+            if (type === 'rain') {
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.value = 1400;
+            filter.Q.value = 2.0;
+            src.connect(filter);
+            filter.connect(gainNode);
+            } else if (type === 'wind') {
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 400;
+            const lfo = audioCtx.createOscillator();
+            lfo.frequency.value = 0.1;
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 250;
+            lfo.connect(filter.frequency);
+            lfo.start();
+            src.connect(filter);
+            filter.connect(gainNode);
+            nodes.push(lfo);
+            } else if (type === 'thunder') {
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 180;
+            src.connect(filter);
+            filter.connect(gainNode);
+            } else if (type === 'campfire') {
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.value = 1200;
+            src.connect(filter);
+            filter.connect(gainNode);
+            } else {
+            src.connect(gainNode);
+            }
+
+            src.start();
+            nodes.push(src);
+        } else if (type === 'waves') {
+            const bufferSize = sampleRate * 3;
+            const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+            const data = buffer.getChannelData(0);
+            let last = 0;
+            for (let i = 0; i < bufferSize; i++) {
+            data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
+            last = data[i];
+            }
+            const src = audioCtx.createBufferSource();
+            src.buffer = buffer; src.loop = true;
+            const filter = audioCtx.createBiquadFilter();
+            filter.frequency.value = 450;
+            const lfo = audioCtx.createOscillator();
+            lfo.frequency.value = 0.12;
+            const lfoGain = audioCtx.createGain();
+            lfoGain.gain.value = 0.12;
+            lfo.connect(lfoGain);
+            lfoGain.connect(gainNode.gain);
+            src.connect(filter);
+            filter.connect(gainNode);
+            src.start(); lfo.start();
+            nodes.push(src, lfo);
+        } else if (type === 'cafe') {
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            osc1.type = 'sine'; osc1.frequency.value = 140;
+            osc2.type = 'triangle'; osc2.frequency.value = 240;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass'; filter.frequency.value = 520; filter.Q.value = 1.2;
+            osc1.connect(filter); osc2.connect(filter);
+            filter.connect(gainNode);
+            osc1.start(); osc2.start();
+            nodes.push(osc1, osc2);
+        } else if (type === 'alpha' || type === 'theta') {
+            const baseFreq = 200;
+            const diff = type === 'alpha' ? 10 : 6;
+            const oscL = audioCtx.createOscillator();
+            const oscR = audioCtx.createOscillator();
+            const merger = audioCtx.createChannelMerger(2);
+            oscL.type = 'sine'; oscL.frequency.value = baseFreq;
+            oscR.type = 'sine'; oscR.frequency.value = baseFreq + diff;
+            oscL.connect(merger, 0, 0);
+            oscR.connect(merger, 0, 1);
+            merger.connect(gainNode);
+            oscL.start(); oscR.start();
+            nodes.push(oscL, oscR);
+        } else if (type === 'birds') {
+            const intervalId = setInterval(() => {
+            if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
+            try {
+                const chirpOsc = audioCtx.createOscillator();
+                const chirpGain = audioCtx.createGain();
+                const t = audioCtx.currentTime;
+                const startFreq = 2200 + Math.random() * 1200;
+                chirpOsc.type = 'sine';
+                chirpOsc.frequency.setValueAtTime(startFreq, t);
+                chirpOsc.frequency.exponentialRampToValueAtTime(startFreq + 900, t + 0.08);
+                chirpOsc.frequency.exponentialRampToValueAtTime(startFreq - 300, t + 0.16);
+                chirpGain.gain.setValueAtTime(0.001, t);
+                chirpGain.gain.linearRampToValueAtTime(0.12, t + 0.03);
+                chirpGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+                chirpOsc.connect(chirpGain);
+                chirpGain.connect(gainNode);
+                chirpOsc.start(t);
+                chirpOsc.stop(t + 0.2);
+            } catch(e) {}
+            }, 2400);
+            intervals.push(intervalId);
         }
-        const src = audioCtx.createBufferSource();
-        src.buffer = buffer; src.loop = true;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'lowpass'; filter.frequency.value = type === 'campfire' ? 1100 : 3500;
-        src.connect(filter); filter.connect(gainNode);
-        src.start();
-        nodes.push(src);
-      } else if (type === 'waves') {
-        const bufferSize = sampleRate * 3;
-        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
-        let last = 0;
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
-          last = data[i];
-        }
-        const src = audioCtx.createBufferSource();
-        src.buffer = buffer; src.loop = true;
-        const filter = audioCtx.createBiquadFilter();
-        filter.frequency.value = 400;
-        const lfo = audioCtx.createOscillator();
-        lfo.frequency.value = 0.12;
-        const lfoGain = audioCtx.createGain();
-        lfoGain.gain.value = 0.1;
-        lfo.connect(lfoGain); lfoGain.connect(gainNode.gain);
-        src.connect(filter); filter.connect(gainNode);
-        src.start(); lfo.start();
-        nodes.push(src, lfo);
-      } else if (type === 'cafe') {
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        osc1.type = 'sine'; osc1.frequency.value = 130;
-        osc2.type = 'triangle'; osc2.frequency.value = 220;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass'; filter.frequency.value = 500;
-        osc1.connect(filter); osc2.connect(filter);
-        filter.connect(gainNode);
-        osc1.start(); osc2.start();
-        nodes.push(osc1, osc2);
-      } else if (type === 'rain') {
-        const bufferSize = sampleRate * 2;
-        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * 0.2;
-        const src = audioCtx.createBufferSource();
-        src.buffer = buffer; src.loop = true;
-        const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass'; filter.frequency.value = 1300; filter.Q.value = 3.0;
-        src.connect(filter); filter.connect(gainNode);
-        src.start();
-        nodes.push(src);
-      } else if (type === 'alpha') {
-        const oscL = audioCtx.createOscillator();
-        const oscR = audioCtx.createOscillator();
-        const merger = audioCtx.createChannelMerger(2);
-        oscL.type = 'sine'; oscL.frequency.value = 200;
-        oscR.type = 'sine'; oscR.frequency.value = 210;
-        oscL.connect(merger, 0, 0); oscR.connect(merger, 0, 1);
-        merger.connect(gainNode);
-        oscL.start(); oscR.start();
-        nodes.push(oscL, oscR);
-      }
 
-      return { gainNode, nodes };
+        return { gainNode, nodes, intervals };
     }
 
     function setTrackVolume(type, vol) {
-      initAudio();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
-      ambientTracks[type] = vol;
-      localStorage.setItem(`aura_vol_${type}`, vol);
+        initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        ambientTracks[type] = vol;
+        localStorage.setItem(`aura_vol_${type}`, vol);
 
-      if (vol > 0 && !activeSoundSources[type]) {
-        activeSoundSources[type] = createSoundSource(type);
-      }
-
-      if (activeSoundSources[type]) {
-        const gn = activeSoundSources[type].gainNode;
-        gn.gain.cancelScheduledValues(audioCtx.currentTime);
-        gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.1);
-        if (vol === 0) {
-          setTimeout(() => {
-            if (ambientTracks[type] === 0 && activeSoundSources[type]) {
-              activeSoundSources[type].nodes.forEach(n => { try { n.stop(); n.disconnect(); } catch(e){} });
-              activeSoundSources[type] = null;
-            }
-          }, 150);
+        if (vol > 0 && !activeSoundSources[type]) {
+            activeSoundSources[type] = createSoundSource(type);
         }
-      }
+
+        if (activeSoundSources[type]) {
+            const gn = activeSoundSources[type].gainNode;
+            gn.gain.cancelScheduledValues(audioCtx.currentTime);
+            gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.1);
+            if (vol === 0) {
+            setTimeout(() => {
+                if (ambientTracks[type] === 0 && activeSoundSources[type]) {
+                activeSoundSources[type].nodes.forEach(n => { try { n.stop(); n.disconnect(); } catch(e){} });
+                if (activeSoundSources[type].intervals) {
+                    activeSoundSources[type].intervals.forEach(clearInterval);
+                }
+                activeSoundSources[type] = null;
+                }
+            }, 150);
+            }
+        }
+    }
+
+    function clearAllAmbientTracks() {
+        soundDefinitions.forEach(s => {
+            setTrackVolume(s.id, 0);
+        });
+        renderSoundMixerUI();
+    }
+
+    function applySoundPreset(preset) {
+        soundDefinitions.forEach(s => {
+            const targetVol = preset[s.id] || 0;
+            setTrackVolume(s.id, targetVol);
+        });
+        renderSoundMixerUI();
     }
 
     function renderSoundMixerUI() {
-      const list = document.getElementById('soundLayerList');
-      list.innerHTML = '';
-      const sounds = [
-        { id: 'campfire', label: 'Campfire', icon: 'fa-fire' },
-        { id: 'waves', label: 'Waves', icon: 'fa-water' },
-        { id: 'cafe', label: 'Cafe', icon: 'fa-mug-hot' },
-        { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain' },
-        { id: 'alpha', label: 'Alpha', icon: 'fa-brain' },
-        { id: 'white', label: 'White', icon: 'fa-wind' },
-      ];
+    const list = document.getElementById('soundLayerList');
+    list.innerHTML = '';
 
-      sounds.forEach(s => {
+    soundDefinitions.forEach(s => {
         const val = ambientTracks[s.id] || 0;
         const div = document.createElement('div');
-        div.className = 'flex items-center gap-1.5 px-2 py-1 rounded-xl glass-panel flex-shrink-0 text-xs text-slate-300';
+        div.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-xl glass-panel flex-shrink-0 text-xs text-slate-300 transition-all ${val > 0 ? 'border-sky-400/30 bg-sky-500/10' : ''}`;
         div.innerHTML = `
-          <i class="fa-solid ${s.icon} text-[10px] ${val > 0 ? 'text-sky-400' : 'text-slate-500'}"></i>
-          <span class="text-[10px] font-mono">${s.label}</span>
-          <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-12 h-1 accent-sky-400" data-track="${s.id}">
+        <i class="fa-solid ${s.icon} text-[10px] ${val > 0 ? 'text-sky-400' : 'text-slate-500'}"></i>
+        <span class="text-[10px] font-mono whitespace-nowrap">${s.label}</span>
+        <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-14 h-1 accent-sky-400" data-track="${s.id}">
+        <span class="text-[9px] font-mono text-slate-400 w-5 text-right">${Math.round(val * 100)}%</span>
         `;
-        div.querySelector('input').addEventListener('input', (e) => {
-          const v = parseFloat(e.target.value);
-          setTrackVolume(s.id, v);
-          div.querySelector('i').className = `fa-solid ${s.icon} text-[10px] ${v > 0 ? 'text-sky-400' : 'text-slate-500'}`;
+
+        const slider = div.querySelector('input');
+        const pctLabel = div.querySelector('span:last-child');
+        const icon = div.querySelector('i');
+
+        slider.addEventListener('input', (e) => {
+        const v = parseFloat(e.target.value);
+        setTrackVolume(s.id, v);
+        pctLabel.textContent = `${Math.round(v * 100)}%`;
+        if (v > 0) {
+            icon.className = `fa-solid ${s.icon} text-[10px] text-sky-400`;
+            div.classList.add('border-sky-400/30', 'bg-sky-500/10');
+        } else {
+            icon.className = `fa-solid ${s.icon} text-[10px] text-slate-500`;
+            div.classList.remove('border-sky-400/30', 'bg-sky-500/10');
+        }
         });
+
         list.appendChild(div);
-      });
+    });
     }
 
     // --- Drift-Free Clock Engine ---
