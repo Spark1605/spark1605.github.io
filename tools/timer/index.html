@@ -824,20 +824,17 @@
 
       <!-- Data Export & Import Hub -->
       <div class="flex items-center gap-2 pt-3 border-t border-white/10">
-          <a href="https://sprk-web.github.io/tools/timer/dashboard" target="_blank" class="flex-1 glass-panel hover:bg-amber-500/15 hover:border-amber-500/30 hover:text-amber-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition text-center active:scale-95 flex items-center justify-center">
-            <i class="fa-solid fa-chart-line mr-1 text-amber-400"></i> Detailed
-          </a>
-          <button id="exportCsvBtn" class="flex-1 glass-panel hover:bg-emerald-500/15 hover:border-emerald-500/30 hover:text-emerald-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition active:scale-95">
-            <i class="fa-solid fa-file-csv mr-1 text-emerald-400"></i> Export CSV
-          </button>
-          <button id="exportJsonBtn" class="flex-1 glass-panel hover:bg-sky-500/15 hover:border-sky-500/30 hover:text-sky-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition active:scale-95">
-            <i class="fa-solid fa-file-code mr-1 text-sky-400"></i> Backup JSON
-          </button>
-          <label class="flex-1 glass-panel hover:bg-violet-500/15 hover:border-violet-500/30 hover:text-violet-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition text-center cursor-pointer active:scale-95">
-            <i class="fa-solid fa-upload mr-1 text-violet-400"></i> Restore
-            <input type="file" id="importJsonInput" accept=".json" class="hidden">
-          </label>
-        </div>
+        <button id="exportCsvBtn" class="flex-1 glass-panel hover:bg-emerald-500/15 hover:border-emerald-500/30 hover:text-emerald-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition active:scale-95">
+          <i class="fa-solid fa-file-csv mr-1 text-emerald-400"></i> Export CSV
+        </button>
+        <button id="exportJsonBtn" class="flex-1 glass-panel hover:bg-sky-500/15 hover:border-sky-500/30 hover:text-sky-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition active:scale-95">
+          <i class="fa-solid fa-file-code mr-1 text-sky-400"></i> Backup JSON
+        </button>
+        <label class="flex-1 glass-panel hover:bg-violet-500/15 hover:border-violet-500/30 hover:text-violet-300 text-slate-300 py-2 rounded-xl text-xs font-mono transition text-center cursor-pointer active:scale-95">
+          <i class="fa-solid fa-upload mr-1 text-violet-400"></i> Restore
+          <input type="file" id="importJsonInput" accept=".json" class="hidden">
+        </label>
+      </div>
     </div>
   </div>
 
@@ -855,7 +852,14 @@
       'mountains': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=80'
     };
 
-    // --- State Initialization ---
+    // --- State Initialization & LocalStorage Parsing Helpers ---
+    function getTodayKey(d = new Date()) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
     let engineMode = 'pomodoro'; 
     let timerState = 'idle'; 
     let displayStyle = localStorage.getItem('aura_displayStyle') || 'minimal'; 
@@ -866,9 +870,9 @@
     let alarmTone = localStorage.getItem('aura_alarmTone') || 'bowl';
 
     let isWorkInterval = true;
-    let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || 25) * 60;
-    let breakDurationSecs = parseInt(localStorage.getItem('aura_breakMins') || 5) * 60;
-    let longBreakDurationSecs = parseInt(localStorage.getItem('aura_longBreakMins') || 15) * 60;
+    let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || '25', 10) * 60;
+    let breakDurationSecs = parseInt(localStorage.getItem('aura_breakMins') || '5', 10) * 60;
+    let longBreakDurationSecs = parseInt(localStorage.getItem('aura_longBreakMins') || '15', 10) * 60;
     let sessionCycleCount = 0;
     
     let timeRemaining = workDurationSecs;
@@ -880,41 +884,58 @@
     let startTimeTimestamp = 0;
     let initialRemainingAtStart = 0;
     let lastTickSecondLogged = 0;
+    let lastElapsedFocusSecs = 0; // Tracks deterministic seconds for focus accumulation
 
-    let dailyGoalTarget = parseInt(localStorage.getItem('aura_dailyGoal') || 8);
-    let completedSessionsCount = parseInt(localStorage.getItem('aura_completedSessions') || 0);
-    let totalFocusSecondsCompleted = parseInt(localStorage.getItem('aura_focusSeconds') || 0);
-    let heatmapHistory = JSON.parse(localStorage.getItem('aura_heatmapHistory') || JSON.stringify(new Array(28).fill(0)));
+    let dailyGoalTarget = parseInt(localStorage.getItem('aura_dailyGoal') || '8', 10);
+    let completedSessionsCount = parseInt(localStorage.getItem('aura_completedSessions') || '0', 10);
+    let totalFocusSecondsCompleted = parseInt(localStorage.getItem('aura_focusSeconds') || '0', 10);
+
+    // Date-keyed heatmap tracking: { 'YYYY-MM-DD': count }
+    let heatmapHistory = {};
+    try {
+      const storedHeatmap = JSON.parse(localStorage.getItem('aura_heatmapHistory') || '{}');
+      if (Array.isArray(storedHeatmap)) {
+        // Migration from legacy array structure to date-keyed object
+        heatmapHistory = {};
+        if (storedHeatmap.length > 0) {
+          heatmapHistory[getTodayKey()] = storedHeatmap[storedHeatmap.length - 1] || 0;
+        }
+      } else if (typeof storedHeatmap === 'object' && storedHeatmap !== null) {
+        heatmapHistory = storedHeatmap;
+      }
+    } catch (e) {
+      heatmapHistory = {};
+    }
 
     let tasks = JSON.parse(localStorage.getItem('aura_tasks') || '[]');
-    let activeTaskId = localStorage.getItem('aura_activeTaskId') ? parseInt(localStorage.getItem('aura_activeTaskId')) : null;
+    let activeTaskId = localStorage.getItem('aura_activeTaskId') ? parseInt(localStorage.getItem('aura_activeTaskId'), 10) : null;
 
     let particleMode = localStorage.getItem('aura_particleMode') || 'embers';
     let currentWallpaper = localStorage.getItem('aura_wallpaper') || 'beach';
     let customWallpaperUrl = localStorage.getItem('aura_customBg') || '';
-    let bgBlur = parseInt(localStorage.getItem('aura_bgBlur') ?? '0');
-    let bgBrightness = parseInt(localStorage.getItem('aura_bgBrightness') ?? '75');
-    let bgContrast = parseInt(localStorage.getItem('aura_bgContrast') ?? '100');
-    let bgSaturate = parseInt(localStorage.getItem('aura_bgSaturate') ?? '100');
+    let bgBlur = parseInt(localStorage.getItem('aura_bgBlur') ?? '0', 10);
+    let bgBrightness = parseInt(localStorage.getItem('aura_bgBrightness') ?? '75', 10);
+    let bgContrast = parseInt(localStorage.getItem('aura_bgContrast') ?? '100', 10);
+    let bgSaturate = parseInt(localStorage.getItem('aura_bgSaturate') ?? '100', 10);
 
     const soundDefinitions = [
-    { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain' },
-    { id: 'thunder', label: 'Thunder', icon: 'fa-bolt-lightning' },
-    { id: 'campfire', label: 'Campfire', icon: 'fa-fire' },
-    { id: 'waves', label: 'Ocean Waves', icon: 'fa-water' },
-    { id: 'wind', label: 'Wind Storm', icon: 'fa-wind' },
-    { id: 'birds', label: 'Birds', icon: 'fa-dove' },
-    { id: 'cafe', label: 'Cafe Chatter', icon: 'fa-mug-hot' },
-    { id: 'alpha', label: 'Alpha 10Hz', icon: 'fa-brain' },
-    { id: 'theta', label: 'Theta 6Hz', icon: 'fa-spa' },
-    { id: 'white', label: 'White Noise', icon: 'fa-wave-square' },
-    { id: 'pink', label: 'Pink Noise', icon: 'fa-sliders' },
-    { id: 'brown', label: 'Brown Noise', icon: 'fa-water' }
+      { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain' },
+      { id: 'thunder', label: 'Thunder', icon: 'fa-bolt-lightning' },
+      { id: 'campfire', label: 'Campfire', icon: 'fa-fire' },
+      { id: 'waves', label: 'Ocean Waves', icon: 'fa-water' },
+      { id: 'wind', label: 'Wind Storm', icon: 'fa-wind' },
+      { id: 'birds', label: 'Birds', icon: 'fa-dove' },
+      { id: 'cafe', label: 'Cafe Chatter', icon: 'fa-mug-hot' },
+      { id: 'alpha', label: 'Alpha 10Hz', icon: 'fa-brain' },
+      { id: 'theta', label: 'Theta 6Hz', icon: 'fa-spa' },
+      { id: 'white', label: 'White Noise', icon: 'fa-wave-square' },
+      { id: 'pink', label: 'Pink Noise', icon: 'fa-sliders' },
+      { id: 'brown', label: 'Brown Noise', icon: 'fa-water' }
     ];
 
     let ambientTracks = {};
     soundDefinitions.forEach(s => {
-    ambientTracks[s.id] = parseFloat(localStorage.getItem(`aura_vol_${s.id}`) || '0');
+      ambientTracks[s.id] = parseFloat(localStorage.getItem(`aura_vol_${s.id}`) || '0');
     });
 
     // DOM References
@@ -973,15 +994,17 @@
       const setting = document.getElementById('settingWakeLock');
       if (setting) setting.checked = isWakeLockEnabled;
 
-      if (isWakeLockEnabled && (wakeLockSentinel || timerState === 'running')) {
-        icon.className = "fa-solid fa-sun text-xs text-amber-400";
-        label.textContent = "Awake: Active";
-      } else if (isWakeLockEnabled) {
-        icon.className = "fa-regular fa-sun text-xs text-slate-300";
-        label.textContent = "Awake: Auto";
-      } else {
-        icon.className = "fa-solid fa-moon text-xs text-slate-500";
-        label.textContent = "Awake: Off";
+      if (icon && label) {
+        if (isWakeLockEnabled && (wakeLockSentinel || timerState === 'running')) {
+          icon.className = "fa-solid fa-sun text-xs text-amber-400";
+          label.textContent = "Awake: Active";
+        } else if (isWakeLockEnabled) {
+          icon.className = "fa-regular fa-sun text-xs text-slate-300";
+          label.textContent = "Awake: Auto";
+        } else {
+          icon.className = "fa-solid fa-moon text-xs text-slate-500";
+          label.textContent = "Awake: Off";
+        }
       }
     }
 
@@ -1138,6 +1161,8 @@
         `;
         pipWindow.document.head.appendChild(styleEl);
 
+        const currentVol = document.getElementById('volumeControl') ? document.getElementById('volumeControl').value : '0.5';
+
         pipWindow.document.body.innerHTML = `
           <div id="pipBgLayer" class="pip-bg" style="background-image: url('${getActiveWallpaperUrl()}');"></div>
           <div class="pip-container">
@@ -1160,7 +1185,7 @@
               <canvas id="pipVisualizer" width="120" height="18" class="pip-visualizer"></canvas>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-volume-low text-[10px] text-slate-400"></i>
-                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${document.getElementById('volumeControl').value}" style="width: 55px; height: 4px; accent-color: #38bdf8; cursor: pointer;">
+                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${currentVol}" style="width: 55px; height: 4px; accent-color: #38bdf8; cursor: pointer;">
               </div>
             </div>
           </div>
@@ -1174,7 +1199,8 @@
 
         pipWindow.document.getElementById('pipVolControl').addEventListener('input', (e) => {
           const vol = parseFloat(e.target.value);
-          document.getElementById('volumeControl').value = vol;
+          const volSlider = document.getElementById('volumeControl');
+          if (volSlider) volSlider.value = vol;
           setMasterVolume(vol);
         });
 
@@ -1238,25 +1264,29 @@
     });
 
     // --- Web Audio API Engine & Multi-Track Sound Mixer ---
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
     let masterGainNode = null;
     let analyserNode = null;
     const activeSoundSources = {};
 
     function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new AudioContext();
+      if (!audioCtx && AudioContextClass) {
+        audioCtx = new AudioContextClass();
         masterGainNode = audioCtx.createGain();
         analyserNode = audioCtx.createAnalyser();
         analyserNode.fftSize = 64;
 
         const savedVol = localStorage.getItem('aura_volume') || '0.5';
-        document.getElementById('volumeControl').value = savedVol;
+        const volSlider = document.getElementById('volumeControl');
+        if (volSlider) volSlider.value = savedVol;
         masterGainNode.gain.setValueAtTime(parseFloat(savedVol), audioCtx.currentTime);
 
         masterGainNode.connect(analyserNode);
         analyserNode.connect(audioCtx.destination);
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
       }
     }
 
@@ -1274,7 +1304,9 @@
     }
 
     function playTickSound() {
-      if (!isTickingEnabled || !audioCtx) return;
+      if (!isTickingEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
       try {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -1283,7 +1315,7 @@
         gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
         osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        gain.connect(masterGainNode);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.04);
       } catch (e) {}
@@ -1291,7 +1323,7 @@
 
     function playAlarmSound() {
       initAudio();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!audioCtx) return;
 
       const t = audioCtx.currentTime;
       if (alarmTone === 'bowl') {
@@ -1335,7 +1367,7 @@
         osc.start(t); osc.stop(t + 2.5);
       }
 
-      if (Notification.permission === 'granted') {
+      if ('Notification' in window && Notification.permission === 'granted') {
         const title = engineMode === 'pomodoro' ? (isWorkInterval ? "Focus Session Complete!" : "Break Concluded!") : "Timer Finished!";
         new Notification(title, {
           body: engineMode === 'pomodoro' ? (isWorkInterval ? "Well done! Take a well-earned rest." : "Break is over. Ready to sprint?") : "Target duration reached.",
@@ -1345,6 +1377,7 @@
     }
 
     function createSoundSource(type) {
+        if (!audioCtx) return null;
         const sampleRate = audioCtx.sampleRate;
         const gainNode = audioCtx.createGain();
         gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
@@ -1360,32 +1393,32 @@
             let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
 
             for (let i = 0; i < bufferSize; i++) {
-            const white = Math.random() * 2 - 1;
-            if (type === 'white') {
-                data[i] = white * 0.12;
-            } else if (type === 'pink') {
-                b0 = 0.99886 * b0 + white * 0.0555179;
-                b1 = 0.99332 * b1 + white * 0.0750759;
-                b2 = 0.96900 * b2 + white * 0.1538520;
-                b3 = 0.86650 * b3 + white * 0.3104856;
-                b4 = 0.55000 * b4 + white * 0.5329522;
-                b5 = -0.7616 * b5 - white * 0.0168980;
-                data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-                b6 = white * 0.115926;
-            } else if (type === 'brown' || type === 'thunder') {
-                last = (last + (0.02 * white)) / 1.02;
-                data[i] = last * 1.5;
-            } else if (type === 'wind') {
-                last = (last + (0.04 * white)) / 1.04;
-                data[i] = last * 0.8;
-            } else if (type === 'rain') {
-                data[i] = white * 0.2;
-            } else if (type === 'campfire') {
-                const crackle = Math.random() > 0.994 ? (Math.random() * 2 - 1) * 2.5 : 0;
-                b0 = 0.99886 * b0 + white * 0.0555;
-                b1 = 0.99332 * b1 + white * 0.0750;
-                data[i] = ((b0 + b1 + white * 0.5) * 0.04) + crackle;
-            }
+              const white = Math.random() * 2 - 1;
+              if (type === 'white') {
+                  data[i] = white * 0.12;
+              } else if (type === 'pink') {
+                  b0 = 0.99886 * b0 + white * 0.0555179;
+                  b1 = 0.99332 * b1 + white * 0.0750759;
+                  b2 = 0.96900 * b2 + white * 0.1538520;
+                  b3 = 0.86650 * b3 + white * 0.3104856;
+                  b4 = 0.55000 * b4 + white * 0.5329522;
+                  b5 = -0.7616 * b5 - white * 0.0168980;
+                  data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+                  b6 = white * 0.115926;
+              } else if (type === 'brown' || type === 'thunder') {
+                  last = (last + (0.02 * white)) / 1.02;
+                  data[i] = last * 1.5;
+              } else if (type === 'wind') {
+                  last = (last + (0.04 * white)) / 1.04;
+                  data[i] = last * 0.8;
+              } else if (type === 'rain') {
+                  data[i] = white * 0.2;
+              } else if (type === 'campfire') {
+                  const crackle = Math.random() > 0.994 ? (Math.random() * 2 - 1) * 2.5 : 0;
+                  b0 = 0.99886 * b0 + white * 0.0555;
+                  b1 = 0.99332 * b1 + white * 0.0750;
+                  data[i] = ((b0 + b1 + white * 0.5) * 0.04) + crackle;
+              }
             }
 
             const src = audioCtx.createBufferSource();
@@ -1393,39 +1426,42 @@
             src.loop = true;
 
             if (type === 'rain') {
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass';
-            filter.frequency.value = 1400;
-            filter.Q.value = 2.0;
-            src.connect(filter);
-            filter.connect(gainNode);
+              const filter = audioCtx.createBiquadFilter();
+              filter.type = 'bandpass';
+              filter.frequency.value = 1400;
+              filter.Q.value = 2.0;
+              src.connect(filter);
+              filter.connect(gainNode);
+              nodes.push(filter);
             } else if (type === 'wind') {
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 400;
-            const lfo = audioCtx.createOscillator();
-            lfo.frequency.value = 0.1;
-            const lfoGain = audioCtx.createGain();
-            lfoGain.gain.value = 250;
-            lfo.connect(filter.frequency);
-            lfo.start();
-            src.connect(filter);
-            filter.connect(gainNode);
-            nodes.push(lfo);
+              const filter = audioCtx.createBiquadFilter();
+              filter.type = 'lowpass';
+              filter.frequency.value = 400;
+              const lfo = audioCtx.createOscillator();
+              lfo.frequency.value = 0.1;
+              const lfoGain = audioCtx.createGain();
+              lfoGain.gain.value = 250;
+              lfo.connect(filter.frequency);
+              lfo.start();
+              src.connect(filter);
+              filter.connect(gainNode);
+              nodes.push(lfo, lfoGain, filter);
             } else if (type === 'thunder') {
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 180;
-            src.connect(filter);
-            filter.connect(gainNode);
+              const filter = audioCtx.createBiquadFilter();
+              filter.type = 'lowpass';
+              filter.frequency.value = 180;
+              src.connect(filter);
+              filter.connect(gainNode);
+              nodes.push(filter);
             } else if (type === 'campfire') {
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 1200;
-            src.connect(filter);
-            filter.connect(gainNode);
+              const filter = audioCtx.createBiquadFilter();
+              filter.type = 'lowpass';
+              filter.frequency.value = 1200;
+              src.connect(filter);
+              filter.connect(gainNode);
+              nodes.push(filter);
             } else {
-            src.connect(gainNode);
+              src.connect(gainNode);
             }
 
             src.start();
@@ -1436,8 +1472,8 @@
             const data = buffer.getChannelData(0);
             let last = 0;
             for (let i = 0; i < bufferSize; i++) {
-            data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
-            last = data[i];
+              data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
+              last = data[i];
             }
             const src = audioCtx.createBufferSource();
             src.buffer = buffer; src.loop = true;
@@ -1452,7 +1488,7 @@
             src.connect(filter);
             filter.connect(gainNode);
             src.start(); lfo.start();
-            nodes.push(src, lfo);
+            nodes.push(src, lfo, lfoGain, filter);
         } else if (type === 'cafe') {
             const osc1 = audioCtx.createOscillator();
             const osc2 = audioCtx.createOscillator();
@@ -1463,7 +1499,7 @@
             osc1.connect(filter); osc2.connect(filter);
             filter.connect(gainNode);
             osc1.start(); osc2.start();
-            nodes.push(osc1, osc2);
+            nodes.push(osc1, osc2, filter);
         } else if (type === 'alpha' || type === 'theta') {
             const baseFreq = 200;
             const diff = type === 'alpha' ? 10 : 6;
@@ -1476,11 +1512,11 @@
             oscR.connect(merger, 0, 1);
             merger.connect(gainNode);
             oscL.start(); oscR.start();
-            nodes.push(oscL, oscR);
+            nodes.push(oscL, oscR, merger);
         } else if (type === 'birds') {
             const intervalId = setInterval(() => {
-            if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
-            try {
+              if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
+              try {
                 const chirpOsc = audioCtx.createOscillator();
                 const chirpGain = audioCtx.createGain();
                 const t = audioCtx.currentTime;
@@ -1496,7 +1532,7 @@
                 chirpGain.connect(gainNode);
                 chirpOsc.start(t);
                 chirpOsc.stop(t + 0.2);
-            } catch(e) {}
+              } catch(e) {}
             }, 2400);
             intervals.push(intervalId);
         }
@@ -1504,62 +1540,73 @@
         return { gainNode, nodes, intervals };
     }
 
+    // Audio node teardown without leaks
     function setTrackVolume(type, vol) {
         initAudio();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
         ambientTracks[type] = vol;
         localStorage.setItem(`aura_vol_${type}`, vol);
 
         if (vol > 0 && !activeSoundSources[type]) {
-            activeSoundSources[type] = createSoundSource(type);
+          activeSoundSources[type] = createSoundSource(type);
         }
 
         if (activeSoundSources[type]) {
-            const gn = activeSoundSources[type].gainNode;
-            gn.gain.cancelScheduledValues(audioCtx.currentTime);
-            gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.1);
-            if (vol === 0) {
+          const gn = activeSoundSources[type].gainNode;
+          gn.gain.cancelScheduledValues(audioCtx.currentTime);
+          gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.05);
+
+          if (vol === 0) {
+            const trackRef = activeSoundSources[type];
+            delete activeSoundSources[type];
             setTimeout(() => {
-                if (ambientTracks[type] === 0 && activeSoundSources[type]) {
-                activeSoundSources[type].nodes.forEach(n => { try { n.stop(); n.disconnect(); } catch(e){} });
-                if (activeSoundSources[type].intervals) {
-                    activeSoundSources[type].intervals.forEach(clearInterval);
+              if (trackRef) {
+                if (trackRef.nodes) {
+                  trackRef.nodes.forEach(n => {
+                    try { if (n.stop) n.stop(); } catch(e) {}
+                    try { if (n.disconnect) n.disconnect(); } catch(e) {}
+                  });
                 }
-                activeSoundSources[type] = null;
+                if (trackRef.gainNode) {
+                  try { trackRef.gainNode.disconnect(); } catch(e) {}
                 }
-            }, 150);
-            }
+                if (trackRef.intervals) {
+                  trackRef.intervals.forEach(clearInterval);
+                }
+              }
+            }, 100);
+          }
         }
     }
 
     function clearAllAmbientTracks() {
-        soundDefinitions.forEach(s => {
-            setTrackVolume(s.id, 0);
-        });
-        renderSoundMixerUI();
+      soundDefinitions.forEach(s => {
+        setTrackVolume(s.id, 0);
+      });
+      renderSoundMixerUI();
     }
 
     function applySoundPreset(preset) {
-        soundDefinitions.forEach(s => {
-            const targetVol = preset[s.id] || 0;
-            setTrackVolume(s.id, targetVol);
-        });
-        renderSoundMixerUI();
+      soundDefinitions.forEach(s => {
+        const targetVol = preset[s.id] || 0;
+        setTrackVolume(s.id, targetVol);
+      });
+      renderSoundMixerUI();
     }
 
     function renderSoundMixerUI() {
-    const list = document.getElementById('soundLayerList');
-    list.innerHTML = '';
+      const list = document.getElementById('soundLayerList');
+      if (!list) return;
+      list.innerHTML = '';
 
-    soundDefinitions.forEach(s => {
+      soundDefinitions.forEach(s => {
         const val = ambientTracks[s.id] || 0;
         const div = document.createElement('div');
         div.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-xl glass-panel flex-shrink-0 text-xs text-slate-300 transition-all ${val > 0 ? 'border-sky-400/30 bg-sky-500/10' : ''}`;
         div.innerHTML = `
-        <i class="fa-solid ${s.icon} text-[10px] ${val > 0 ? 'text-sky-400' : 'text-slate-500'}"></i>
-        <span class="text-[10px] font-mono whitespace-nowrap">${s.label}</span>
-        <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-14 h-1 accent-sky-400" data-track="${s.id}">
-        <span class="text-[9px] font-mono text-slate-400 w-5 text-right">${Math.round(val * 100)}%</span>
+          <i class="fa-solid ${s.icon} text-[10px] ${val > 0 ? 'text-sky-400' : 'text-slate-500'}"></i>
+          <span class="text-[10px] font-mono whitespace-nowrap">${s.label}</span>
+          <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-14 h-1 accent-sky-400" data-track="${s.id}">
+          <span class="text-[9px] font-mono text-slate-400 w-5 text-right">${Math.round(val * 100)}%</span>
         `;
 
         const slider = div.querySelector('input');
@@ -1567,55 +1614,65 @@
         const icon = div.querySelector('i');
 
         slider.addEventListener('input', (e) => {
-        const v = parseFloat(e.target.value);
-        setTrackVolume(s.id, v);
-        pctLabel.textContent = `${Math.round(v * 100)}%`;
-        if (v > 0) {
+          const v = parseFloat(e.target.value);
+          setTrackVolume(s.id, v);
+          pctLabel.textContent = `${Math.round(v * 100)}%`;
+          if (v > 0) {
             icon.className = `fa-solid ${s.icon} text-[10px] text-sky-400`;
             div.classList.add('border-sky-400/30', 'bg-sky-500/10');
-        } else {
+          } else {
             icon.className = `fa-solid ${s.icon} text-[10px] text-slate-500`;
             div.classList.remove('border-sky-400/30', 'bg-sky-500/10');
-        }
+          }
         });
 
         list.appendChild(div);
-    });
+      });
     }
 
-    // --- Drift-Free Clock Engine ---
+    // --- Drift-Free Clock & Display Engine ---
     function updateDisplay() {
       const timeObj = engineMode === 'stopwatch' ? formatTime(stopwatchSeconds) : formatTime(timeRemaining);
       
-      displayMinimal.textContent = timeObj.formatted;
-      ringTimeText.textContent = timeObj.formatted;
+      if (displayMinimal) displayMinimal.textContent = timeObj.formatted;
+      if (ringTimeText) ringTimeText.textContent = timeObj.formatted;
 
-      if (engineMode !== 'stopwatch') {
-        const circumference = 660;
-        const offset = circumference - (timeRemaining / totalDuration) * circumference;
-        progressCircle.style.strokeDashoffset = isNaN(offset) ? 0 : offset;
-      } else {
-        progressCircle.style.strokeDashoffset = 0;
+      if (progressCircle) {
+        if (engineMode !== 'stopwatch') {
+          const circumference = 660;
+          const safeTotal = totalDuration > 0 ? totalDuration : 1;
+          const offset = circumference - (timeRemaining / safeTotal) * circumference;
+          progressCircle.style.strokeDashoffset = isNaN(offset) ? 0 : offset;
+        } else {
+          progressCircle.style.strokeDashoffset = 0;
+        }
       }
 
-      document.getElementById('flipM1').textContent = timeObj.m[0];
-      document.getElementById('flipM2').textContent = timeObj.m[1];
-      document.getElementById('flipS1').textContent = timeObj.s[0];
-      document.getElementById('flipS2').textContent = timeObj.s[1];
+      const flipM1 = document.getElementById('flipM1');
+      const flipM2 = document.getElementById('flipM2');
+      const flipS1 = document.getElementById('flipS1');
+      const flipS2 = document.getElementById('flipS2');
+
+      if (flipM1) flipM1.textContent = timeObj.m[0];
+      if (flipM2) flipM2.textContent = timeObj.m[1];
+      if (flipS1) flipS1.textContent = timeObj.s[0];
+      if (flipS2) flipS2.textContent = timeObj.s[1];
 
       document.title = `${timeObj.formatted} - SPRK-Timer`;
 
       const pomoCard = document.getElementById('pomoCard');
-      if (timerState === 'running') {
-        if (engineMode === 'pomodoro') {
-          pomoCard.className = isWorkInterval 
-            ? "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow"
-            : "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow-rest";
+      if (pomoCard) {
+        if (timerState === 'running') {
+          if (engineMode === 'pomodoro') {
+            pomoCard.className = isWorkInterval 
+              ? "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow"
+              : "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow-rest";
+          } else {
+            pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow";
+          }
         } else {
-          pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow";
+          pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500";
         }
-      } else {
-        pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500";
       }
 
       if (pipWindow && !pipWindow.closed) {
@@ -1643,24 +1700,28 @@
           pipTask.textContent = activeTask ? `🎯 ${activeTask.title}` : "SPRK Focus";
         }
         if (pipProgress && engineMode !== 'stopwatch') {
-          const pct = Math.max(0, Math.min(100, ((totalDuration - timeRemaining) / totalDuration) * 100));
+          const safeTotal = totalDuration > 0 ? totalDuration : 1;
+          const pct = Math.max(0, Math.min(100, ((safeTotal - timeRemaining) / safeTotal) * 100));
           pipProgress.style.width = `${pct}%`;
         }
       }
     }
 
     function formatTime(totalSecs) {
-      const m = Math.floor(totalSecs / 60).toString().padStart(2, '0');
-      const s = Math.floor(totalSecs % 60).toString().padStart(2, '0');
+      const safe = Math.max(0, Math.floor(totalSecs));
+      const m = Math.floor(safe / 60).toString().padStart(2, '0');
+      const s = Math.floor(safe % 60).toString().padStart(2, '0');
       return { m, s, formatted: `${m}:${s}` };
     }
 
+    // --- Core High-Precision Timer Loop ---
     function timerFrameLoop() {
       if (timerState !== 'running') return;
 
       const now = Date.now();
       const elapsedSeconds = Math.floor((now - startTimeTimestamp) / 1000);
 
+      // Deterministic audio ticking
       if (elapsedSeconds !== lastTickSecondLogged) {
         lastTickSecondLogged = elapsedSeconds;
         playTickSound();
@@ -1670,15 +1731,21 @@
         stopwatchSeconds = initialRemainingAtStart + elapsedSeconds;
       } else {
         const currentRemaining = initialRemainingAtStart - elapsedSeconds;
+
+        // Strictly increment focus seconds on whole seconds elapsed (prevents raf frame multi-accumulation)
+        if (engineMode === 'pomodoro' && isWorkInterval && elapsedSeconds > lastElapsedFocusSecs) {
+          const deltaSecs = elapsedSeconds - lastElapsedFocusSecs;
+          totalFocusSecondsCompleted += deltaSecs;
+          lastElapsedFocusSecs = elapsedSeconds;
+          localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
+        }
+
         if (currentRemaining > 0) {
           timeRemaining = currentRemaining;
-          if (engineMode === 'pomodoro' && isWorkInterval) {
-            totalFocusSecondsCompleted++;
-            localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
-          }
         } else {
           timeRemaining = 0;
           playAlarmSound();
+
           if (engineMode === 'pomodoro') {
             if (isWorkInterval) {
               completedSessionsCount++;
@@ -1694,12 +1761,21 @@
                 }
               }
 
-              heatmapHistory[heatmapHistory.length - 1] = (heatmapHistory[heatmapHistory.length - 1] || 0) + 1;
+              // Record to date-keyed calendar structure
+              const todayKey = getTodayKey();
+              heatmapHistory[todayKey] = (heatmapHistory[todayKey] || 0) + 1;
               localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
             }
+
             isWorkInterval = !isWorkInterval;
             switchPomoPhase();
             updateAnalytics();
+            
+            // Re-sync timestamps for the new phase
+            startTimeTimestamp = Date.now();
+            initialRemainingAtStart = timeRemaining;
+            lastElapsedFocusSecs = 0;
+            lastTickSecondLogged = 0;
           } else {
             pauseTimer();
           }
@@ -1714,15 +1790,14 @@
 
     function startTimer() {
       initAudio();
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-
       timerState = 'running';
-      startBtn.classList.add('hidden');
-      pauseBtn.classList.remove('hidden');
+      if (startBtn) startBtn.classList.add('hidden');
+      if (pauseBtn) pauseBtn.classList.remove('hidden');
 
       startTimeTimestamp = Date.now();
       initialRemainingAtStart = engineMode === 'stopwatch' ? stopwatchSeconds : timeRemaining;
       lastTickSecondLogged = 0;
+      lastElapsedFocusSecs = 0;
 
       cancelAnimationFrame(timerAnimationId);
       timerAnimationId = requestAnimationFrame(timerFrameLoop);
@@ -1732,8 +1807,8 @@
 
     function pauseTimer() {
       timerState = 'paused';
-      pauseBtn.classList.add('hidden');
-      startBtn.classList.remove('hidden');
+      if (pauseBtn) pauseBtn.classList.add('hidden');
+      if (startBtn) startBtn.classList.remove('hidden');
       cancelAnimationFrame(timerAnimationId);
       releaseWakeLock();
       updateDisplay();
@@ -1745,7 +1820,8 @@
         timeRemaining = isWorkInterval ? workDurationSecs : breakDurationSecs;
         totalDuration = timeRemaining;
       } else if (engineMode === 'countdown') {
-        const mins = parseInt(document.getElementById('customMinutes').value) || 15;
+        const inputEl = document.getElementById('customMinutes');
+        const mins = parseInt(inputEl ? inputEl.value : '15', 10) || 15;
         timeRemaining = mins * 60;
         totalDuration = timeRemaining;
       } else if (engineMode === 'stopwatch') {
@@ -1754,6 +1830,8 @@
         localStorage.removeItem('aura_stopwatchLaps');
         renderStopwatchLaps();
       }
+      lastElapsedFocusSecs = 0;
+      lastTickSecondLogged = 0;
       updateDisplay();
     }
 
@@ -1764,6 +1842,8 @@
         if (timerState === 'running') {
           startTimeTimestamp = Date.now();
           initialRemainingAtStart = timeRemaining;
+          lastElapsedFocusSecs = 0;
+          lastTickSecondLogged = 0;
         }
       } else if (engineMode === 'countdown') {
         resetTimer();
@@ -1771,16 +1851,17 @@
       updateDisplay();
     }
 
-    skipBtn.addEventListener('click', skipCurrentPhase);
+    if (skipBtn) skipBtn.addEventListener('click', skipCurrentPhase);
 
     function renderStopwatchLaps() {
+      if (!stopwatchLapsContainer) return;
       stopwatchLapsContainer.innerHTML = '';
       if (stopwatchLaps.length > 0) {
         stopwatchLapsContainer.classList.remove('hidden');
         stopwatchLaps.forEach((lap, idx) => {
           const div = document.createElement('div');
-          div.className = 'flex justify-between px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-slate-300';
-          div.innerHTML = `<span>Lap ${idx + 1}</span><span class="text-sky-400">${lap}</span>`;
+          div.className = 'flex justify-between px-3 py-1 bg-white/5 rounded-lg border border-white/5 text-slate-300 text-xs';
+          div.innerHTML = `<span>Lap ${idx + 1}</span><span class="text-sky-400 font-mono">${lap}</span>`;
           stopwatchLapsContainer.prepend(div);
         });
       } else {
@@ -1788,13 +1869,15 @@
       }
     }
 
-    lapBtn.addEventListener('click', () => {
-      if (engineMode === 'stopwatch' && timerState === 'running') {
-        stopwatchLaps.push(formatTime(stopwatchSeconds).formatted);
-        localStorage.setItem('aura_stopwatchLaps', JSON.stringify(stopwatchLaps));
-        renderStopwatchLaps();
-      }
-    });
+    if (lapBtn) {
+      lapBtn.addEventListener('click', () => {
+        if (engineMode === 'stopwatch' && timerState === 'running') {
+          stopwatchLaps.push(formatTime(stopwatchSeconds).formatted);
+          localStorage.setItem('aura_stopwatchLaps', JSON.stringify(stopwatchLaps));
+          renderStopwatchLaps();
+        }
+      });
+    }
 
     function switchPomoPhase() {
       const workBadge = document.getElementById('pomoWork');
@@ -1802,14 +1885,19 @@
       
       if (isWorkInterval) {
         timeRemaining = workDurationSecs;
-        workBadge.className = "px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all";
-        breakBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
+        if (workBadge) workBadge.className = "px-3.5 py-1 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 transition-all";
+        if (breakBadge) {
+          breakBadge.textContent = "Rest Phase";
+          breakBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
+        }
       } else {
         const isLong = sessionCycleCount % 4 === 0 && sessionCycleCount > 0;
         timeRemaining = isLong ? longBreakDurationSecs : breakDurationSecs;
-        breakBadge.textContent = isLong ? "Long Rest Phase" : "Rest Phase";
-        breakBadge.className = "px-3.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all";
-        workBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
+        if (breakBadge) {
+          breakBadge.textContent = isLong ? "Long Rest Phase" : "Rest Phase";
+          breakBadge.className = "px-3.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition-all";
+        }
+        if (workBadge) workBadge.className = "px-3.5 py-1 rounded-full bg-white/5 text-slate-400 border border-white/5 transition-all";
       }
       totalDuration = timeRemaining;
       updateDisplay();
@@ -1818,68 +1906,83 @@
     function setEngineMode(mode) {
       engineMode = mode;
       [modePomodoro, modeCountdown, modeStopwatch].forEach(btn => {
-        btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white";
+        if (btn) btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white";
       });
 
-      pomodoroStatus.classList.add('hidden');
-      countdownInputGroup.classList.add('hidden');
-      lapBtn.classList.add('hidden');
-      stopwatchLapsContainer.classList.add('hidden');
-      skipBtn.classList.remove('hidden');
+      if (pomodoroStatus) pomodoroStatus.classList.add('hidden');
+      if (countdownInputGroup) countdownInputGroup.classList.add('hidden');
+      if (lapBtn) lapBtn.classList.add('hidden');
+      if (stopwatchLapsContainer) stopwatchLapsContainer.classList.add('hidden');
+      if (skipBtn) skipBtn.classList.remove('hidden');
 
       if (mode === 'pomodoro') {
-        modePomodoro.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
-        pomodoroStatus.classList.remove('hidden');
+        if (modePomodoro) modePomodoro.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
+        if (pomodoroStatus) pomodoroStatus.classList.remove('hidden');
         isWorkInterval = true;
         switchPomoPhase();
       } else if (mode === 'countdown') {
-        modeCountdown.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
-        countdownInputGroup.classList.remove('hidden');
-        const mins = parseInt(document.getElementById('customMinutes').value) || 15;
+        if (modeCountdown) modeCountdown.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
+        if (countdownInputGroup) countdownInputGroup.classList.remove('hidden');
+        const inputEl = document.getElementById('customMinutes');
+        const mins = parseInt(inputEl ? inputEl.value : '15', 10) || 15;
         timeRemaining = mins * 60;
         totalDuration = timeRemaining;
       } else if (mode === 'stopwatch') {
-        modeStopwatch.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
+        if (modeStopwatch) modeStopwatch.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 bg-white/10 text-white shadow-sm";
         stopwatchSeconds = 0;
-        lapBtn.classList.remove('hidden');
-        skipBtn.classList.add('hidden');
+        if (lapBtn) lapBtn.classList.remove('hidden');
+        if (skipBtn) skipBtn.classList.add('hidden');
+        renderStopwatchLaps();
       }
       resetTimer();
     }
 
-    modePomodoro.addEventListener('click', () => setEngineMode('pomodoro'));
-    modeCountdown.addEventListener('click', () => setEngineMode('countdown'));
-    modeStopwatch.addEventListener('click', () => setEngineMode('stopwatch'));
+    if (modePomodoro) modePomodoro.addEventListener('click', () => setEngineMode('pomodoro'));
+    if (modeCountdown) modeCountdown.addEventListener('click', () => setEngineMode('countdown'));
+    if (modeStopwatch) modeStopwatch.addEventListener('click', () => setEngineMode('stopwatch'));
 
-    document.getElementById('setCountdownBtn').addEventListener('click', () => {
-      const mins = parseInt(document.getElementById('customMinutes').value) || 1;
-      timeRemaining = mins * 60;
-      totalDuration = timeRemaining;
-      resetTimer();
-    });
+    const setCountdownBtn = document.getElementById('setCountdownBtn');
+    if (setCountdownBtn) {
+      setCountdownBtn.addEventListener('click', () => {
+        const mins = parseInt(document.getElementById('customMinutes').value, 10) || 1;
+        timeRemaining = mins * 60;
+        totalDuration = timeRemaining;
+        resetTimer();
+      });
+    }
 
-    startBtn.addEventListener('click', startTimer);
-    pauseBtn.addEventListener('click', pauseTimer);
-    resetBtn.addEventListener('click', resetTimer);
+    if (startBtn) startBtn.addEventListener('click', startTimer);
+    if (pauseBtn) pauseBtn.addEventListener('click', pauseTimer);
+    if (resetBtn) resetBtn.addEventListener('click', resetTimer);
 
     function triggerQuickEdit() {
-      if (engineMode === 'stopwatch') return;
+      if (engineMode === 'stopwatch' || !quickEditInput || !quickEditModal) return;
       quickEditInput.value = Math.ceil(timeRemaining / 60);
       quickEditModal.classList.remove('hidden');
     }
 
-    [displayMinimal, displayRing, displayFlip].forEach(el => el.addEventListener('click', triggerQuickEdit));
-
-    document.getElementById('quickEditSave').addEventListener('click', () => {
-      const newMins = parseInt(quickEditInput.value) || 25;
-      timeRemaining = newMins * 60;
-      totalDuration = timeRemaining;
-      if (engineMode === 'pomodoro' && isWorkInterval) workDurationSecs = timeRemaining;
-      quickEditModal.classList.add('hidden');
-      updateDisplay();
+    [displayMinimal, displayRing, displayFlip].forEach(el => {
+      if (el) el.addEventListener('click', triggerQuickEdit);
     });
 
-    document.getElementById('quickEditCancel').addEventListener('click', () => quickEditModal.classList.add('hidden'));
+    const quickEditSave = document.getElementById('quickEditSave');
+    if (quickEditSave) {
+      quickEditSave.addEventListener('click', () => {
+        const newMins = parseInt(quickEditInput.value, 10) || 25;
+        timeRemaining = newMins * 60;
+        totalDuration = timeRemaining;
+        if (engineMode === 'pomodoro' && isWorkInterval) workDurationSecs = timeRemaining;
+        if (quickEditModal) quickEditModal.classList.add('hidden');
+        updateDisplay();
+      });
+    }
+
+    const quickEditCancel = document.getElementById('quickEditCancel');
+    if (quickEditCancel) {
+      quickEditCancel.addEventListener('click', () => {
+        if (quickEditModal) quickEditModal.classList.add('hidden');
+      });
+    }
 
     // --- Advanced Kanban & Tag Task Engine ---
     const taskForm = document.getElementById('taskForm');
@@ -1907,6 +2010,7 @@
       const colProgress = document.getElementById('colProgress');
       const colDone = document.getElementById('colDone');
 
+      if (!colTodo || !colProgress || !colDone) return;
       colTodo.innerHTML = ''; colProgress.innerHTML = ''; colDone.innerHTML = '';
 
       let todoCount = 0, progCount = 0, doneCount = 0;
@@ -1946,7 +2050,8 @@
           }
         });
 
-        card.querySelector('.delete-task').addEventListener('click', () => {
+        card.querySelector('.delete-task').addEventListener('click', (e) => {
+          e.stopPropagation();
           if (activeTaskId === task.id) activeTaskId = null;
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasksToStorage();
@@ -1959,20 +2064,28 @@
         else colDone.appendChild(card);
       });
 
-      document.getElementById('countTodo').textContent = todoCount;
-      document.getElementById('countProgress').textContent = progCount;
-      document.getElementById('countDone').textContent = doneCount;
+      const cTodo = document.getElementById('countTodo');
+      const cProg = document.getElementById('countProgress');
+      const cDone = document.getElementById('countDone');
+
+      if (cTodo) cTodo.textContent = todoCount;
+      if (cProg) cProg.textContent = progCount;
+      if (cDone) cDone.textContent = doneCount;
 
       const pending = todoCount + progCount;
-      if (pending > 0) {
-        taskBadge.textContent = pending;
-        taskBadge.classList.remove('hidden');
-      } else {
-        taskBadge.classList.add('hidden');
+      if (taskBadge) {
+        if (pending > 0) {
+          taskBadge.textContent = pending;
+          taskBadge.classList.remove('hidden');
+        } else {
+          taskBadge.classList.add('hidden');
+        }
       }
 
-      const active = tasks.find(t => t.id === activeTaskId);
-      activeTaskLabel.textContent = active ? `[#${active.tag || 'focus'}] ${active.title}` : "No active task selected";
+      if (activeTaskLabel) {
+        const active = tasks.find(t => t.id === activeTaskId);
+        activeTaskLabel.textContent = active ? `[#${active.tag || 'focus'}] ${active.title}` : "No active task selected";
+      }
     }
 
     document.querySelectorAll('.kanban-dropzone').forEach(zone => {
@@ -1984,7 +2097,7 @@
       zone.addEventListener('drop', (e) => {
         e.preventDefault();
         zone.classList.remove('bg-white/5');
-        const id = parseInt(e.dataTransfer.getData('text/plain'));
+        const id = parseInt(e.dataTransfer.getData('text/plain'), 10);
         const targetStatus = zone.dataset.status;
         const task = tasks.find(t => t.id === id);
         if (task && targetStatus) {
@@ -1996,121 +2109,249 @@
       });
     });
 
-    taskForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const title = taskInput.value.trim();
-      const tag = taskTagSelect.value;
-      const estPomos = parseInt(taskEstPomos.value) || 1;
-      if (title) {
-        const newTask = { id: Date.now(), title, tag, estPomos, actualPomos: 0, status: 'todo' };
-        tasks.push(newTask);
-        if (!activeTaskId) activeTaskId = newTask.id;
-        taskInput.value = '';
-        saveTasksToStorage();
-        renderTasks();
-        updateDisplay();
+    if (taskForm) {
+      taskForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = taskInput.value.trim();
+        const tag = taskTagSelect.value;
+        const estPomos = parseInt(taskEstPomos.value, 10) || 1;
+        if (title) {
+          const newTask = { id: Date.now(), title, tag, estPomos, actualPomos: 0, status: 'todo' };
+          tasks.push(newTask);
+          if (!activeTaskId) activeTaskId = newTask.id;
+          taskInput.value = '';
+          saveTasksToStorage();
+          renderTasks();
+          updateDisplay();
+        }
+      });
+    }
+
+    // --- Streak & Calendar Calculations ---
+    function calculateConsecutiveStreak(historyMap) {
+      let streak = 0;
+      const today = new Date();
+      
+      const checkDate = new Date(today);
+      const todayStr = getTodayKey(checkDate);
+      
+      // If user has activity today, start from today; otherwise evaluate streak from yesterday
+      if ((historyMap[todayStr] || 0) === 0) {
+        checkDate.setDate(checkDate.getDate() - 1);
       }
-    });
+
+      while (true) {
+        const key = getTodayKey(checkDate);
+        if ((historyMap[key] || 0) > 0) {
+          streak++;
+          checkDate.setDate(checkDate.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
 
     // --- Analytics, Heatmap & Export Hub ---
     function updateAnalytics() {
       const minutes = Math.floor(totalFocusSecondsCompleted / 60);
-      document.getElementById('statTotalTime').textContent = `${minutes}m`;
-      document.getElementById('statCompleted').textContent = completedSessionsCount;
-      document.getElementById('statStreak').textContent = `${Math.max(1, Math.min(completedSessionsCount, 14))} Days`;
+      const statTotal = document.getElementById('statTotalTime');
+      const statComp = document.getElementById('statCompleted');
+      const statStreak = document.getElementById('statStreak');
 
-      const targetPercent = Math.min((completedSessionsCount / dailyGoalTarget) * 100, 100);
+      if (statTotal) statTotal.textContent = `${minutes}m`;
+      if (statComp) statComp.textContent = completedSessionsCount;
+      if (statStreak) statStreak.textContent = `${calculateConsecutiveStreak(heatmapHistory)} Days`;
+
+      const todayKey = getTodayKey();
+      const todayBlocks = heatmapHistory[todayKey] || 0;
+      const targetPercent = Math.min((todayBlocks / (dailyGoalTarget || 1)) * 100, 100);
       const circumference = 50.2;
       const offset = circumference - (targetPercent / 100) * circumference;
-      document.getElementById('goalRingCircle').style.strokeDashoffset = offset;
-      document.getElementById('goalProgressText').textContent = `${completedSessionsCount} of ${dailyGoalTarget} blocks completed`;
 
+      const goalCircle = document.getElementById('goalRingCircle');
+      const goalText = document.getElementById('goalProgressText');
+      if (goalCircle) goalCircle.style.strokeDashoffset = offset;
+      if (goalText) goalText.textContent = `${todayBlocks} of ${dailyGoalTarget} blocks completed today`;
+
+      // Render 28-day window relative to current date
       const heatmapGrid = document.getElementById('heatmapGrid');
-      heatmapGrid.innerHTML = '';
-      heatmapHistory.forEach((count, i) => {
-        const cell = document.createElement('div');
-        let bg = 'bg-slate-800/60';
-        if (count > 0 && count <= 2) bg = 'bg-sky-500/30';
-        else if (count > 2 && count <= 5) bg = 'bg-sky-500/60';
-        else if (count > 5) bg = 'bg-sky-400';
+      if (heatmapGrid) {
+        heatmapGrid.innerHTML = '';
+        const days = [];
+        for (let i = 27; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          days.push(getTodayKey(d));
+        }
 
-        cell.className = `h-6 rounded-md ${bg} flex items-center justify-center text-[9px] font-mono text-slate-300 transition-all hover:scale-105`;
-        cell.title = `Day ${i + 1}: ${count} focus blocks`;
-        cell.textContent = count > 0 ? count : '';
-        heatmapGrid.appendChild(cell);
-      });
+        days.forEach((dayKey, i) => {
+          const count = heatmapHistory[dayKey] || 0;
+          const cell = document.createElement('div');
+          let bg = 'bg-slate-800/60';
+          if (count > 0 && count <= 2) bg = 'bg-sky-500/30';
+          else if (count > 2 && count <= 5) bg = 'bg-sky-500/60';
+          else if (count > 5) bg = 'bg-sky-400';
+
+          cell.className = `h-6 rounded-md ${bg} flex items-center justify-center text-[9px] font-mono text-slate-300 transition-all hover:scale-105`;
+          cell.title = `${dayKey}: ${count} focus blocks`;
+          cell.textContent = count > 0 ? count : '';
+          heatmapGrid.appendChild(cell);
+        });
+      }
 
       const tagDist = document.getElementById('tagDistributionList');
-      tagDist.innerHTML = '';
-      const tagCounts = {};
-      tasks.forEach(t => {
-        const tg = t.tag || 'general';
-        tagCounts[tg] = (tagCounts[tg] || 0) + (t.actualPomos || 0);
-      });
+      if (tagDist) {
+        tagDist.innerHTML = '';
+        const tagCounts = {};
+        tasks.forEach(t => {
+          const tg = t.tag || 'general';
+          tagCounts[tg] = (tagCounts[tg] || 0) + (t.actualPomos || 0);
+        });
 
-      Object.entries(tagCounts).forEach(([tag, count]) => {
-        const row = document.createElement('div');
-        row.className = 'flex justify-between items-center py-1 border-b border-white/5';
-        row.innerHTML = `<span class="text-slate-300">#${tag}</span><span class="text-sky-400">${count * 25} mins (${count} pomos)</span>`;
-        tagDist.appendChild(row);
-      });
-      if (Object.keys(tagCounts).length === 0) {
-        tagDist.innerHTML = `<p class="text-slate-500 text-center py-1">No tagged pomodoros recorded yet</p>`;
+        Object.entries(tagCounts).forEach(([tag, count]) => {
+          const row = document.createElement('div');
+          row.className = 'flex justify-between items-center py-1 border-b border-white/5';
+          row.innerHTML = `<span class="text-slate-300">#${tag}</span><span class="text-sky-400">${count * Math.round(workDurationSecs / 60)} mins (${count} pomos)</span>`;
+          tagDist.appendChild(row);
+        });
+        if (Object.keys(tagCounts).length === 0) {
+          tagDist.innerHTML = `<p class="text-slate-500 text-center py-1">No tagged pomodoros recorded yet</p>`;
+        }
       }
     }
 
-    document.getElementById('exportCsvBtn').addEventListener('click', () => {
-      let csv = 'Timestamp,EngineMode,CompletedSessions,TotalFocusMinutes\n';
-      csv += `${new Date().toISOString()},${engineMode},${completedSessionsCount},${Math.floor(totalFocusSecondsCompleted / 60)}\n\n`;
-      csv += 'TaskID,Title,Tag,Status,EstPomos,ActualPomos\n';
-      tasks.forEach(t => {
-        csv += `${t.id},"${t.title.replace(/"/g, '""')}",${t.tag},${t.status},${t.estPomos},${t.actualPomos || 0}\n`;
+    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener('click', () => {
+        let csv = 'Timestamp,EngineMode,CompletedSessions,TotalFocusMinutes\n';
+        csv += `${new Date().toISOString()},${engineMode},${completedSessionsCount},${Math.floor(totalFocusSecondsCompleted / 60)}\n\n`;
+        csv += 'TaskID,Title,Tag,Status,EstPomos,ActualPomos\n';
+        tasks.forEach(t => {
+          csv += `${t.id},"${(t.title || '').replace(/"/g, '""')}",${t.tag},${t.status},${t.estPomos},${t.actualPomos || 0}\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `SPRK_Focus_Report_${Date.now()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
       });
+    }
 
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `SPRK_Focus_Report_${Date.now()}.csv`;
-      a.click();
-    });
+    const exportJsonBtn = document.getElementById('exportJsonBtn');
+    if (exportJsonBtn) {
+      exportJsonBtn.addEventListener('click', () => {
+        const data = {
+          version: "2.0",
+          tasks, 
+          completedSessionsCount, 
+          totalFocusSecondsCompleted, 
+          heatmapHistory,
+          workDurationSecs, 
+          breakDurationSecs, 
+          longBreakDurationSecs,
+          dailyGoalTarget, 
+          ambientTracks,
+          activeTaskId
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `SPRK_Backup_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }
 
-    document.getElementById('exportJsonBtn').addEventListener('click', () => {
-      const data = {
-        tasks, completedSessionsCount, totalFocusSecondsCompleted, heatmapHistory,
-        workDurationSecs, breakDurationSecs, dailyGoalTarget, ambientTracks
-      };
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `SPRK_Backup_${Date.now()}.json`;
-      a.click();
-    });
+    const importJsonInput = document.getElementById('importJsonInput');
+    if (importJsonInput) {
+      importJsonInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          try {
+            const imported = JSON.parse(evt.target.result);
+            if (!imported || typeof imported !== 'object') throw new Error("Invalid JSON structure");
 
-    document.getElementById('importJsonInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        try {
-          const imported = JSON.parse(evt.target.result);
-          if (imported.tasks) tasks = imported.tasks;
-          if (imported.heatmapHistory) heatmapHistory = imported.heatmapHistory;
-          if (imported.completedSessionsCount !== undefined) completedSessionsCount = imported.completedSessionsCount;
-          if (imported.totalFocusSecondsCompleted !== undefined) totalFocusSecondsCompleted = imported.totalFocusSecondsCompleted;
-          saveTasksToStorage();
-          updateAnalytics();
-          renderTasks();
-          alert('Workspace state restored successfully!');
-        } catch(err) {
-          alert('Failed to parse backup JSON file.');
-        }
-      };
-      reader.readAsText(file);
-    });
+            if (Array.isArray(imported.tasks)) tasks = imported.tasks;
+            if (imported.activeTaskId !== undefined) activeTaskId = imported.activeTaskId;
+
+            if (imported.heatmapHistory && typeof imported.heatmapHistory === 'object') {
+              if (Array.isArray(imported.heatmapHistory)) {
+                heatmapHistory = {};
+                heatmapHistory[getTodayKey()] = imported.heatmapHistory[imported.heatmapHistory.length - 1] || 0;
+              } else {
+                heatmapHistory = imported.heatmapHistory;
+              }
+              localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
+            }
+
+            if (typeof imported.completedSessionsCount === 'number') {
+              completedSessionsCount = imported.completedSessionsCount;
+              localStorage.setItem('aura_completedSessions', completedSessionsCount);
+            }
+
+            if (typeof imported.totalFocusSecondsCompleted === 'number') {
+              totalFocusSecondsCompleted = imported.totalFocusSecondsCompleted;
+              localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
+            }
+
+            if (typeof imported.workDurationSecs === 'number') {
+              workDurationSecs = imported.workDurationSecs;
+              localStorage.setItem('aura_workMins', Math.round(workDurationSecs / 60));
+              const el = document.getElementById('settingPomoWork');
+              if (el) el.value = Math.round(workDurationSecs / 60);
+            }
+
+            if (typeof imported.breakDurationSecs === 'number') {
+              breakDurationSecs = imported.breakDurationSecs;
+              localStorage.setItem('aura_breakMins', Math.round(breakDurationSecs / 60));
+              const el = document.getElementById('settingPomoBreak');
+              if (el) el.value = Math.round(breakDurationSecs / 60);
+            }
+
+            if (typeof imported.longBreakDurationSecs === 'number') {
+              longBreakDurationSecs = imported.longBreakDurationSecs;
+              localStorage.setItem('aura_longBreakMins', Math.round(longBreakDurationSecs / 60));
+              const el = document.getElementById('settingPomoLongBreak');
+              if (el) el.value = Math.round(longBreakDurationSecs / 60);
+            }
+
+            if (typeof imported.dailyGoalTarget === 'number') {
+              dailyGoalTarget = imported.dailyGoalTarget;
+              localStorage.setItem('aura_dailyGoal', dailyGoalTarget);
+              const el = document.getElementById('settingDailyGoal');
+              if (el) el.value = dailyGoalTarget;
+            }
+
+            if (imported.ambientTracks && typeof imported.ambientTracks === 'object') {
+              soundDefinitions.forEach(s => {
+                const vol = typeof imported.ambientTracks[s.id] === 'number' ? imported.ambientTracks[s.id] : 0;
+                setTrackVolume(s.id, vol);
+              });
+              renderSoundMixerUI();
+            }
+
+            saveTasksToStorage();
+            updateAnalytics();
+            renderTasks();
+            resetTimer();
+            alert('Workspace state restored successfully!');
+          } catch(err) {
+            alert('Failed to parse backup JSON file: ' + err.message);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
 
     // --- Visualizer Bar Canvas Integration ---
     function startVisualizers() {
       const mainCanvas = document.getElementById('mainAudioVisualizer');
+      if (!mainCanvas) return;
       const mainCtx = mainCanvas.getContext('2d');
 
       function drawVisualizer() {
@@ -2169,17 +2410,26 @@
       { name: "Theme: OLED Pitch Black", action: () => applyThemeSelection('oled-black'), icon: "fa-moon" },
       { name: "Theme: Ocean Coast Beach", action: () => applyThemeSelection('beach'), icon: "fa-umbrella-beach" },
       { name: "Theme: Animated Aurora", action: () => applyThemeSelection('aurora-canvas'), icon: "fa-wand-magic-sparkles" },
-      { name: "Open Analytics Dashboard", action: () => document.getElementById('analyticsToggleBtn').click(), icon: "fa-chart-simple" },
-      { name: "Open Kanban Tasks", action: () => document.getElementById('taskToggleBtn').click(), icon: "fa-list-check" }
+      { name: "Open Analytics Dashboard", action: () => { const el = document.getElementById('analyticsToggleBtn'); if (el) el.click(); }, icon: "fa-chart-simple" },
+      { name: "Open Kanban Tasks", action: () => { const el = document.getElementById('taskToggleBtn'); if (el) el.click(); }, icon: "fa-list-check" }
     ];
 
     function setPreset(w, b, l) {
       workDurationSecs = w * 60; breakDurationSecs = b * 60; longBreakDurationSecs = l * 60;
-      localStorage.setItem('aura_workMins', w); localStorage.setItem('aura_breakMins', b);
+      localStorage.setItem('aura_workMins', w); localStorage.setItem('aura_breakMins', b); localStorage.setItem('aura_longBreakMins', l);
+      
+      const elW = document.getElementById('settingPomoWork');
+      const elB = document.getElementById('settingPomoBreak');
+      const elL = document.getElementById('settingPomoLongBreak');
+      if (elW) elW.value = w;
+      if (elB) elB.value = b;
+      if (elL) elL.value = l;
+
       setEngineMode('pomodoro');
     }
 
     function renderCommandResults(query = '') {
+      if (!cmdResults) return;
       cmdResults.innerHTML = '';
       const filtered = commandList.filter(c => c.name.toLowerCase().includes(query.toLowerCase()));
       filtered.forEach((cmd, idx) => {
@@ -2201,6 +2451,7 @@
     }
 
     function openCmdPalette() {
+      if (!cmdPaletteModal || !cmdInput) return;
       cmdPaletteModal.classList.remove('opacity-0', 'pointer-events-none');
       cmdInput.value = '';
       renderCommandResults();
@@ -2208,11 +2459,13 @@
     }
 
     function closeCmdPalette() {
+      if (!cmdPaletteModal) return;
       cmdPaletteModal.classList.add('opacity-0', 'pointer-events-none');
     }
 
-    document.getElementById('cmdPaletteBtn').addEventListener('click', openCmdPalette);
-    cmdInput.addEventListener('input', (e) => renderCommandResults(e.target.value));
+    const cmdPaletteBtn = document.getElementById('cmdPaletteBtn');
+    if (cmdPaletteBtn) cmdPaletteBtn.addEventListener('click', openCmdPalette);
+    if (cmdInput) cmdInput.addEventListener('input', (e) => renderCommandResults(e.target.value));
 
     // --- Settings & UI Helpers ---
     function getActiveWallpaperUrl() {
@@ -2220,7 +2473,11 @@
     }
 
     function applyWallpaper(url) {
-      document.getElementById('bgLayer').style.backgroundImage = `url('${url}')`;
+      const bgLayer = document.getElementById('bgLayer');
+      if (bgLayer) {
+        bgLayer.style.backgroundImage = `url('${url}')`;
+        bgLayer.style.backgroundColor = 'transparent';
+      }
       if (pipWindow && !pipWindow.closed) {
         const pipBg = pipWindow.document.getElementById('pipBgLayer');
         if (pipBg) pipBg.style.backgroundImage = `url('${url}')`;
@@ -2232,7 +2489,6 @@
       const bgLayer = document.getElementById('bgLayer');
       if (bgLayer) bgLayer.style.filter = filterStr;
 
-      // Update UI slider values & labels
       const blurInput = document.getElementById('bgBlurInput');
       const brightnessInput = document.getElementById('bgBrightnessInput');
       const contrastInput = document.getElementById('bgContrastInput');
@@ -2243,48 +2499,68 @@
       if (contrastInput) contrastInput.value = bgContrast;
       if (saturateInput) saturateInput.value = bgSaturate;
 
-      document.getElementById('blurValLabel').textContent = `${bgBlur}px`;
-      document.getElementById('brightnessValLabel').textContent = `${bgBrightness}%`;
-      document.getElementById('contrastValLabel').textContent = `${bgContrast}%`;
-      document.getElementById('saturateValLabel').textContent = `${bgSaturate}%`;
+      const lBlur = document.getElementById('blurValLabel');
+      const lBright = document.getElementById('brightnessValLabel');
+      const lCont = document.getElementById('contrastValLabel');
+      const lSat = document.getElementById('saturateValLabel');
+
+      if (lBlur) lBlur.textContent = `${bgBlur}px`;
+      if (lBright) lBright.textContent = `${bgBrightness}%`;
+      if (lCont) lCont.textContent = `${bgContrast}%`;
+      if (lSat) lSat.textContent = `${bgSaturate}%`;
     }
 
     // Background Filter Event Listeners
-    document.getElementById('bgBlurInput').addEventListener('input', (e) => {
-      bgBlur = parseInt(e.target.value);
-      localStorage.setItem('aura_bgBlur', bgBlur);
-      updateBackgroundFilters();
-    });
+    const bgBlurInput = document.getElementById('bgBlurInput');
+    if (bgBlurInput) {
+      bgBlurInput.addEventListener('input', (e) => {
+        bgBlur = parseInt(e.target.value, 10);
+        localStorage.setItem('aura_bgBlur', bgBlur);
+        updateBackgroundFilters();
+      });
+    }
 
-    document.getElementById('bgBrightnessInput').addEventListener('input', (e) => {
-      bgBrightness = parseInt(e.target.value);
-      localStorage.setItem('aura_bgBrightness', bgBrightness);
-      updateBackgroundFilters();
-    });
+    const bgBrightnessInput = document.getElementById('bgBrightnessInput');
+    if (bgBrightnessInput) {
+      bgBrightnessInput.addEventListener('input', (e) => {
+        bgBrightness = parseInt(e.target.value, 10);
+        localStorage.setItem('aura_bgBrightness', bgBrightness);
+        updateBackgroundFilters();
+      });
+    }
 
-    document.getElementById('bgContrastInput').addEventListener('input', (e) => {
-      bgContrast = parseInt(e.target.value);
-      localStorage.setItem('aura_bgContrast', bgContrast);
-      updateBackgroundFilters();
-    });
+    const bgContrastInput = document.getElementById('bgContrastInput');
+    if (bgContrastInput) {
+      bgContrastInput.addEventListener('input', (e) => {
+        bgContrast = parseInt(e.target.value, 10);
+        localStorage.setItem('aura_bgContrast', bgContrast);
+        updateBackgroundFilters();
+      });
+    }
 
-    document.getElementById('bgSaturateInput').addEventListener('input', (e) => {
-      bgSaturate = parseInt(e.target.value);
-      localStorage.setItem('aura_bgSaturate', bgSaturate);
-      updateBackgroundFilters();
-    });
+    const bgSaturateInput = document.getElementById('bgSaturateInput');
+    if (bgSaturateInput) {
+      bgSaturateInput.addEventListener('input', (e) => {
+        bgSaturate = parseInt(e.target.value, 10);
+        localStorage.setItem('aura_bgSaturate', bgSaturate);
+        updateBackgroundFilters();
+      });
+    }
 
-    document.getElementById('resetBgAdjustBtn').addEventListener('click', () => {
-      bgBlur = 0;
-      bgBrightness = 75;
-      bgContrast = 100;
-      bgSaturate = 100;
-      localStorage.setItem('aura_bgBlur', 0);
-      localStorage.setItem('aura_bgBrightness', 75);
-      localStorage.setItem('aura_bgContrast', 100);
-      localStorage.setItem('aura_bgSaturate', 100);
-      updateBackgroundFilters();
-    });
+    const resetBgAdjustBtn = document.getElementById('resetBgAdjustBtn');
+    if (resetBgAdjustBtn) {
+      resetBgAdjustBtn.addEventListener('click', () => {
+        bgBlur = 0;
+        bgBrightness = 75;
+        bgContrast = 100;
+        bgSaturate = 100;
+        localStorage.setItem('aura_bgBlur', 0);
+        localStorage.setItem('aura_bgBrightness', 75);
+        localStorage.setItem('aura_bgContrast', 100);
+        localStorage.setItem('aura_bgSaturate', 100);
+        updateBackgroundFilters();
+      });
+    }
 
     function applyThemeSelection(themeKey) {
       currentWallpaper = themeKey;
@@ -2296,15 +2572,22 @@
       const themeCanvas = document.getElementById('themeCanvas');
 
       if (themeKey === 'oled-black') {
-        bgLayer.style.backgroundImage = 'none';
-        bgLayer.style.backgroundColor = '#000000';
-        themeCanvas.classList.add('hidden');
+        if (bgLayer) {
+          bgLayer.style.backgroundImage = 'none';
+          bgLayer.style.backgroundColor = '#000000';
+        }
+        if (themeCanvas) themeCanvas.classList.add('hidden');
       } else if (themeKey === 'aurora-canvas') {
-        bgLayer.style.backgroundImage = 'none';
-        themeCanvas.classList.remove('hidden');
-        startAuroraCanvas();
+        if (bgLayer) {
+          bgLayer.style.backgroundImage = 'none';
+          bgLayer.style.backgroundColor = 'transparent';
+        }
+        if (themeCanvas) {
+          themeCanvas.classList.remove('hidden');
+          startAuroraCanvas();
+        }
       } else {
-        themeCanvas.classList.add('hidden');
+        if (themeCanvas) themeCanvas.classList.add('hidden');
         applyWallpaper(wallpapers[themeKey] || wallpapers.beach);
       }
     }
@@ -2312,6 +2595,7 @@
     let auroraAnimId = null;
     function startAuroraCanvas() {
       const tCanvas = document.getElementById('themeCanvas');
+      if (!tCanvas) return;
       const tCtx = tCanvas.getContext('2d');
       tCanvas.width = window.innerWidth; tCanvas.height = window.innerHeight;
 
@@ -2333,106 +2617,142 @@
       renderAurora();
     }
 
-    document.getElementById('displaySelect').value = displayStyle;
+    const displaySelect = document.getElementById('displaySelect');
+    if (displaySelect) displaySelect.value = displayStyle;
+
     function applyDisplayStyle(style) {
       displayStyle = style;
       localStorage.setItem('aura_displayStyle', style);
-      displayMinimal.classList.add('hidden');
-      displayRing.classList.add('hidden');
-      displayFlip.classList.add('hidden');
+      if (displayMinimal) displayMinimal.classList.add('hidden');
+      if (displayRing) displayRing.classList.add('hidden');
+      if (displayFlip) displayFlip.classList.add('hidden');
 
-      if (displayStyle === 'minimal') displayMinimal.classList.remove('hidden');
-      if (displayStyle === 'ring') displayRing.classList.remove('hidden');
-      if (displayStyle === 'flip') displayFlip.classList.remove('hidden');
+      if (displayStyle === 'minimal' && displayMinimal) displayMinimal.classList.remove('hidden');
+      if (displayStyle === 'ring' && displayRing) displayRing.classList.remove('hidden');
+      if (displayStyle === 'flip' && displayFlip) displayFlip.classList.remove('hidden');
       updateDisplay();
     }
-    document.getElementById('displaySelect').addEventListener('change', (e) => applyDisplayStyle(e.target.value));
+
+    if (displaySelect) {
+      displaySelect.addEventListener('change', (e) => applyDisplayStyle(e.target.value));
+    }
 
     const bgSelect = document.getElementById('bgSelect');
     const customBgInput = document.getElementById('customBgUrl');
 
     if (customWallpaperUrl) {
-      customBgInput.value = customWallpaperUrl;
+      if (customBgInput) customBgInput.value = customWallpaperUrl;
       applyWallpaper(customWallpaperUrl);
     } else {
-      bgSelect.value = currentWallpaper;
+      if (bgSelect) bgSelect.value = currentWallpaper;
       applyThemeSelection(currentWallpaper);
     }
 
-    bgSelect.addEventListener('change', (e) => applyThemeSelection(e.target.value));
-    customBgInput.addEventListener('change', (e) => {
-      const url = e.target.value.trim();
-      if (url) {
-        customWallpaperUrl = url;
-        localStorage.setItem('aura_customBg', url);
-        applyWallpaper(url);
-      }
-    });
+    if (bgSelect) bgSelect.addEventListener('change', (e) => applyThemeSelection(e.target.value));
+    if (customBgInput) {
+      customBgInput.addEventListener('change', (e) => {
+        const url = e.target.value.trim();
+        if (url) {
+          customWallpaperUrl = url;
+          localStorage.setItem('aura_customBg', url);
+          applyWallpaper(url);
+        }
+      });
+    }
 
-    document.getElementById('settingPomoWork').value = workDurationSecs / 60;
-    document.getElementById('settingPomoBreak').value = breakDurationSecs / 60;
-    document.getElementById('settingPomoLongBreak').value = longBreakDurationSecs / 60;
-    document.getElementById('settingDailyGoal').value = dailyGoalTarget;
+    const setWorkInput = document.getElementById('settingPomoWork');
+    const setBreakInput = document.getElementById('settingPomoBreak');
+    const setLongBreakInput = document.getElementById('settingPomoLongBreak');
+    const setDailyGoalInput = document.getElementById('settingDailyGoal');
 
-    document.getElementById('settingPomoWork').addEventListener('change', (e) => {
-      const val = parseInt(e.target.value) || 25;
-      workDurationSecs = val * 60;
-      localStorage.setItem('aura_workMins', val);
-      if (engineMode === 'pomodoro' && isWorkInterval) resetTimer();
-    });
-    document.getElementById('settingPomoBreak').addEventListener('change', (e) => {
-      const val = parseInt(e.target.value) || 5;
-      breakDurationSecs = val * 60;
-      localStorage.setItem('aura_breakMins', val);
-      if (engineMode === 'pomodoro' && !isWorkInterval) resetTimer();
-    });
-    document.getElementById('settingPomoLongBreak').addEventListener('change', (e) => {
-      const val = parseInt(e.target.value) || 15;
-      longBreakDurationSecs = val * 60;
-      localStorage.setItem('aura_longBreakMins', val);
-    });
-    document.getElementById('settingDailyGoal').addEventListener('change', (e) => {
-      dailyGoalTarget = parseInt(e.target.value) || 8;
-      localStorage.setItem('aura_dailyGoal', dailyGoalTarget);
-      updateAnalytics();
-    });
+    if (setWorkInput) {
+      setWorkInput.value = workDurationSecs / 60;
+      setWorkInput.addEventListener('change', (e) => {
+        const val = parseInt(e.target.value, 10) || 25;
+        workDurationSecs = val * 60;
+        localStorage.setItem('aura_workMins', val);
+        if (engineMode === 'pomodoro' && isWorkInterval) resetTimer();
+      });
+    }
 
-    document.getElementById('alarmToneSelect').value = alarmTone;
-    document.getElementById('alarmToneSelect').addEventListener('change', (e) => {
-      alarmTone = e.target.value;
-      localStorage.setItem('aura_alarmTone', alarmTone);
-    });
+    if (setBreakInput) {
+      setBreakInput.value = breakDurationSecs / 60;
+      setBreakInput.addEventListener('change', (e) => {
+        const val = parseInt(e.target.value, 10) || 5;
+        breakDurationSecs = val * 60;
+        localStorage.setItem('aura_breakMins', val);
+        if (engineMode === 'pomodoro' && !isWorkInterval) resetTimer();
+      });
+    }
+
+    if (setLongBreakInput) {
+      setLongBreakInput.value = longBreakDurationSecs / 60;
+      setLongBreakInput.addEventListener('change', (e) => {
+        const val = parseInt(e.target.value, 10) || 15;
+        longBreakDurationSecs = val * 60;
+        localStorage.setItem('aura_longBreakMins', val);
+      });
+    }
+
+    if (setDailyGoalInput) {
+      setDailyGoalInput.value = dailyGoalTarget;
+      setDailyGoalInput.addEventListener('change', (e) => {
+        dailyGoalTarget = parseInt(e.target.value, 10) || 8;
+        localStorage.setItem('aura_dailyGoal', dailyGoalTarget);
+        updateAnalytics();
+      });
+    }
+
+    const alarmSelect = document.getElementById('alarmToneSelect');
+    if (alarmSelect) {
+      alarmSelect.value = alarmTone;
+      alarmSelect.addEventListener('change', (e) => {
+        alarmTone = e.target.value;
+        localStorage.setItem('aura_alarmTone', alarmTone);
+      });
+    }
 
     const settingTickingSound = document.getElementById('settingTickingSound');
-    settingTickingSound.checked = isTickingEnabled;
-    settingTickingSound.addEventListener('change', (e) => {
-      isTickingEnabled = e.target.checked;
-      localStorage.setItem('aura_tickingSound', isTickingEnabled);
-    });
+    if (settingTickingSound) {
+      settingTickingSound.checked = isTickingEnabled;
+      settingTickingSound.addEventListener('change', (e) => {
+        isTickingEnabled = e.target.checked;
+        localStorage.setItem('aura_tickingSound', isTickingEnabled);
+      });
+    }
 
-    document.getElementById('testChimeBtn').addEventListener('click', playAlarmSound);
+    const testChimeBtn = document.getElementById('testChimeBtn');
+    if (testChimeBtn) testChimeBtn.addEventListener('click', playAlarmSound);
 
     const settingWakeLock = document.getElementById('settingWakeLock');
-    settingWakeLock.checked = isWakeLockEnabled;
-    settingWakeLock.addEventListener('change', (e) => {
-      isWakeLockEnabled = e.target.checked;
-      localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
-      if (isWakeLockEnabled && timerState === 'running') requestWakeLock();
-      else releaseWakeLock();
-      updateWakeLockUI();
-    });
+    if (settingWakeLock) {
+      settingWakeLock.checked = isWakeLockEnabled;
+      settingWakeLock.addEventListener('change', (e) => {
+        isWakeLockEnabled = e.target.checked;
+        localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
+        if (isWakeLockEnabled && timerState === 'running') requestWakeLock();
+        else releaseWakeLock();
+        updateWakeLockUI();
+      });
+    }
 
-    document.getElementById('requestNotifBtn').addEventListener('click', () => {
-      if ('Notification' in window) {
-        Notification.requestPermission().then(permission => {
-          if (permission === 'granted') alert('Desktop Notifications enabled successfully!');
-        });
-      }
-    });
+    const requestNotifBtn = document.getElementById('requestNotifBtn');
+    if (requestNotifBtn) {
+      requestNotifBtn.addEventListener('click', () => {
+        if ('Notification' in window) {
+          Notification.requestPermission().then(permission => {
+            if (permission === 'granted') alert('Desktop Notifications enabled successfully!');
+          });
+        }
+      });
+    }
 
-    document.getElementById('volumeControl').addEventListener('input', (e) => {
-      setMasterVolume(parseFloat(e.target.value));
-    });
+    const volumeControl = document.getElementById('volumeControl');
+    if (volumeControl) {
+      volumeControl.addEventListener('input', (e) => {
+        setMasterVolume(parseFloat(e.target.value));
+      });
+    }
 
     // Drawer Toggles
     const settingsDrawer = document.getElementById('settingsDrawer');
@@ -2442,6 +2762,7 @@
     const mainFooter = document.getElementById('mainFooter');
 
     function updateMusicBarVisibility() {
+      if (!mainFooter) return;
       if (isMusicBarVisible) mainFooter.classList.remove('music-bar-hidden');
       else mainFooter.classList.add('music-bar-hidden');
     }
@@ -2452,29 +2773,50 @@
       updateMusicBarVisibility();
     }
 
-    document.getElementById('soundscapeToggleBtn').addEventListener('click', toggleMusicBar);
-    document.getElementById('settingsToggleBtn').addEventListener('click', () => settingsDrawer.classList.remove('translate-x-full'));
-    document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsDrawer.classList.add('translate-x-full'));
-    document.getElementById('taskToggleBtn').addEventListener('click', () => taskDrawer.classList.remove('translate-x-full'));
-    document.getElementById('activeTaskDisplay').addEventListener('click', () => taskDrawer.classList.remove('translate-x-full'));
-    document.getElementById('closeTaskBtn').addEventListener('click', () => taskDrawer.classList.add('translate-x-full'));
+    const soundscapeBtn = document.getElementById('soundscapeToggleBtn');
+    if (soundscapeBtn) soundscapeBtn.addEventListener('click', toggleMusicBar);
 
-    document.getElementById('analyticsToggleBtn').addEventListener('click', () => {
-      updateAnalytics();
-      analyticsModal.classList.remove('opacity-0', 'pointer-events-none');
-    });
-    document.getElementById('closeAnalyticsBtn').addEventListener('click', () => analyticsModal.classList.add('opacity-0', 'pointer-events-none'));
+    const setToggleBtn = document.getElementById('settingsToggleBtn');
+    if (setToggleBtn) setToggleBtn.addEventListener('click', () => settingsDrawer && settingsDrawer.classList.remove('translate-x-full'));
+    const setCloseBtn = document.getElementById('closeSettingsBtn');
+    if (setCloseBtn) setCloseBtn.addEventListener('click', () => settingsDrawer && settingsDrawer.classList.add('translate-x-full'));
 
-    document.getElementById('mediaToggleBtn').addEventListener('click', () => mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
-    document.getElementById('closeMediaBtn').addEventListener('click', () => mediaModal.classList.add('opacity-0', 'pointer-events-none'));
+    const taskToggleBtn = document.getElementById('taskToggleBtn');
+    if (taskToggleBtn) taskToggleBtn.addEventListener('click', () => taskDrawer && taskDrawer.classList.remove('translate-x-full'));
+    const activeTaskDisplay = document.getElementById('activeTaskDisplay');
+    if (activeTaskDisplay) activeTaskDisplay.addEventListener('click', () => taskDrawer && taskDrawer.classList.remove('translate-x-full'));
+    const closeTaskBtn = document.getElementById('closeTaskBtn');
+    if (closeTaskBtn) closeTaskBtn.addEventListener('click', () => taskDrawer && taskDrawer.classList.add('translate-x-full'));
+
+    const analyticsToggleBtn = document.getElementById('analyticsToggleBtn');
+    if (analyticsToggleBtn) {
+      analyticsToggleBtn.addEventListener('click', () => {
+        updateAnalytics();
+        if (analyticsModal) analyticsModal.classList.remove('opacity-0', 'pointer-events-none');
+      });
+    }
+    const closeAnalyticsBtn = document.getElementById('closeAnalyticsBtn');
+    if (closeAnalyticsBtn) {
+      closeAnalyticsBtn.addEventListener('click', () => {
+        if (analyticsModal) analyticsModal.classList.add('opacity-0', 'pointer-events-none');
+      });
+    }
+
+    const mediaToggleBtn = document.getElementById('mediaToggleBtn');
+    if (mediaToggleBtn) mediaToggleBtn.addEventListener('click', () => mediaModal && mediaModal.classList.remove('opacity-0', 'pointer-events-none'));
+    const closeMediaBtn = document.getElementById('closeMediaBtn');
+    if (closeMediaBtn) closeMediaBtn.addEventListener('click', () => mediaModal && mediaModal.classList.add('opacity-0', 'pointer-events-none'));
 
     // Scratchpad Logic
     const notesModal = document.getElementById('notesModal');
     const scratchpadArea = document.getElementById('scratchpadArea');
     const scratchpadMeta = document.getElementById('scratchpadMeta');
-    scratchpadArea.value = localStorage.getItem('aura_scratchpad') || '';
+    if (scratchpadArea) {
+      scratchpadArea.value = localStorage.getItem('aura_scratchpad') || '';
+    }
 
     function updateScratchpadCounts() {
+      if (!scratchpadArea || !scratchpadMeta) return;
       const txt = scratchpadArea.value.trim();
       const chars = txt.length;
       const words = txt ? txt.split(/\s+/).length : 0;
@@ -2482,97 +2824,132 @@
     }
     updateScratchpadCounts();
 
-    scratchpadArea.addEventListener('input', () => {
-      localStorage.setItem('aura_scratchpad', scratchpadArea.value);
-      updateScratchpadCounts();
-    });
-
-    document.getElementById('notesToggleBtn').addEventListener('click', () => {
-      notesModal.classList.remove('opacity-0', 'pointer-events-none');
-      scratchpadArea.focus();
-    });
-    document.getElementById('closeNotesBtn').addEventListener('click', () => notesModal.classList.add('opacity-0', 'pointer-events-none'));
-
-    document.getElementById('copyNotesBtn').addEventListener('click', () => {
-      if (scratchpadArea.value) {
-        navigator.clipboard.writeText(scratchpadArea.value);
-        const originalText = document.getElementById('copyNotesBtn').innerHTML;
-        document.getElementById('copyNotesBtn').innerHTML = `<i class="fa-solid fa-check"></i> Copied!`;
-        setTimeout(() => document.getElementById('copyNotesBtn').innerHTML = originalText, 1500);
-      }
-    });
-
-    document.getElementById('clearNotesBtn').addEventListener('click', () => {
-      if (confirm('Clear scratchpad note?')) {
-        scratchpadArea.value = '';
-        localStorage.removeItem('aura_scratchpad');
+    if (scratchpadArea) {
+      scratchpadArea.addEventListener('input', () => {
+        localStorage.setItem('aura_scratchpad', scratchpadArea.value);
         updateScratchpadCounts();
-      }
-    });
+      });
+    }
+
+    const notesToggleBtn = document.getElementById('notesToggleBtn');
+    if (notesToggleBtn) {
+      notesToggleBtn.addEventListener('click', () => {
+        if (notesModal) {
+          notesModal.classList.remove('opacity-0', 'pointer-events-none');
+          if (scratchpadArea) scratchpadArea.focus();
+        }
+      });
+    }
+
+    const closeNotesBtn = document.getElementById('closeNotesBtn');
+    if (closeNotesBtn) {
+      closeNotesBtn.addEventListener('click', () => {
+        if (notesModal) notesModal.classList.add('opacity-0', 'pointer-events-none');
+      });
+    }
+
+    const copyNotesBtn = document.getElementById('copyNotesBtn');
+    if (copyNotesBtn) {
+      copyNotesBtn.addEventListener('click', () => {
+        if (scratchpadArea && scratchpadArea.value) {
+          navigator.clipboard.writeText(scratchpadArea.value);
+          const originalText = copyNotesBtn.innerHTML;
+          copyNotesBtn.innerHTML = `<i class="fa-solid fa-check"></i> Copied!`;
+          setTimeout(() => copyNotesBtn.innerHTML = originalText, 1500);
+        }
+      });
+    }
+
+    const clearNotesBtn = document.getElementById('clearNotesBtn');
+    if (clearNotesBtn) {
+      clearNotesBtn.addEventListener('click', () => {
+        if (confirm('Clear scratchpad note?')) {
+          if (scratchpadArea) scratchpadArea.value = '';
+          localStorage.removeItem('aura_scratchpad');
+          updateScratchpadCounts();
+        }
+      });
+    }
 
     // Presets Modal
     const presetsModal = document.getElementById('presetsModal');
-    document.getElementById('presetsToggleBtn').addEventListener('click', () => presetsModal.classList.remove('opacity-0', 'pointer-events-none'));
-    document.getElementById('closePresetsBtn').addEventListener('click', () => presetsModal.classList.add('opacity-0', 'pointer-events-none'));
+    const presetsToggleBtn = document.getElementById('presetsToggleBtn');
+    if (presetsToggleBtn) presetsToggleBtn.addEventListener('click', () => presetsModal && presetsModal.classList.remove('opacity-0', 'pointer-events-none'));
+    const closePresetsBtn = document.getElementById('closePresetsBtn');
+    if (closePresetsBtn) closePresetsBtn.addEventListener('click', () => presetsModal && presetsModal.classList.add('opacity-0', 'pointer-events-none'));
 
     document.querySelectorAll('.preset-choice-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        setPreset(parseInt(btn.dataset.work), parseInt(btn.dataset.break), parseInt(btn.dataset.long));
-        presetsModal.classList.add('opacity-0', 'pointer-events-none');
+        setPreset(parseInt(btn.dataset.work, 10), parseInt(btn.dataset.break, 10), parseInt(btn.dataset.long, 10));
+        if (presetsModal) presetsModal.classList.add('opacity-0', 'pointer-events-none');
       });
     });
 
-    // Online Streams & Bookmark Engine
+    // Online Streams & Media Engine
     function parseMediaUrl(input) {
       if (input.includes('<iframe')) return input;
-      if (input.includes('spotify.com')) {
-        const urlObj = new URL(input);
-        return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${urlObj.pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
-      }
-      if (input.includes('youtube.com') || input.includes('youtu.be')) {
-        let embedUrl = '';
-        if (input.includes('list=')) {
-          const listId = new URL(input).searchParams.get('list');
-          embedUrl = `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
-        } else if (input.includes('youtu.be/')) {
-          const videoId = input.split('youtu.be/')[1].split('?')[0];
-          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-        } else if (input.includes('v=')) {
-          const videoId = new URL(input).searchParams.get('v');
-          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      try {
+        if (input.includes('spotify.com')) {
+          const urlObj = new URL(input);
+          return `<iframe style="border-radius:12px" src="https://open.spotify.com/embed${urlObj.pathname}?utm_source=generator&theme=0" width="100%" height="100%" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
         }
-        if (embedUrl) {
-          return `<iframe width="100%" height="100%" src="${embedUrl}" title="YouTube player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+        if (input.includes('youtube.com') || input.includes('youtu.be')) {
+          let embedUrl = '';
+          if (input.includes('list=')) {
+            const listId = new URL(input).searchParams.get('list');
+            embedUrl = `https://www.youtube.com/embed/videoseries?list=${listId}&autoplay=1`;
+          } else if (input.includes('youtu.be/')) {
+            const videoId = input.split('youtu.be/')[1].split('?')[0];
+            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+          } else if (input.includes('v=')) {
+            const videoId = new URL(input).searchParams.get('v');
+            embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+          }
+          if (embedUrl) {
+            return `<iframe width="100%" height="100%" src="${embedUrl}" title="YouTube player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+          }
         }
-      }
+      } catch (e) {}
       return `<iframe src="${input}" width="100%" height="100%" frameborder="0" allow="encrypted-media; autoplay"></iframe>`;
     }
 
-    document.getElementById('loadMediaBtn').addEventListener('click', () => {
-      const input = document.getElementById('mediaUrlInput').value.trim();
-      if (input) document.getElementById('mediaEmbedContainer').innerHTML = parseMediaUrl(input);
-    });
+    const loadMediaBtn = document.getElementById('loadMediaBtn');
+    if (loadMediaBtn) {
+      loadMediaBtn.addEventListener('click', () => {
+        const input = document.getElementById('mediaUrlInput').value.trim();
+        const container = document.getElementById('mediaEmbedContainer');
+        if (input && container) container.innerHTML = parseMediaUrl(input);
+      });
+    }
 
     document.querySelectorAll('.stream-chip').forEach(chip => {
       chip.addEventListener('click', () => {
-        document.getElementById('mediaUrlInput').value = chip.dataset.url;
-        document.getElementById('mediaEmbedContainer').innerHTML = parseMediaUrl(chip.dataset.url);
+        const inputEl = document.getElementById('mediaUrlInput');
+        const container = document.getElementById('mediaEmbedContainer');
+        if (inputEl) inputEl.value = chip.dataset.url;
+        if (container) container.innerHTML = parseMediaUrl(chip.dataset.url);
       });
     });
 
-    document.getElementById('tabOnlineMedia').addEventListener('click', () => {
-      document.getElementById('onlineMediaSection').classList.remove('hidden');
-      document.getElementById('localMediaSection').classList.add('hidden');
-      document.getElementById('tabOnlineMedia').className = "flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition";
-      document.getElementById('tabLocalMedia').className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
-    });
+    const tabOnlineMedia = document.getElementById('tabOnlineMedia');
+    const tabLocalMedia = document.getElementById('tabLocalMedia');
+    if (tabOnlineMedia) {
+      tabOnlineMedia.addEventListener('click', () => {
+        document.getElementById('onlineMediaSection').classList.remove('hidden');
+        document.getElementById('localMediaSection').classList.add('hidden');
+        tabOnlineMedia.className = "flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition";
+        if (tabLocalMedia) tabLocalMedia.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+      });
+    }
 
-    document.getElementById('tabLocalMedia').addEventListener('click', () => {
-      document.getElementById('localMediaSection').classList.remove('hidden');
-      document.getElementById('onlineMediaSection').classList.add('hidden');
-      document.getElementById('tabLocalMedia').className = "flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition";
-      document.getElementById('tabOnlineMedia').className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
-    });
+    if (tabLocalMedia) {
+      tabLocalMedia.addEventListener('click', () => {
+        document.getElementById('localMediaSection').classList.remove('hidden');
+        document.getElementById('onlineMediaSection').classList.add('hidden');
+        tabLocalMedia.className = "flex-1 py-1.5 rounded-lg bg-white/15 text-white font-medium transition";
+        if (tabOnlineMedia) tabOnlineMedia.className = "flex-1 py-1.5 rounded-lg text-slate-400 hover:text-white transition";
+      });
+    }
 
     // Local Audio Queue
     let localAudioQueue = [];
@@ -2580,24 +2957,30 @@
     const localAudio = new Audio();
     let isLocalPlaying = false;
 
-    document.getElementById('localFileInput').addEventListener('change', (e) => {
-      const files = Array.from(e.target.files);
-      if (!files.length) return;
-      localAudioQueue = files.map(file => ({
-        name: file.name.replace(/\.[^/.]+$/, ""),
-        url: URL.createObjectURL(file)
-      }));
-      currentTrackIndex = 0;
-      loadLocalTrack(currentTrackIndex);
-      renderLocalPlaylistUI();
-      document.getElementById('localAudioControlsBar').classList.remove('hidden');
-    });
+    const localFileInput = document.getElementById('localFileInput');
+    if (localFileInput) {
+      localFileInput.addEventListener('change', (e) => {
+        const files = Array.from(e.target.files);
+        if (!files.length) return;
+        localAudioQueue = files.map(file => ({
+          name: file.name.replace(/\.[^/.]+$/, ""),
+          url: URL.createObjectURL(file)
+        }));
+        currentTrackIndex = 0;
+        loadLocalTrack(currentTrackIndex);
+        renderLocalPlaylistUI();
+        const bar = document.getElementById('localAudioControlsBar');
+        if (bar) bar.classList.remove('hidden');
+      });
+    }
 
     function loadLocalTrack(index) {
       if (!localAudioQueue[index]) return;
       localAudio.src = localAudioQueue[index].url;
-      localAudio.volume = parseFloat(document.getElementById('volumeControl').value);
-      document.getElementById('nowPlayingBarText').textContent = localAudioQueue[index].name;
+      const vol = document.getElementById('volumeControl');
+      localAudio.volume = parseFloat(vol ? vol.value : '0.5');
+      const txt = document.getElementById('nowPlayingBarText');
+      if (txt) txt.textContent = localAudioQueue[index].name;
       renderLocalPlaylistUI();
     }
 
@@ -2607,11 +2990,11 @@
       if (isLocalPlaying) {
         localAudio.pause();
         isLocalPlaying = false;
-        icon.className = "fa-solid fa-play";
+        if (icon) icon.className = "fa-solid fa-play";
       } else {
         localAudio.play();
         isLocalPlaying = true;
-        icon.className = "fa-solid fa-pause";
+        if (icon) icon.className = "fa-solid fa-pause";
       }
     }
 
@@ -2630,12 +3013,16 @@
     }
 
     localAudio.addEventListener('ended', nextLocalTrack);
-    document.getElementById('toggleLocalPlayBtn').addEventListener('click', toggleLocalPlay);
-    document.getElementById('nextTrackBtn').addEventListener('click', nextLocalTrack);
-    document.getElementById('prevTrackBtn').addEventListener('click', prevLocalTrack);
+    const toggleLocalBtn = document.getElementById('toggleLocalPlayBtn');
+    if (toggleLocalBtn) toggleLocalBtn.addEventListener('click', toggleLocalPlay);
+    const nextBtn = document.getElementById('nextTrackBtn');
+    if (nextBtn) nextBtn.addEventListener('click', nextLocalTrack);
+    const prevBtn = document.getElementById('prevTrackBtn');
+    if (prevBtn) prevBtn.addEventListener('click', prevLocalTrack);
 
     function renderLocalPlaylistUI() {
       const container = document.getElementById('localPlaylistContainer');
+      if (!container) return;
       container.innerHTML = '';
       localAudioQueue.forEach((track, idx) => {
         const item = document.createElement('div');
@@ -2652,7 +3039,8 @@
           loadLocalTrack(idx);
           localAudio.play();
           isLocalPlaying = true;
-          document.getElementById('localPlayIcon').className = "fa-solid fa-pause";
+          const playIcon = document.getElementById('localPlayIcon');
+          if (playIcon) playIcon.className = "fa-solid fa-pause";
         });
         container.appendChild(item);
       });
@@ -2669,25 +3057,26 @@
       const zenIcon = document.getElementById('zenIcon');
 
       if (isZenMode) {
-        header.classList.add('zen-hidden');
-        footer.classList.add('zen-hidden');
-        modeSelector.classList.add('zen-hidden');
-        taskDisplay.classList.add('zen-hidden');
-        tooltip.classList.add('zen-hidden');
+        if (header) header.classList.add('zen-hidden');
+        if (footer) footer.classList.add('zen-hidden');
+        if (modeSelector) modeSelector.classList.add('zen-hidden');
+        if (taskDisplay) taskDisplay.classList.add('zen-hidden');
+        if (tooltip) tooltip.classList.add('zen-hidden');
         if (zenIcon) zenIcon.className = "fa-solid fa-compress text-xs text-amber-400";
         try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); } catch (e) {}
       } else {
-        header.classList.remove('zen-hidden');
-        if (isMusicBarVisible) footer.classList.remove('zen-hidden');
-        modeSelector.classList.remove('zen-hidden');
-        taskDisplay.classList.remove('zen-hidden');
-        tooltip.classList.remove('zen-hidden');
+        if (header) header.classList.remove('zen-hidden');
+        if (footer && isMusicBarVisible) footer.classList.remove('zen-hidden');
+        if (modeSelector) modeSelector.classList.remove('zen-hidden');
+        if (taskDisplay) taskDisplay.classList.remove('zen-hidden');
+        if (tooltip) tooltip.classList.remove('zen-hidden');
         if (zenIcon) zenIcon.className = "fa-solid fa-expand text-xs text-amber-400";
         try { if (document.fullscreenElement) await document.exitFullscreen(); } catch (e) {}
       }
     }
 
-    document.getElementById('zenToggleBtn').addEventListener('click', toggleZenMode);
+    const zenBtn = document.getElementById('zenToggleBtn');
+    if (zenBtn) zenBtn.addEventListener('click', toggleZenMode);
     document.addEventListener('fullscreenchange', () => {
       if (!document.fullscreenElement && isZenMode) toggleZenMode();
     });
@@ -2726,16 +3115,18 @@
         togglePiP();
       } else if (e.key === 'w' || e.key === 'W') {
         e.preventDefault();
-        document.getElementById('wakeLockQuickBtn').click();
+        const btn = document.getElementById('wakeLockQuickBtn');
+        if (btn) btn.click();
       }
     });
 
     // Atmospheric Particle Engine
     const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas ? canvas.getContext('2d') : null;
     let particles = [];
 
     function resizeCanvas() {
+      if (!canvas) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     }
@@ -2745,6 +3136,7 @@
     class Particle {
       constructor() { this.reset(); }
       reset() {
+        if (!canvas) return;
         this.x = Math.random() * canvas.width;
         this.size = Math.random() * 2 + 0.8;
         this.speedX = Math.random() * 0.6 - 0.3;
@@ -2756,6 +3148,7 @@
         else this.y = canvas.height + 10;
       }
       update() {
+        if (!canvas) return;
         if (particleMode === 'snow') {
           this.x += this.speedX; this.y += this.speedY;
           if (this.y > canvas.height) this.reset();
@@ -2776,6 +3169,7 @@
         }
       }
       draw() {
+        if (!ctx) return;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         if (particleMode === 'snow') ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
@@ -2787,26 +3181,29 @@
 
     function initParticles() {
       particles = [];
-      if (particleMode === 'off') return;
+      if (particleMode === 'off' || !canvas) return;
       for (let i = 0; i < 45; i++) particles.push(new Particle());
     }
 
     function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (particleMode !== 'off') particles.forEach(p => { p.update(); p.draw(); });
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (particleMode !== 'off') particles.forEach(p => { p.update(); p.draw(); });
+      }
       requestAnimationFrame(animateParticles);
     }
 
-    document.getElementById('particleSelect').value = particleMode;
-    document.getElementById('particleSelect').addEventListener('change', (e) => {
-      particleMode = e.target.value;
-      localStorage.setItem('aura_particleMode', particleMode);
-      initParticles();
-    });
+    const particleSelect = document.getElementById('particleSelect');
+    if (particleSelect) {
+      particleSelect.value = particleMode;
+      particleSelect.addEventListener('change', (e) => {
+        particleMode = e.target.value;
+        localStorage.setItem('aura_particleMode', particleMode);
+        initParticles();
+      });
+    }
 
-    
-
-    // Boot Application
+    // Boot Application Lifecycle
     applyDisplayStyle(displayStyle);
     initParticles();
     animateParticles();
@@ -2819,6 +3216,6 @@
     updateWakeLockUI();
     startVisualizers();
     updateBackgroundFilters();
-  </script>
+</script>
 </body>
 </html>
