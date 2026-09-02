@@ -853,7 +853,7 @@
       'mountains': 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=2000&q=80'
     };
 
-    // --- State Initialization & LocalStorage Parsing Helpers ---
+    // --- State Initialization & LocalStorage Helpers ---
     function getTodayKey(d = new Date()) {
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -923,27 +923,31 @@
     let bgContrast = parseInt(localStorage.getItem('aura_bgContrast') ?? '100', 10);
     let bgSaturate = parseInt(localStorage.getItem('aura_bgSaturate') ?? '100', 10);
 
+    // Distinct Audio Palettes: primary, secondary & glow RGB colors
     const soundDefinitions = [
-      { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain' },
-      { id: 'thunder', label: 'Thunder', icon: 'fa-bolt-lightning' },
-      { id: 'campfire', label: 'Campfire', icon: 'fa-fire' },
-      { id: 'waves', label: 'Ocean Waves', icon: 'fa-water' },
-      { id: 'wind', label: 'Wind Storm', icon: 'fa-wind' },
-      { id: 'birds', label: 'Birds', icon: 'fa-dove' },
-      { id: 'cafe', label: 'Cafe Chatter', icon: 'fa-mug-hot' },
-      { id: 'gamma', label: 'Gamma 40Hz', icon: 'fa-bolt' },
-      { id: 'alpha', label: 'Alpha 10Hz', icon: 'fa-brain' },
-      { id: 'theta', label: 'Theta 6Hz', icon: 'fa-spa' },
-      { id: 'delta', label: 'Delta 4Hz', icon: 'fa-moon' },
-      { id: 'white', label: 'White Noise', icon: 'fa-wave-square' },
-      { id: 'pink', label: 'Pink Noise', icon: 'fa-sliders' },
-      { id: 'brown', label: 'Brown Noise', icon: 'fa-water' }
+      { id: 'rain', label: 'Rain', icon: 'fa-cloud-rain', color: [56, 189, 248], secColor: [14, 116, 144] },
+      { id: 'thunder', label: 'Thunder', icon: 'fa-bolt-lightning', color: [168, 85, 247], secColor: [91, 33, 182] },
+      { id: 'campfire', label: 'Campfire', icon: 'fa-fire', color: [251, 146, 60], secColor: [194, 65, 12] },
+      { id: 'waves', label: 'Ocean Waves', icon: 'fa-water', color: [45, 212, 191], secColor: [13, 148, 136] },
+      { id: 'wind', label: 'Wind Storm', icon: 'fa-wind', color: [148, 163, 184], secColor: [71, 85, 105] },
+      { id: 'birds', label: 'Birds', icon: 'fa-dove', color: [74, 222, 128], secColor: [22, 101, 52] },
+      { id: 'cafe', label: 'Cafe Chatter', icon: 'fa-mug-hot', color: [251, 191, 36], secColor: [180, 83, 9] },
+      { id: 'gamma', label: 'Gamma 40Hz', icon: 'fa-bolt', color: [236, 72, 153], secColor: [157, 23, 77] },
+      { id: 'alpha', label: 'Alpha 10Hz', icon: 'fa-brain', color: [129, 140, 248], secColor: [67, 56, 202] },
+      { id: 'theta', label: 'Theta 6Hz', icon: 'fa-spa', color: [52, 211, 153], secColor: [16, 185, 129] },
+      { id: 'delta', label: 'Delta 4Hz', icon: 'fa-moon', color: [99, 102, 241], secColor: [49, 46, 129] },
+      { id: 'white', label: 'White Noise', icon: 'fa-wave-square', color: [226, 232, 240], secColor: [148, 163, 184] },
+      { id: 'pink', label: 'Pink Noise', icon: 'fa-sliders', color: [244, 114, 182], secColor: [190, 24, 93] },
+      { id: 'brown', label: 'Brown Noise', icon: 'fa-water', color: [180, 83, 9], secColor: [120, 53, 15] }
     ];
 
     let ambientTracks = {};
     soundDefinitions.forEach(s => {
       ambientTracks[s.id] = parseFloat(localStorage.getItem(`aura_vol_${s.id}`) || '0');
     });
+
+    // Visualizer Mode State: 'bars' | 'wave' | 'radial'
+    let visualizerMode = localStorage.getItem('aura_vis_mode') || 'bars';
 
     // DOM References
     const startBtn = document.getElementById('startBtn');
@@ -1143,16 +1147,23 @@
           toast.style.transform = 'translateY(0) scale(1)';
         });
 
-        // Auto-dismiss milestone alerts after 7 seconds
         if (type === 'milestone') {
           setTimeout(dismiss, 7000);
         }
       });
     }
 
-    // --- Document Picture-in-Picture Engine ---
+    // --- Robust Document Picture-in-Picture Engine ---
     let pipWindow = null;
     let autoOpenedPiP = false;
+
+    function handleTimerToggleAction() {
+      if (timerState === 'running') {
+        pauseTimer();
+      } else {
+        startTimer();
+      }
+    }
 
     async function openPiPWindow() {
       if (pipWindow && !pipWindow.closed) return;
@@ -1161,7 +1172,7 @@
       try {
         pipWindow = await window.documentPictureInPicture.requestWindow({
           width: 380,
-          height: 290,
+          height: 310,
         });
 
         const linkFont = pipWindow.document.createElement('link');
@@ -1185,7 +1196,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 10px 12px;
+            padding: 12px 14px;
             overflow: hidden;
             position: relative;
           }
@@ -1194,8 +1205,8 @@
             inset: 0;
             background-size: cover;
             background-position: center;
-            filter: blur(28px) brightness(0.32);
-            transform: scale(1.2);
+            filter: blur(28px) brightness(0.28);
+            transform: scale(1.25);
             z-index: 0;
           }
           .pip-container {
@@ -1205,7 +1216,7 @@
             flex-direction: column;
             height: 100%;
             justify-content: space-between;
-            gap: 6px;
+            gap: 8px;
           }
           .pip-top-bar {
             display: flex;
@@ -1215,30 +1226,32 @@
             gap: 6px;
           }
           .pip-badge {
-            background: rgba(56, 189, 248, 0.15);
-            border: 1px solid rgba(56, 189, 248, 0.35);
+            background: rgba(56, 189, 248, 0.18);
+            border: 1px solid rgba(56, 189, 248, 0.45);
             color: #38bdf8;
-            padding: 2px 7px;
+            padding: 3px 8px;
             border-radius: 9999px;
             font-weight: 700;
             font-size: 9px;
             font-family: 'Space Mono', monospace;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.6px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
           }
           .pip-badge.rest {
-            background: rgba(52, 211, 153, 0.15);
-            border-color: rgba(52, 211, 153, 0.35);
+            background: rgba(52, 211, 153, 0.18);
+            border-color: rgba(52, 211, 153, 0.45);
             color: #34d399;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.25);
           }
           .pip-badge.overtime {
-            background: rgba(251, 191, 36, 0.2);
-            border-color: rgba(251, 191, 36, 0.5);
+            background: rgba(251, 191, 36, 0.25);
+            border-color: rgba(251, 191, 36, 0.6);
             color: #fbbf24;
             animation: pulse 1.5s infinite;
           }
           @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.96); }
           }
           .pip-cycle-dots {
             display: flex;
@@ -1246,25 +1259,27 @@
             gap: 4px;
           }
           .pip-dot {
-            width: 5px;
-            height: 5px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
           }
           .pip-dot.active {
             background: #38bdf8;
-            box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
           }
           .pip-task-select {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.18);
             color: #cbd5e1;
             font-size: 10px;
-            padding: 2px 6px;
+            padding: 3px 8px;
             border-radius: 8px;
             outline: none;
             max-width: 140px;
             cursor: pointer;
+            backdrop-filter: blur(8px);
           }
           .pip-task-select option {
             background: #0f172a;
@@ -1274,19 +1289,20 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 2px 0;
           }
           .pip-timer {
             font-family: 'Space Mono', monospace;
-            font-size: 38px;
+            font-size: 42px;
             font-weight: 800;
             color: #ffffff;
             letter-spacing: -2px;
             line-height: 1;
-            text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+            text-shadow: 0 4px 22px rgba(0, 0, 0, 0.8);
           }
           .pip-timer.overtime {
             color: #fbbf24;
-            text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
+            text-shadow: 0 0 18px rgba(251, 191, 36, 0.5);
           }
           .pip-controls {
             display: flex;
@@ -1295,11 +1311,11 @@
           }
           .pip-btn {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             color: #f1f5f9;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1308,49 +1324,51 @@
             font-size: 11px;
           }
           .pip-btn:hover {
-            background: rgba(255, 255, 255, 0.18);
-            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.22);
+            transform: scale(1.06);
           }
           .pip-btn-play {
-            width: 38px;
-            height: 38px;
-            background: #38bdf8;
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #38bdf8, #0ea5e9);
             color: #041421;
             border: none;
-            font-size: 13px;
-            box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+            font-size: 14px;
+            box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
           }
           .pip-progress-track {
             width: 100%;
-            height: 3px;
-            background: rgba(255, 255, 255, 0.15);
+            height: 4px;
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 9999px;
             overflow: hidden;
+            position: relative;
           }
           .pip-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #38bdf8, #22c55e);
+            background: linear-gradient(90deg, #38bdf8, #34d399);
             width: 0%;
             transition: width 0.3s linear;
           }
           .pip-mini-mixer {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
             background: rgba(255, 255, 255, 0.05);
-            padding: 4px 8px;
-            border-radius: 8px;
-            gap: 8px;
+            padding: 5px 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
           }
           .pip-mixer-item {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             font-size: 9px;
             color: #94a3b8;
           }
           .pip-mixer-item input[type="range"] {
-            width: 42px;
+            width: 100%;
             height: 3px;
             accent-color: #38bdf8;
             cursor: pointer;
@@ -1362,10 +1380,17 @@
             font-size: 11px;
             font-family: 'Space Mono', monospace;
             color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 4px 8px;
+            border-radius: 8px;
           }
           canvas.pip-visualizer {
             border-radius: 4px;
-            opacity: 0.85;
+            cursor: pointer;
+            transition: opacity 0.2s;
+          }
+          canvas.pip-visualizer:hover {
+            opacity: 1 !important;
           }
         `;
         pipWindow.document.head.appendChild(styleEl);
@@ -1387,7 +1412,7 @@
               </div>
               <div style="display: flex; align-items: center; gap: 4px;">
                 <select id="pipTaskSelector" class="pip-task-select"></select>
-                <button id="pipTaskDoneBtn" class="pip-btn" style="width: 22px; height: 22px; font-size: 9px;" title="Mark Task Complete"><i class="fa-solid fa-check"></i></button>
+                <button id="pipTaskDoneBtn" class="pip-btn" style="width: 24px; height: 24px; font-size: 10px;" title="Mark Task Complete"><i class="fa-solid fa-check"></i></button>
               </div>
             </div>
 
@@ -1407,48 +1432,62 @@
             <!-- Mini Ambient Mixer Row inside PiP -->
             <div class="pip-mini-mixer">
               <div class="pip-mixer-item" title="Rain Layer">
-                <i class="fa-solid fa-cloud-rain text-sky-400"></i>
+                <div style="display:flex;align-items:center;gap:3px;"><i class="fa-solid fa-cloud-rain text-sky-400"></i><span style="font-size:8px;">Rain</span></div>
                 <input type="range" id="pipMixRain" min="0" max="1" step="0.05" value="${ambientTracks.rain || 0}">
               </div>
               <div class="pip-mixer-item" title="Campfire Layer">
-                <i class="fa-solid fa-fire text-amber-400"></i>
+                <div style="display:flex;align-items:center;gap:3px;"><i class="fa-solid fa-fire text-amber-400"></i><span style="font-size:8px;">Fire</span></div>
                 <input type="range" id="pipMixCampfire" min="0" max="1" step="0.05" value="${ambientTracks.campfire || 0}">
               </div>
               <div class="pip-mixer-item" title="Ocean Waves">
-                <i class="fa-solid fa-water text-cyan-400"></i>
+                <div style="display:flex;align-items:center;gap:3px;"><i class="fa-solid fa-water text-teal-400"></i><span style="font-size:8px;">Waves</span></div>
                 <input type="range" id="pipMixWaves" min="0" max="1" step="0.05" value="${ambientTracks.waves || 0}">
               </div>
               <div class="pip-mixer-item" title="Gamma 40Hz Focus">
-                <i class="fa-solid fa-bolt text-indigo-400"></i>
+                <div style="display:flex;align-items:center;gap:3px;"><i class="fa-solid fa-bolt text-pink-400"></i><span style="font-size:8px;">40Hz</span></div>
                 <input type="range" id="pipMixGamma" min="0" max="1" step="0.05" value="${ambientTracks.gamma || 0}">
               </div>
             </div>
 
             <div class="pip-bottom-bar">
-              <canvas id="pipVisualizer" width="110" height="16" class="pip-visualizer"></canvas>
+              <canvas id="pipVisualizer" width="130" height="20" class="pip-visualizer" title="Click to cycle visualizer style"></canvas>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-volume-low text-[10px] text-slate-400"></i>
-                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${currentVol}" style="width: 55px; height: 3px; accent-color: #38bdf8; cursor: pointer;">
+                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${currentVol}" style="width: 50px; height: 3px; accent-color: #38bdf8; cursor: pointer;">
               </div>
             </div>
           </div>
         `;
 
-        // Direct, synchronized PiP Handlers
         const pipPlay = pipWindow.document.getElementById('pipPlayBtn');
         const pipReset = pipWindow.document.getElementById('pipResetBtn');
         const pipSkip = pipWindow.document.getElementById('pipSkipBtn');
         const pipVol = pipWindow.document.getElementById('pipVolControl');
         const pipTaskSelect = pipWindow.document.getElementById('pipTaskSelector');
         const pipTaskDone = pipWindow.document.getElementById('pipTaskDoneBtn');
+        const pipVisCanvas = pipWindow.document.getElementById('pipVisualizer');
 
-        pipPlay.addEventListener('click', () => {
-          if (timerState === 'running') pauseTimer();
-          else startTimer();
+        pipPlay.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleTimerToggleAction();
         });
 
-        pipReset.addEventListener('click', resetTimer);
-        pipSkip.addEventListener('click', skipCurrentPhase);
+        pipReset.addEventListener('click', (e) => {
+          e.preventDefault();
+          resetTimer();
+        });
+
+        pipSkip.addEventListener('click', (e) => {
+          e.preventDefault();
+          skipCurrentPhase();
+        });
+
+        if (pipVisCanvas) {
+          pipVisCanvas.addEventListener('click', () => {
+            cycleVisualizerMode();
+          });
+        }
 
         pipVol.addEventListener('input', (e) => {
           const vol = parseFloat(e.target.value);
@@ -1457,7 +1496,6 @@
           setMasterVolume(vol);
         });
 
-        // Scoped PiP Ambient Sliders
         const bindPipMixer = (id, trackKey) => {
           const el = pipWindow.document.getElementById(id);
           if (el) {
@@ -1473,7 +1511,6 @@
         bindPipMixer('pipMixWaves', 'waves');
         bindPipMixer('pipMixGamma', 'gamma');
 
-        // Scoped PiP Task Switcher
         pipTaskSelect.addEventListener('change', (e) => {
           const val = parseInt(e.target.value, 10);
           activeTaskId = val || null;
@@ -1495,11 +1532,11 @@
           }
         });
 
-        // Keyboard Shortcut Listener Scoped to PiP Window Document
         pipWindow.document.addEventListener('keydown', (e) => {
           if (e.code === 'Space') {
             e.preventDefault();
-            timerState === 'running' ? pauseTimer() : startTimer();
+            e.stopPropagation();
+            handleTimerToggleAction();
           } else if (e.key === 'r' || e.key === 'R') {
             e.preventDefault();
             resetTimer();
@@ -1517,7 +1554,7 @@
         populatePipTaskSelector();
         updateDisplay();
       } catch (err) {
-        console.warn("Document PiP request requires explicit user interaction gesture:", err);
+        console.warn("Document PiP request requires explicit user gesture:", err);
       }
     }
 
@@ -1552,6 +1589,7 @@
     const pipToggleBtn = document.getElementById('pipToggleBtn');
     if (pipToggleBtn) pipToggleBtn.addEventListener('click', togglePiP);
 
+    // Visibility-change auto PiP trigger that re-arms every time running state occurs
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
         if (timerState === 'running' && isWakeLockEnabled) {
@@ -1590,7 +1628,7 @@
       });
     }
 
-    // --- Web Audio API Synthesizer & Binaural Multi-Track Mixer Engine ---
+    // --- High-Fidelity Web Audio API Synthesizer & Multi-Track Mixer ---
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
     let masterGainNode = null;
@@ -1602,13 +1640,16 @@
         audioCtx = new AudioContextClass();
         masterGainNode = audioCtx.createGain();
         analyserNode = audioCtx.createAnalyser();
-        analyserNode.fftSize = 128;
+        analyserNode.fftSize = 256;
         analyserNode.smoothingTimeConstant = 0.82;
 
-        const savedVol = localStorage.getItem('aura_volume') || '0.5';
+        const savedVol = localStorage.getItem('aura_volume') || '0.7';
         const volSlider = document.getElementById('volumeControl');
         if (volSlider) volSlider.value = savedVol;
-        masterGainNode.gain.setValueAtTime(parseFloat(savedVol), audioCtx.currentTime);
+        
+        // Logarithmic responsive master volume
+        const initialVol = parseFloat(savedVol);
+        masterGainNode.gain.setValueAtTime(initialVol * initialVol, audioCtx.currentTime);
 
         masterGainNode.connect(analyserNode);
         analyserNode.connect(audioCtx.destination);
@@ -1622,7 +1663,9 @@
       localStorage.setItem('aura_volume', vol);
       if (masterGainNode && audioCtx) {
         masterGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
-        masterGainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+        // Exponential volume curve for pleasant control
+        const gainValue = Math.max(0.0001, vol * vol);
+        masterGainNode.gain.setTargetAtTime(gainValue, audioCtx.currentTime, 0.03);
       }
       if (typeof localAudio !== 'undefined' && localAudio) {
         localAudio.volume = vol;
@@ -1641,13 +1684,13 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.04);
+        osc.frequency.setValueAtTime(1400, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.03);
         osc.connect(gain);
         gain.connect(masterGainNode);
         osc.start();
-        osc.stop(audioCtx.currentTime + 0.04);
+        osc.stop(audioCtx.currentTime + 0.035);
       } catch (e) {}
     }
 
@@ -1663,7 +1706,7 @@
         osc1.type = 'sine'; osc1.frequency.setValueAtTime(261.63, t);
         osc2.type = 'sine'; osc2.frequency.setValueAtTime(523.25, t);
         gain.gain.setValueAtTime(0.001, t);
-        gain.gain.exponentialRampToValueAtTime(0.3, t + 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.45, t + 0.15);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + 4.0);
         osc1.connect(gain); osc2.connect(gain);
         gain.connect(masterGainNode);
@@ -1673,7 +1716,7 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'triangle'; osc.frequency.setValueAtTime(800, t);
-        gain.gain.setValueAtTime(0.35, t);
+        gain.gain.setValueAtTime(0.5, t);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.35);
         osc.connect(gain); gain.connect(masterGainNode);
         osc.start(t); osc.stop(t + 0.35);
@@ -1682,7 +1725,7 @@
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.frequency.setValueAtTime(freq, t + i * 0.1);
-          gain.gain.setValueAtTime(0.2, t + i * 0.1);
+          gain.gain.setValueAtTime(0.35, t + i * 0.1);
           gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.1 + 0.8);
           osc.connect(gain); gain.connect(masterGainNode);
           osc.start(t + i * 0.1); osc.stop(t + i * 0.1 + 0.8);
@@ -1691,13 +1734,14 @@
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, t);
-        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.setValueAtTime(0.4, t);
         gain.gain.exponentialRampToValueAtTime(0.0001, t + 2.5);
         osc.connect(gain); gain.connect(masterGainNode);
         osc.start(t); osc.stop(t + 2.5);
       }
     }
 
+    // High fidelity acoustic generator with distinct timbre per sound
     function createSoundSource(type) {
       if (!audioCtx) return null;
       const sampleRate = audioCtx.sampleRate;
@@ -1708,167 +1752,338 @@
       let nodes = [];
       let intervals = [];
 
-      if (type === 'white' || type === 'pink' || type === 'brown' || type === 'rain' || type === 'campfire' || type === 'wind' || type === 'thunder') {
-        const bufferSize = sampleRate * 3;
-        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
-        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
-
-        for (let i = 0; i < bufferSize; i++) {
+      // Helper to generate looping pink noise buffer
+      const generatePinkBuffer = (sec = 3) => {
+        const len = sampleRate * sec;
+        const b = audioCtx.createBuffer(1, len, sampleRate);
+        const out = b.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+        for (let i = 0; i < len; i++) {
           const white = Math.random() * 2 - 1;
-          if (type === 'white') {
-            data[i] = white * 0.12;
-          } else if (type === 'pink') {
-            b0 = 0.99886 * b0 + white * 0.0555179;
-            b1 = 0.99332 * b1 + white * 0.0750759;
-            b2 = 0.96900 * b2 + white * 0.1538520;
-            b3 = 0.86650 * b3 + white * 0.3104856;
-            b4 = 0.55000 * b4 + white * 0.5329522;
-            b5 = -0.7616 * b5 - white * 0.0168980;
-            data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-            b6 = white * 0.115926;
-          } else if (type === 'brown' || type === 'thunder') {
-            last = (last + (0.02 * white)) / 1.02;
-            data[i] = last * 1.5;
-          } else if (type === 'wind') {
-            last = (last + (0.04 * white)) / 1.04;
-            data[i] = last * 0.8;
-          } else if (type === 'rain') {
-            data[i] = white * 0.2;
-          } else if (type === 'campfire') {
-            const crackle = Math.random() > 0.994 ? (Math.random() * 2 - 1) * 2.5 : 0;
-            b0 = 0.99886 * b0 + white * 0.0555;
-            b1 = 0.99332 * b1 + white * 0.0750;
-            data[i] = ((b0 + b1 + white * 0.5) * 0.04) + crackle;
-          }
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          out[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+          b6 = white * 0.115926;
         }
+        return b;
+      };
 
-        const src = audioCtx.createBufferSource();
-        src.buffer = buffer;
-        src.loop = true;
-
-        if (type === 'rain') {
-          const filter = audioCtx.createBiquadFilter();
-          filter.type = 'bandpass';
-          filter.frequency.value = 1400;
-          filter.Q.value = 2.0;
-          src.connect(filter);
-          filter.connect(gainNode);
-          nodes.push(filter);
-        } else if (type === 'wind') {
-          const filter = audioCtx.createBiquadFilter();
-          filter.type = 'lowpass';
-          filter.frequency.value = 400;
-          const lfo = audioCtx.createOscillator();
-          lfo.frequency.value = 0.1;
-          const lfoGain = audioCtx.createGain();
-          lfoGain.gain.value = 250;
-          lfo.connect(filter.frequency);
-          lfo.start();
-          src.connect(filter);
-          filter.connect(gainNode);
-          nodes.push(lfo, lfoGain, filter);
-        } else if (type === 'thunder') {
-          const filter = audioCtx.createBiquadFilter();
-          filter.type = 'lowpass';
-          filter.frequency.value = 180;
-          src.connect(filter);
-          filter.connect(gainNode);
-          nodes.push(filter);
-        } else if (type === 'campfire') {
-          const filter = audioCtx.createBiquadFilter();
-          filter.type = 'lowpass';
-          filter.frequency.value = 1200;
-          src.connect(filter);
-          filter.connect(gainNode);
-          nodes.push(filter);
-        } else {
-          src.connect(gainNode);
-        }
-
-        src.start();
-        nodes.push(src);
-      } else if (type === 'waves') {
-        const bufferSize = sampleRate * 3;
-        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-        const data = buffer.getChannelData(0);
+      // Helper to generate looping brown noise buffer
+      const generateBrownBuffer = (sec = 3) => {
+        const len = sampleRate * sec;
+        const b = audioCtx.createBuffer(1, len, sampleRate);
+        const out = b.getChannelData(0);
         let last = 0;
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
-          last = data[i];
+        for (let i = 0; i < len; i++) {
+          const white = Math.random() * 2 - 1;
+          last = (last + (0.02 * white)) / 1.02;
+          out[i] = last * 3.5;
         }
-        const src = audioCtx.createBufferSource();
-        src.buffer = buffer; src.loop = true;
+        return b;
+      };
+
+      // Helper to generate looping white noise buffer
+      const generateWhiteBuffer = (sec = 3) => {
+        const len = sampleRate * sec;
+        const b = audioCtx.createBuffer(1, len, sampleRate);
+        const out = b.getChannelData(0);
+        for (let i = 0; i < len; i++) {
+          out[i] = (Math.random() * 2 - 1) * 0.35;
+        }
+        return b;
+      };
+
+      if (type === 'rain') {
+        // Dual-filtered dynamic rainfall
+        const whiteSrc = audioCtx.createBufferSource();
+        whiteSrc.buffer = generateWhiteBuffer(3);
+        whiteSrc.loop = true;
+
+        const lowFilter = audioCtx.createBiquadFilter();
+        lowFilter.type = 'lowpass';
+        lowFilter.frequency.value = 1000;
+
+        const bandFilter = audioCtx.createBiquadFilter();
+        bandFilter.type = 'bandpass';
+        bandFilter.frequency.value = 2400;
+        bandFilter.Q.value = 1.2;
+
+        const subGain = audioCtx.createGain();
+        subGain.gain.value = 1.8;
+
+        whiteSrc.connect(lowFilter);
+        lowFilter.connect(bandFilter);
+        bandFilter.connect(subGain);
+        subGain.connect(gainNode);
+
+        whiteSrc.start();
+        nodes.push(whiteSrc, lowFilter, bandFilter, subGain);
+
+      } else if (type === 'thunder') {
+        // Continuous dark ambient background with procedural randomized lightning rumbles
+        const brownSrc = audioCtx.createBufferSource();
+        brownSrc.buffer = generateBrownBuffer(3);
+        brownSrc.loop = true;
+
+        const rumbleFilter = audioCtx.createBiquadFilter();
+        rumbleFilter.type = 'lowpass';
+        rumbleFilter.frequency.value = 120;
+
+        brownSrc.connect(rumbleFilter);
+        rumbleFilter.connect(gainNode);
+        brownSrc.start();
+        nodes.push(brownSrc, rumbleFilter);
+
+        // Thunder strikes
+        const thunderLoop = setInterval(() => {
+          if (!ambientTracks.thunder || !audioCtx) return;
+          const strikeOsc = audioCtx.createOscillator();
+          const strikeGain = audioCtx.createGain();
+          const strikeFilter = audioCtx.createBiquadFilter();
+          const now = audioCtx.currentTime;
+
+          strikeOsc.type = 'triangle';
+          strikeOsc.frequency.setValueAtTime(65, now);
+          strikeOsc.frequency.exponentialRampToValueAtTime(25, now + 2.5);
+
+          strikeFilter.type = 'lowpass';
+          strikeFilter.frequency.setValueAtTime(150, now);
+
+          strikeGain.gain.setValueAtTime(0.001, now);
+          strikeGain.gain.linearRampToValueAtTime(0.9, now + 0.2);
+          strikeGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.0);
+
+          strikeOsc.connect(strikeFilter);
+          strikeFilter.connect(strikeGain);
+          strikeGain.connect(gainNode);
+
+          strikeOsc.start(now);
+          strikeOsc.stop(now + 3.1);
+        }, 5500);
+        intervals.push(thunderLoop);
+
+      } else if (type === 'campfire') {
+        // Roaring warm low-end plus sharp crackle spikes
+        const pinkSrc = audioCtx.createBufferSource();
+        pinkSrc.buffer = generatePinkBuffer(3);
+        pinkSrc.loop = true;
+
+        const fireFilter = audioCtx.createBiquadFilter();
+        fireFilter.type = 'lowpass';
+        fireFilter.frequency.value = 600;
+
+        pinkSrc.connect(fireFilter);
+        fireFilter.connect(gainNode);
+        pinkSrc.start();
+        nodes.push(pinkSrc, fireFilter);
+
+        // Crisp pops and crackles
+        const crackleInterval = setInterval(() => {
+          if (!ambientTracks.campfire || !audioCtx) return;
+          const popCount = Math.floor(Math.random() * 3) + 1;
+          for (let p = 0; p < popCount; p++) {
+            const snap = audioCtx.createOscillator();
+            const snapGain = audioCtx.createGain();
+            const now = audioCtx.currentTime + (p * 0.08);
+            snap.type = 'square';
+            snap.frequency.setValueAtTime(1200 + Math.random() * 2400, now);
+            snapGain.gain.setValueAtTime(0.25, now);
+            snapGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+            snap.connect(snapGain);
+            snapGain.connect(gainNode);
+            snap.start(now);
+            snap.stop(now + 0.045);
+          }
+        }, 320);
+        intervals.push(crackleInterval);
+
+      } else if (type === 'waves') {
+        // LFO modulated sweeping ocean swell
+        const brownSrc = audioCtx.createBufferSource();
+        brownSrc.buffer = generateBrownBuffer(4);
+        brownSrc.loop = true;
+
         const filter = audioCtx.createBiquadFilter();
-        filter.frequency.value = 450;
+        filter.type = 'lowpass';
+        filter.frequency.value = 400;
+
+        const swellGain = audioCtx.createGain();
+        swellGain.gain.value = 0.5;
+
+        // Slow natural tidal wave oscillation
         const lfo = audioCtx.createOscillator();
-        lfo.frequency.value = 0.12;
+        lfo.type = 'sine';
+        lfo.frequency.value = 0.1; // 10-second wave swell cycle
+
         const lfoGain = audioCtx.createGain();
-        lfoGain.gain.value = 0.12;
+        lfoGain.gain.value = 0.45;
+
         lfo.connect(lfoGain);
-        lfoGain.connect(gainNode.gain);
-        src.connect(filter);
-        filter.connect(gainNode);
-        src.start(); lfo.start();
-        nodes.push(src, lfo, lfoGain, filter);
-      } else if (type === 'cafe') {
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        osc1.type = 'sine'; osc1.frequency.value = 140;
-        osc2.type = 'triangle'; osc2.frequency.value = 240;
+        lfoGain.connect(swellGain.gain);
+
+        brownSrc.connect(filter);
+        filter.connect(swellGain);
+        swellGain.connect(gainNode);
+
+        brownSrc.start();
+        lfo.start();
+        nodes.push(brownSrc, filter, swellGain, lfo, lfoGain);
+
+      } else if (type === 'wind') {
+        // Deep whistling wind gust
+        const pinkSrc = audioCtx.createBufferSource();
+        pinkSrc.buffer = generatePinkBuffer(3);
+        pinkSrc.loop = true;
+
         const filter = audioCtx.createBiquadFilter();
-        filter.type = 'bandpass'; filter.frequency.value = 520; filter.Q.value = 1.2;
-        osc1.connect(filter); osc2.connect(filter);
+        filter.type = 'bandpass';
+        filter.frequency.value = 450;
+        filter.Q.value = 3.5;
+
+        const lfo = audioCtx.createOscillator();
+        lfo.frequency.value = 0.15;
+        const lfoAmp = audioCtx.createGain();
+        lfoAmp.gain.value = 300;
+
+        lfo.connect(lfoAmp);
+        lfoAmp.connect(filter.frequency);
+
+        pinkSrc.connect(filter);
         filter.connect(gainNode);
-        osc1.start(); osc2.start();
-        nodes.push(osc1, osc2, filter);
+
+        pinkSrc.start();
+        lfo.start();
+        nodes.push(pinkSrc, filter, lfo, lfoAmp);
+
+      } else if (type === 'birds') {
+        // Calming periodic morning woodland chirps
+        const birdLoop = setInterval(() => {
+          if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
+          try {
+            const now = audioCtx.currentTime;
+            const chirpCount = Math.floor(Math.random() * 3) + 2;
+            let offset = 0;
+            for (let i = 0; i < chirpCount; i++) {
+              const chirpOsc = audioCtx.createOscillator();
+              const chirpGain = audioCtx.createGain();
+              const base = 2800 + Math.random() * 600;
+              chirpOsc.type = 'sine';
+              chirpOsc.frequency.setValueAtTime(base, now + offset);
+              chirpOsc.frequency.exponentialRampToValueAtTime(base + 800, now + offset + 0.05);
+              chirpOsc.frequency.exponentialRampToValueAtTime(base - 400, now + offset + 0.12);
+
+              chirpGain.gain.setValueAtTime(0.001, now + offset);
+              chirpGain.gain.linearRampToValueAtTime(0.35, now + offset + 0.02);
+              chirpGain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.14);
+
+              chirpOsc.connect(chirpGain);
+              chirpGain.connect(gainNode);
+              chirpOsc.start(now + offset);
+              chirpOsc.stop(now + offset + 0.15);
+              offset += 0.13 + Math.random() * 0.08;
+            }
+          } catch(e) {}
+        }, 3400);
+        intervals.push(birdLoop);
+
+      } else if (type === 'cafe') {
+        // Warm multi-filtered coffee shop chatter & cup clinks
+        const pinkSrc = audioCtx.createBufferSource();
+        pinkSrc.buffer = generatePinkBuffer(3);
+        pinkSrc.loop = true;
+
+        const chatterFilter = audioCtx.createBiquadFilter();
+        chatterFilter.type = 'bandpass';
+        chatterFilter.frequency.value = 750;
+        chatterFilter.Q.value = 1.0;
+
+        pinkSrc.connect(chatterFilter);
+        chatterFilter.connect(gainNode);
+        pinkSrc.start();
+        nodes.push(pinkSrc, chatterFilter);
+
+        // Cup clinks & ceramic ambient sounds
+        const clinkLoop = setInterval(() => {
+          if (!ambientTracks.cafe || !audioCtx) return;
+          if (Math.random() > 0.4) {
+            const clink = audioCtx.createOscillator();
+            const clinkGain = audioCtx.createGain();
+            const now = audioCtx.currentTime;
+            clink.type = 'sine';
+            clink.frequency.setValueAtTime(3200 + Math.random() * 800, now);
+            clinkGain.gain.setValueAtTime(0.08, now);
+            clinkGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+            clink.connect(clinkGain);
+            clinkGain.connect(gainNode);
+            clink.start(now);
+            clink.stop(now + 0.13);
+          }
+        }, 2200);
+        intervals.push(clinkLoop);
+
       } else if (type === 'gamma' || type === 'alpha' || type === 'theta' || type === 'delta') {
-        // Binaural Beat engine: Delta(4Hz), Theta(6Hz), Alpha(10Hz), Gamma(40Hz)
-        let diff = 10;
+        // True Stereo Binaural Entrainment Oscillators
+        let diff = 40;
         let baseFreq = 200;
-        if (type === 'gamma') { diff = 40; baseFreq = 240; }
+        if (type === 'gamma') { diff = 40; baseFreq = 220; }
         else if (type === 'alpha') { diff = 10; baseFreq = 200; }
         else if (type === 'theta') { diff = 6; baseFreq = 180; }
-        else if (type === 'delta') { diff = 4; baseFreq = 140; }
+        else if (type === 'delta') { diff = 4; baseFreq = 130; }
 
         const oscL = audioCtx.createOscillator();
         const oscR = audioCtx.createOscillator();
         const merger = audioCtx.createChannelMerger(2);
-        oscL.type = 'sine'; oscL.frequency.value = baseFreq;
-        oscR.type = 'sine'; oscR.frequency.value = baseFreq + diff;
-        oscL.connect(merger, 0, 0);
-        oscR.connect(merger, 0, 1);
-        merger.connect(gainNode);
-        oscL.start(); oscR.start();
-        nodes.push(oscL, oscR, merger);
-      } else if (type === 'birds') {
-        const intervalId = setInterval(() => {
-          if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
-          try {
-            const chirpOsc = audioCtx.createOscillator();
-            const chirpGain = audioCtx.createGain();
-            const t = audioCtx.currentTime;
-            const startFreq = 2200 + Math.random() * 1200;
-            chirpOsc.type = 'sine';
-            chirpOsc.frequency.setValueAtTime(startFreq, t);
-            chirpOsc.frequency.exponentialRampToValueAtTime(startFreq + 900, t + 0.08);
-            chirpOsc.frequency.exponentialRampToValueAtTime(startFreq - 300, t + 0.16);
-            chirpGain.gain.setValueAtTime(0.001, t);
-            chirpGain.gain.linearRampToValueAtTime(0.12, t + 0.03);
-            chirpGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-            chirpOsc.connect(chirpGain);
-            chirpGain.connect(gainNode);
-            chirpOsc.start(t);
-            chirpOsc.stop(t + 0.2);
-          } catch(e) {}
-        }, 2400);
-        intervals.push(intervalId);
+
+        oscL.type = 'sine';
+        oscL.frequency.value = baseFreq;
+        oscR.type = 'sine';
+        oscR.frequency.value = baseFreq + diff;
+
+        const toneGain = audioCtx.createGain();
+        toneGain.gain.value = 0.8;
+
+        oscL.connect(merger, 0, 0); // Left Ear
+        oscR.connect(merger, 0, 1); // Right Ear
+        merger.connect(toneGain);
+        toneGain.connect(gainNode);
+
+        oscL.start();
+        oscR.start();
+        nodes.push(oscL, oscR, merger, toneGain);
+
+      } else if (type === 'white') {
+        const src = audioCtx.createBufferSource();
+        src.buffer = generateWhiteBuffer(3);
+        src.loop = true;
+        src.connect(gainNode);
+        src.start();
+        nodes.push(src);
+
+      } else if (type === 'pink') {
+        const src = audioCtx.createBufferSource();
+        src.buffer = generatePinkBuffer(3);
+        src.loop = true;
+        src.connect(gainNode);
+        src.start();
+        nodes.push(src);
+
+      } else if (type === 'brown') {
+        const src = audioCtx.createBufferSource();
+        src.buffer = generateBrownBuffer(3);
+        src.loop = true;
+        src.connect(gainNode);
+        src.start();
+        nodes.push(src);
       }
 
       return { gainNode, nodes, intervals };
     }
 
-    // Audio node teardown with Soft Crossfade Transition
+    // Audio node teardown with calibrated dynamic scaling
     function setTrackVolume(type, vol) {
       initAudio();
       ambientTracks[type] = vol;
@@ -1881,9 +2096,9 @@
       if (activeSoundSources[type]) {
         const gn = activeSoundSources[type].gainNode;
         gn.gain.cancelScheduledValues(audioCtx.currentTime);
-        // Soft crossfade ramp
-        gn.gain.setValueAtTime(Math.max(gn.gain.value, 0.0001), audioCtx.currentTime);
-        gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.15);
+        // Boosted acoustic multiplier with linear/exponential blend
+        const scaledGain = Math.max(0.0001, Math.pow(vol, 1.4) * 0.85);
+        gn.gain.setTargetAtTime(scaledGain, audioCtx.currentTime, 0.08);
 
         if (vol === 0) {
           const trackRef = activeSoundSources[type];
@@ -1903,7 +2118,7 @@
                 trackRef.intervals.forEach(clearInterval);
               }
             }
-          }, 200);
+          }, 250);
         }
       }
     }
@@ -1931,11 +2146,12 @@
       soundDefinitions.forEach(s => {
         const val = ambientTracks[s.id] || 0;
         const div = document.createElement('div');
-        div.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-xl glass-panel flex-shrink-0 text-xs text-slate-300 transition-all ${val > 0 ? 'border-sky-400/30 bg-sky-500/10' : ''}`;
+        div.className = `flex items-center gap-1.5 px-2.5 py-1 rounded-xl glass-panel flex-shrink-0 text-xs text-slate-300 transition-all ${val > 0 ? 'shadow-sm' : ''}`;
+        div.setAttribute('style', val > 0 ? `border-color: rgba(${s.color.join(',')}, 0.4); background: rgba(${s.color.join(',')}, 0.12);` : '');
         div.innerHTML = `
-          <i class="fa-solid ${s.icon} text-[10px] ${val > 0 ? 'text-sky-400' : 'text-slate-500'}"></i>
+          <i class="fa-solid ${s.icon} text-[10px]" style="color: ${val > 0 ? `rgb(${s.color.join(',')})` : '#64748b'};"></i>
           <span class="text-[10px] font-mono whitespace-nowrap">${s.label}</span>
-          <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-14 h-1 accent-sky-400" data-track="${s.id}">
+          <input type="range" min="0" max="1" step="0.05" value="${val}" class="w-14 h-1 cursor-pointer" style="accent-color: rgb(${s.color.join(',')});" data-track="${s.id}">
           <span class="text-[9px] font-mono text-slate-400 w-5 text-right">${Math.round(val * 100)}%</span>
         `;
 
@@ -1948,15 +2164,73 @@
           setTrackVolume(s.id, v);
           pctLabel.textContent = `${Math.round(v * 100)}%`;
           if (v > 0) {
-            icon.className = `fa-solid ${s.icon} text-[10px] text-sky-400`;
-            div.classList.add('border-sky-400/30', 'bg-sky-500/10');
+            icon.style.color = `rgb(${s.color.join(',')})`;
+            div.style.borderColor = `rgba(${s.color.join(',')}, 0.4)`;
+            div.style.background = `rgba(${s.color.join(',')}, 0.12)`;
           } else {
-            icon.className = `fa-solid ${s.icon} text-[10px] text-slate-500`;
-            div.classList.remove('border-sky-400/30', 'bg-sky-500/10');
+            icon.style.color = '#64748b';
+            div.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+            div.style.background = 'transparent';
           }
         });
 
         list.appendChild(div);
+      });
+    }
+
+    // Dynamic Color Palette Resolver for Visualizers
+    function getActiveVisualizerColors() {
+      let activeDefs = [];
+      let totalWeight = 0;
+      soundDefinitions.forEach(s => {
+        const v = ambientTracks[s.id] || 0;
+        if (v > 0) {
+          activeDefs.push({ def: s, weight: v });
+          totalWeight += v;
+        }
+      });
+
+      if (activeDefs.length === 0) {
+        return {
+          primary: [56, 189, 248],    // sky-400
+          secondary: [168, 85, 247],  // purple-500
+          glow: 'rgba(56, 189, 248, 0.35)'
+        };
+      }
+
+      let r = 0, g = 0, b = 0;
+      let r2 = 0, g2 = 0, b2 = 0;
+      activeDefs.forEach(item => {
+        const w = item.weight / totalWeight;
+        r += item.def.color[0] * w;
+        g += item.def.color[1] * w;
+        b += item.def.color[2] * w;
+        r2 += item.def.secColor[0] * w;
+        g2 += item.def.secColor[1] * w;
+        b2 += item.def.secColor[2] * w;
+      });
+
+      r = Math.round(r); g = Math.round(g); b = Math.round(b);
+      r2 = Math.round(r2); g2 = Math.round(g2); b2 = Math.round(b2);
+
+      return {
+        primary: [r, g, b],
+        secondary: [r2, g2, b2],
+        glow: `rgba(${r}, ${g}, ${b}, 0.45)`
+      };
+    }
+
+    function cycleVisualizerMode() {
+      if (visualizerMode === 'bars') visualizerMode = 'wave';
+      else if (visualizerMode === 'wave') visualizerMode = 'radial';
+      else visualizerMode = 'bars';
+      localStorage.setItem('aura_vis_mode', visualizerMode);
+      showHUDToast({
+        type: 'focus',
+        title: 'Visualizer Changed',
+        message: `Mode: ${visualizerMode.toUpperCase()}`,
+        allowNext: false,
+        allowExtend: false
       });
     }
 
@@ -2054,6 +2328,9 @@
           pipPlayBtn.innerHTML = timerState === 'running' 
             ? '<i class="fa-solid fa-pause"></i>' 
             : '<i class="fa-solid fa-play"></i>';
+          pipPlayBtn.style.background = timerState === 'running'
+            ? 'linear-gradient(135deg, #f59e0b, #d97706)'
+            : 'linear-gradient(135deg, #38bdf8, #0ea5e9)';
         }
         if (pipProgress && engineMode !== 'stopwatch' && !isOvertime) {
           const safeTotal = totalDuration > 0 ? totalDuration : 1;
@@ -2064,7 +2341,6 @@
           pipProgress.style.background = '#fbbf24';
         }
 
-        // Update 4-dot Cycle Tracker inside PiP
         const currentDot = (sessionCycleCount % 4);
         pipDots.forEach((dot, idx) => {
           if (idx < currentDot) dot.classList.add('active');
@@ -2080,14 +2356,13 @@
       return { m, s, formatted: `${m}:${s}` };
     }
 
-    // --- Core Drift-Eliminated Frame Loop ---
+    // --- Core Frame Loop ---
     function timerFrameLoop() {
       if (timerState !== 'running') return;
 
       const now = Date.now();
 
       if (isOvertime) {
-        // Flow extension mode (Count up)
         const elapsedOvertime = Math.floor((now - overtimeStartTimestamp) / 1000);
         overtimeSeconds = elapsedOvertime;
         if (elapsedOvertime !== lastTickSecondLogged) {
@@ -2107,7 +2382,6 @@
         } else {
           const currentRemaining = initialRemainingAtStart - elapsedSeconds;
 
-          // Accrue deterministic focus time
           if (engineMode === 'pomodoro' && isWorkInterval && elapsedSeconds > lastElapsedFocusSecs) {
             const deltaSecs = elapsedSeconds - lastElapsedFocusSecs;
             totalFocusSecondsCompleted += deltaSecs;
@@ -2118,7 +2392,6 @@
           if (currentRemaining > 0) {
             timeRemaining = currentRemaining;
           } else {
-            // Timer concluded -> Enter Overtime Flow Mode
             timeRemaining = 0;
             playAlarmSound();
 
@@ -2139,13 +2412,11 @@
                   }
                 }
 
-                // Heatmap logging
                 const todayKey = getTodayKey();
                 heatmapHistory[todayKey] = (heatmapHistory[todayKey] || 0) + 1;
                 localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
                 updateAnalytics();
 
-                // Trigger HUD notification
                 showHUDToast({
                   type: 'focus',
                   title: 'Sprint Complete!',
@@ -2154,7 +2425,6 @@
                   allowExtend: true
                 });
 
-                // Check daily target milestone
                 if (heatmapHistory[todayKey] === dailyGoalTarget) {
                   setTimeout(() => {
                     showHUDToast({
@@ -2176,7 +2446,6 @@
                 });
               }
 
-              // Switch to Overtime Grace Period
               isOvertime = true;
               overtimeStartTimestamp = Date.now();
               overtimeSeconds = 0;
@@ -2204,6 +2473,7 @@
     function startTimer() {
       initAudio();
       timerState = 'running';
+      autoOpenedPiP = false; // Reset PiP auto-open lock so each start triggers seamlessly
       if (startBtn) startBtn.classList.add('hidden');
       if (pauseBtn) pauseBtn.classList.remove('hidden');
 
@@ -2224,6 +2494,7 @@
 
     function pauseTimer() {
       timerState = 'paused';
+      autoOpenedPiP = false;
       if (pauseBtn) pauseBtn.classList.add('hidden');
       if (startBtn) startBtn.classList.remove('hidden');
       cancelAnimationFrame(timerAnimationId);
@@ -2235,6 +2506,7 @@
       pauseTimer();
       isOvertime = false;
       overtimeSeconds = 0;
+      autoOpenedPiP = false;
       if (engineMode === 'pomodoro') {
         timeRemaining = isWorkInterval ? workDurationSecs : breakDurationSecs;
         totalDuration = timeRemaining;
@@ -2257,6 +2529,7 @@
     function skipCurrentPhase() {
       isOvertime = false;
       overtimeSeconds = 0;
+      autoOpenedPiP = false;
       if (engineMode === 'pomodoro') {
         isWorkInterval = !isWorkInterval;
         switchPomoPhase();
@@ -2328,6 +2601,7 @@
       engineMode = mode;
       isOvertime = false;
       overtimeSeconds = 0;
+      autoOpenedPiP = false;
       [modePomodoro, modeCountdown, modeStopwatch].forEach(btn => {
         if (btn) btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white";
       });
@@ -2407,7 +2681,7 @@
       });
     }
 
-    // --- Advanced Kanban & Tag Task Engine ---
+    // --- Advanced Kanban Task Engine ---
     const taskForm = document.getElementById('taskForm');
     const taskInput = document.getElementById('taskInput');
     const taskTagSelect = document.getElementById('taskTagSelect');
@@ -2554,7 +2828,7 @@
       });
     }
 
-    // --- Streak & Calendar Calculations ---
+    // --- Streak & Calendar Analytics ---
     function calculateConsecutiveStreak(historyMap) {
       let streak = 0;
       const today = new Date();
@@ -2577,7 +2851,6 @@
       return streak;
     }
 
-    // --- Analytics, Heatmap & Automated Backups ---
     function updateAnalytics() {
       const minutes = Math.floor(totalFocusSecondsCompleted / 60);
       const statTotal = document.getElementById('statTotalTime');
@@ -2794,59 +3067,115 @@
       });
     }
 
-    // --- Symmetrical Audio Visualizer Canvas Engine ---
+    // --- Audio Visualizer Canvas Engine ---
+    let visWavePhase = 0;
+
     function startVisualizers() {
       const mainCanvas = document.getElementById('mainAudioVisualizer');
       if (!mainCanvas) return;
       const mainCtx = mainCanvas.getContext('2d');
+
+      mainCanvas.style.cursor = 'pointer';
+      mainCanvas.title = "Click to cycle visualizer mode: Symmetrical Bars / Waves / Radial Pulse";
+      mainCanvas.addEventListener('click', cycleVisualizerMode);
 
       function drawVisualizer() {
         requestAnimationFrame(drawVisualizer);
         mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
 
         const isAudioActive = timerState === 'running' || isLocalPlaying || Object.values(ambientTracks).some(v => v > 0);
+        const palette = getActiveVisualizerColors();
 
         if (analyserNode && isAudioActive) {
           const bufferLength = analyserNode.frequencyBinCount;
           const dataArray = new Uint8Array(bufferLength);
           analyserNode.getByteFrequencyData(dataArray);
 
-          const barCount = 28;
-          const halfCount = Math.floor(barCount / 2);
-          const barWidth = (mainCanvas.width / barCount) - 2;
-          const centerY = mainCanvas.height / 2;
+          const cW = mainCanvas.width;
+          const cH = mainCanvas.height;
+          const centerY = cH / 2;
 
-          for (let i = 0; i < halfCount; i++) {
-            const sampleIdx = Math.floor(Math.pow(i / halfCount, 1.4) * (bufferLength * 0.65));
-            const rawVal = dataArray[sampleIdx] || 0;
-            const normalized = rawVal / 255;
-            const barHeight = Math.max(2, normalized * (mainCanvas.height - 2));
-
-            const grad = mainCtx.createLinearGradient(0, centerY - barHeight / 2, 0, centerY + barHeight / 2);
-            grad.addColorStop(0, `rgba(56, 189, 248, ${Math.max(normalized, 0.35)})`);
-            grad.addColorStop(0.5, `rgba(168, 85, 247, ${Math.max(normalized, 0.45)})`);
-            grad.addColorStop(1, `rgba(56, 189, 248, ${Math.max(normalized, 0.35)})`);
-
-            mainCtx.fillStyle = grad;
-
-            const leftX = (halfCount - 1 - i) * (barWidth + 2);
+          if (visualizerMode === 'wave') {
+            visWavePhase += 0.05;
+            mainCtx.lineWidth = 2.5;
             mainCtx.beginPath();
-            mainCtx.roundRect(leftX, centerY - barHeight / 2, barWidth, barHeight, 3);
-            mainCtx.fill();
+            
+            for (let i = 0; i < cW; i++) {
+              const sampleIdx = Math.floor((i / cW) * (bufferLength * 0.5));
+              const amp = (dataArray[sampleIdx] || 0) / 255;
+              const y = centerY + Math.sin(i * 0.04 + visWavePhase) * (amp * (cH * 0.45));
+              if (i === 0) mainCtx.moveTo(i, y);
+              else mainCtx.lineTo(i, y);
+            }
+            
+            const grad = mainCtx.createLinearGradient(0, 0, cW, 0);
+            grad.addColorStop(0, `rgb(${palette.primary.join(',')})`);
+            grad.addColorStop(1, `rgb(${palette.secondary.join(',')})`);
+            mainCtx.strokeStyle = grad;
+            mainCtx.shadowBlur = 10;
+            mainCtx.shadowColor = palette.glow;
+            mainCtx.stroke();
+            mainCtx.shadowBlur = 0;
 
-            const rightX = (halfCount + i) * (barWidth + 2);
+          } else if (visualizerMode === 'radial') {
+            const centerX = cW / 2;
+            const radius = Math.min(centerX, centerY) * 0.5;
+            const points = 32;
+
             mainCtx.beginPath();
-            mainCtx.roundRect(rightX, centerY - barHeight / 2, barWidth, barHeight, 3);
+            for (let i = 0; i <= points; i++) {
+              const angle = (i / points) * Math.PI * 2;
+              const sampleIdx = Math.floor((i / points) * (bufferLength * 0.5));
+              const amp = ((dataArray[sampleIdx] || 0) / 255) * 16;
+              const r = radius + amp;
+              const x = centerX + Math.cos(angle) * r;
+              const y = centerY + Math.sin(angle) * r;
+              if (i === 0) mainCtx.moveTo(x, y);
+              else mainCtx.lineTo(x, y);
+            }
+            mainCtx.closePath();
+            mainCtx.fillStyle = `rgba(${palette.primary.join(',')}, 0.25)`;
             mainCtx.fill();
+            mainCtx.strokeStyle = `rgb(${palette.secondary.join(',')})`;
+            mainCtx.lineWidth = 2;
+            mainCtx.stroke();
+
+          } else {
+            const barCount = 32;
+            const halfCount = Math.floor(barCount / 2);
+            const barWidth = (cW / barCount) - 2;
+
+            for (let i = 0; i < halfCount; i++) {
+              const sampleIdx = Math.floor(Math.pow(i / halfCount, 1.35) * (bufferLength * 0.65));
+              const rawVal = dataArray[sampleIdx] || 0;
+              const normalized = rawVal / 255;
+              const barHeight = Math.max(3, normalized * (cH - 4));
+
+              const grad = mainCtx.createLinearGradient(0, centerY - barHeight / 2, 0, centerY + barHeight / 2);
+              grad.addColorStop(0, `rgba(${palette.primary.join(',')}, ${Math.max(normalized, 0.4)})`);
+              grad.addColorStop(0.5, `rgba(${palette.secondary.join(',')}, ${Math.max(normalized, 0.75)})`);
+              grad.addColorStop(1, `rgba(${palette.primary.join(',')}, ${Math.max(normalized, 0.4)})`);
+
+              mainCtx.fillStyle = grad;
+
+              const leftX = (halfCount - 1 - i) * (barWidth + 2);
+              mainCtx.beginPath();
+              mainCtx.roundRect(leftX, centerY - barHeight / 2, barWidth, barHeight, 3);
+              mainCtx.fill();
+
+              const rightX = (halfCount + i) * (barWidth + 2);
+              mainCtx.beginPath();
+              mainCtx.roundRect(rightX, centerY - barHeight / 2, barWidth, barHeight, 3);
+              mainCtx.fill();
+            }
           }
 
-          // PiP Mini Visualizer Sync
           if (pipWindow && !pipWindow.closed) {
             const pipCanvas = pipWindow.document.getElementById('pipVisualizer');
             if (pipCanvas) {
               const pCtx = pipCanvas.getContext('2d');
               pCtx.clearRect(0, 0, pipCanvas.width, pipCanvas.height);
-              const pBarCount = 18;
+              const pBarCount = 20;
               const pHalf = pBarCount / 2;
               const pBarWidth = (pipCanvas.width / pBarCount) - 2;
               const pCenterY = pipCanvas.height / 2;
@@ -2856,7 +3185,7 @@
                 const val = (dataArray[sampleIdx] || 0) / 255;
                 const h = Math.max(2, val * (pipCanvas.height - 2));
 
-                pCtx.fillStyle = `rgba(56, 189, 248, ${Math.max(val, 0.4)})`;
+                pCtx.fillStyle = `rgba(${palette.primary.join(',')}, ${Math.max(val, 0.5)})`;
                 pCtx.beginPath();
                 pCtx.roundRect((pHalf - 1 - i) * (pBarWidth + 2), pCenterY - h / 2, pBarWidth, h, 2);
                 pCtx.roundRect((pHalf + i) * (pBarWidth + 2), pCenterY - h / 2, pBarWidth, h, 2);
@@ -2879,6 +3208,7 @@
       { name: "Pause Timer", action: () => pauseTimer(), icon: "fa-pause" },
       { name: "Reset Timer", action: () => resetTimer(), icon: "fa-rotate-right" },
       { name: "Skip to Next Phase", action: () => skipCurrentPhase(), icon: "fa-forward-step" },
+      { name: "Cycle Visualizer Mode (Bars/Wave/Pulse)", action: () => cycleVisualizerMode(), icon: "fa-sliders" },
       { name: "Toggle Zen Mode", action: () => toggleZenMode(), icon: "fa-expand" },
       { name: "Open Mini Document PiP", action: () => togglePiP(), icon: "fa-window-restore" },
       { name: "Set 25m Pomodoro Preset", action: () => setPreset(25, 5, 15), icon: "fa-bolt" },
@@ -3580,7 +3910,7 @@
 
       if (e.code === 'Space') {
         e.preventDefault();
-        timerState === 'running' ? pauseTimer() : startTimer();
+        handleTimerToggleAction();
       } else if (e.key === 'r' || e.key === 'R') {
         e.preventDefault();
         resetTimer();
@@ -3700,5 +4030,6 @@
     startVisualizers();
     updateBackgroundFilters();
 </script>
+
 </body>
 </html>
