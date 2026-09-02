@@ -862,7 +862,7 @@
     }
 
     let engineMode = 'pomodoro'; 
-    let timerState = 'idle'; 
+    let timerState = 'idle'; // 'idle' | 'running' | 'paused'
     let displayStyle = localStorage.getItem('aura_displayStyle') || 'minimal'; 
     let isZenMode = false;
     let isMusicBarVisible = localStorage.getItem('aura_musicBarVisible') !== 'false';
@@ -870,11 +870,16 @@
     let isWakeLockEnabled = localStorage.getItem('aura_wakeLock') !== 'false';
     let alarmTone = localStorage.getItem('aura_alarmTone') || 'bowl';
 
+    // Overtime Grace Period & Extension Mode
+    let isOvertime = false;
+    let overtimeSeconds = 0;
+    let overtimeStartTimestamp = 0;
+
     let isWorkInterval = true;
     let workDurationSecs = parseInt(localStorage.getItem('aura_workMins') || '25', 10) * 60;
     let breakDurationSecs = parseInt(localStorage.getItem('aura_breakMins') || '5', 10) * 60;
     let longBreakDurationSecs = parseInt(localStorage.getItem('aura_longBreakMins') || '15', 10) * 60;
-    let sessionCycleCount = 0;
+    let sessionCycleCount = parseInt(localStorage.getItem('aura_sessionCycleCount') || '0', 10);
     
     let timeRemaining = workDurationSecs;
     let totalDuration = workDurationSecs;
@@ -885,18 +890,17 @@
     let startTimeTimestamp = 0;
     let initialRemainingAtStart = 0;
     let lastTickSecondLogged = 0;
-    let lastElapsedFocusSecs = 0; // Tracks deterministic seconds for focus accumulation
+    let lastElapsedFocusSecs = 0;
 
     let dailyGoalTarget = parseInt(localStorage.getItem('aura_dailyGoal') || '8', 10);
     let completedSessionsCount = parseInt(localStorage.getItem('aura_completedSessions') || '0', 10);
     let totalFocusSecondsCompleted = parseInt(localStorage.getItem('aura_focusSeconds') || '0', 10);
 
-    // Date-keyed heatmap tracking: { 'YYYY-MM-DD': count }
+    // Heatmap tracking: { 'YYYY-MM-DD': count }
     let heatmapHistory = {};
     try {
       const storedHeatmap = JSON.parse(localStorage.getItem('aura_heatmapHistory') || '{}');
       if (Array.isArray(storedHeatmap)) {
-        // Migration from legacy array structure to date-keyed object
         heatmapHistory = {};
         if (storedHeatmap.length > 0) {
           heatmapHistory[getTodayKey()] = storedHeatmap[storedHeatmap.length - 1] || 0;
@@ -927,8 +931,10 @@
       { id: 'wind', label: 'Wind Storm', icon: 'fa-wind' },
       { id: 'birds', label: 'Birds', icon: 'fa-dove' },
       { id: 'cafe', label: 'Cafe Chatter', icon: 'fa-mug-hot' },
+      { id: 'gamma', label: 'Gamma 40Hz', icon: 'fa-bolt' },
       { id: 'alpha', label: 'Alpha 10Hz', icon: 'fa-brain' },
       { id: 'theta', label: 'Theta 6Hz', icon: 'fa-spa' },
+      { id: 'delta', label: 'Delta 4Hz', icon: 'fa-moon' },
       { id: 'white', label: 'White Noise', icon: 'fa-wave-square' },
       { id: 'pink', label: 'Pink Noise', icon: 'fa-sliders' },
       { id: 'brown', label: 'Brown Noise', icon: 'fa-water' }
@@ -1009,6 +1015,141 @@
       }
     }
 
+    // --- Custom In-App HUD Toast & Overlay Engine ---
+    function ensureToastContainer(targetDoc = document) {
+      let container = targetDoc.getElementById('auraToastHub');
+      if (!container) {
+        container = targetDoc.createElement('div');
+        container.id = 'auraToastHub';
+        container.style.cssText = `
+          position: fixed;
+          top: 18px;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 999999;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          pointer-events: none;
+          width: 90%;
+          max-width: 440px;
+        `;
+        targetDoc.body.appendChild(container);
+      }
+      return container;
+    }
+
+    function showHUDToast({ type = 'focus', title, message, allowNext = true, allowExtend = true }) {
+      const targets = [document];
+      if (pipWindow && !pipWindow.closed && pipWindow.document) {
+        targets.push(pipWindow.document);
+      }
+
+      targets.forEach(doc => {
+        const container = ensureToastContainer(doc);
+        const toast = doc.createElement('div');
+        
+        let borderGlow = 'border-cyan-400/40 shadow-[0_0_25px_rgba(34,211,238,0.25)]';
+        let badgeBg = 'bg-cyan-500/20 text-cyan-300 border-cyan-400/30';
+        let iconClass = 'fa-solid fa-bullseye';
+        
+        if (type === 'break') {
+          borderGlow = 'border-amber-400/40 shadow-[0_0_25px_rgba(251,191,36,0.25)]';
+          badgeBg = 'bg-amber-500/20 text-amber-300 border-amber-400/30';
+          iconClass = 'fa-solid fa-mug-hot';
+        } else if (type === 'milestone') {
+          borderGlow = 'border-emerald-400/40 shadow-[0_0_25px_rgba(52,211,153,0.25)]';
+          badgeBg = 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30';
+          iconClass = 'fa-solid fa-trophy';
+        }
+
+        toast.style.cssText = `
+          pointer-events: auto;
+          background: rgba(13, 19, 33, 0.88);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          padding: 14px 16px;
+          border-radius: 18px;
+          border: 1px solid;
+          box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+          color: #f8fafc;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          opacity: 0;
+          transform: translateY(-20px) scale(0.95);
+          transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        `;
+
+        if (type === 'focus') toast.style.borderColor = 'rgba(56, 189, 248, 0.5)';
+        else if (type === 'break') toast.style.borderColor = 'rgba(251, 191, 36, 0.5)';
+        else toast.style.borderColor = 'rgba(52, 211, 153, 0.5)';
+
+        toast.innerHTML = `
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); font-size: 13px;">
+                <i class="${iconClass}"></i>
+              </div>
+              <div>
+                <div style="font-weight: 700; font-size: 13px; letter-spacing: -0.2px;">${title}</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 1px;">${message}</div>
+              </div>
+            </div>
+            <button class="toast-close-btn" style="background: none; border: none; color: #64748b; cursor: pointer; font-size: 12px; padding: 4px;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-size: 11px;">
+            ${allowExtend ? `<button class="toast-extend-btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #cbd5e1; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-weight: 600;">+5m Extension</button>` : ''}
+            ${allowNext ? `<button class="toast-next-btn" style="background: #38bdf8; border: none; color: #041421; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-weight: 700;">Start Next Phase</button>` : ''}
+          </div>
+        `;
+
+        const dismiss = () => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(-15px) scale(0.95)';
+          setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 350);
+        };
+
+        const closeBtn = toast.querySelector('.toast-close-btn');
+        if (closeBtn) closeBtn.addEventListener('click', dismiss);
+
+        const nextBtn = toast.querySelector('.toast-next-btn');
+        if (nextBtn) {
+          nextBtn.addEventListener('click', () => {
+            dismiss();
+            isOvertime = false;
+            overtimeSeconds = 0;
+            switchPomoPhase();
+            startTimer();
+          });
+        }
+
+        const extBtn = toast.querySelector('.toast-extend-btn');
+        if (extBtn) {
+          extBtn.addEventListener('click', () => {
+            dismiss();
+            isOvertime = false;
+            overtimeSeconds = 0;
+            timeRemaining = 5 * 60;
+            totalDuration = 5 * 60;
+            startTimer();
+          });
+        }
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => {
+          toast.style.opacity = '1';
+          toast.style.transform = 'translateY(0) scale(1)';
+        });
+
+        // Auto-dismiss milestone alerts after 7 seconds
+        if (type === 'milestone') {
+          setTimeout(dismiss, 7000);
+        }
+      });
+    }
+
     // --- Document Picture-in-Picture Engine ---
     let pipWindow = null;
     let autoOpenedPiP = false;
@@ -1019,8 +1160,8 @@
 
       try {
         pipWindow = await window.documentPictureInPicture.requestWindow({
-          width: 360,
-          height: 240,
+          width: 380,
+          height: 290,
         });
 
         const linkFont = pipWindow.document.createElement('link');
@@ -1044,7 +1185,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 12px 14px;
+            padding: 10px 12px;
             overflow: hidden;
             position: relative;
           }
@@ -1064,46 +1205,88 @@
             flex-direction: column;
             height: 100%;
             justify-content: space-between;
+            gap: 6px;
           }
           .pip-top-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-family: 'Space Mono', monospace;
-            font-size: 10px;
+            font-size: 11px;
+            gap: 6px;
           }
           .pip-badge {
             background: rgba(56, 189, 248, 0.15);
             border: 1px solid rgba(56, 189, 248, 0.35);
             color: #38bdf8;
-            padding: 2px 8px;
+            padding: 2px 7px;
             border-radius: 9999px;
             font-weight: 700;
-            letter-spacing: 1px;
+            font-size: 9px;
+            font-family: 'Space Mono', monospace;
+            letter-spacing: 0.5px;
           }
-          .pip-task {
-            color: #94a3b8;
-            max-width: 180px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 11px;
-            font-weight: 500;
+          .pip-badge.rest {
+            background: rgba(52, 211, 153, 0.15);
+            border-color: rgba(52, 211, 153, 0.35);
+            color: #34d399;
+          }
+          .pip-badge.overtime {
+            background: rgba(251, 191, 36, 0.2);
+            border-color: rgba(251, 191, 36, 0.5);
+            color: #fbbf24;
+            animation: pulse 1.5s infinite;
+          }
+          @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+          }
+          .pip-cycle-dots {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+          }
+          .pip-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+          }
+          .pip-dot.active {
+            background: #38bdf8;
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
+          }
+          .pip-task-select {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #cbd5e1;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            outline: none;
+            max-width: 140px;
+            cursor: pointer;
+          }
+          .pip-task-select option {
+            background: #0f172a;
+            color: #f8fafc;
           }
           .pip-center-deck {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin: 2px 0;
           }
           .pip-timer {
             font-family: 'Space Mono', monospace;
-            font-size: 42px;
+            font-size: 38px;
             font-weight: 800;
             color: #ffffff;
             letter-spacing: -2px;
             line-height: 1;
-            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+            text-shadow: 0 4px 18px rgba(0, 0, 0, 0.6);
+          }
+          .pip-timer.overtime {
+            color: #fbbf24;
+            text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);
           }
           .pip-controls {
             display: flex;
@@ -1124,13 +1307,17 @@
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 11px;
           }
+          .pip-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+            transform: scale(1.05);
+          }
           .pip-btn-play {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             background: #38bdf8;
             color: #041421;
             border: none;
-            font-size: 14px;
+            font-size: 13px;
             box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
           }
           .pip-progress-track {
@@ -1139,13 +1326,34 @@
             background: rgba(255, 255, 255, 0.15);
             border-radius: 9999px;
             overflow: hidden;
-            margin: 4px 0;
           }
           .pip-progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #38bdf8, #22c55e);
             width: 0%;
             transition: width 0.3s linear;
+          }
+          .pip-mini-mixer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 8px;
+            border-radius: 8px;
+            gap: 8px;
+          }
+          .pip-mixer-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9px;
+            color: #94a3b8;
+          }
+          .pip-mixer-item input[type="range"] {
+            width: 42px;
+            height: 3px;
+            accent-color: #38bdf8;
+            cursor: pointer;
           }
           .pip-bottom-bar {
             display: flex;
@@ -1157,7 +1365,7 @@
           }
           canvas.pip-visualizer {
             border-radius: 4px;
-            opacity: 0.8;
+            opacity: 0.85;
           }
         `;
         pipWindow.document.head.appendChild(styleEl);
@@ -1168,9 +1376,21 @@
           <div id="pipBgLayer" class="pip-bg" style="background-image: url('${getActiveWallpaperUrl()}');"></div>
           <div class="pip-container">
             <div class="pip-top-bar">
-              <span id="pipModeLabel" class="pip-badge">FOCUS</span>
-              <span id="pipTaskLabel" class="pip-task">SPRK Flow</span>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span id="pipModeLabel" class="pip-badge">FOCUS</span>
+                <div class="pip-cycle-dots" id="pipCycleDots">
+                  <div class="pip-dot"></div>
+                  <div class="pip-dot"></div>
+                  <div class="pip-dot"></div>
+                  <div class="pip-dot"></div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 4px;">
+                <select id="pipTaskSelector" class="pip-task-select"></select>
+                <button id="pipTaskDoneBtn" class="pip-btn" style="width: 22px; height: 22px; font-size: 9px;" title="Mark Task Complete"><i class="fa-solid fa-check"></i></button>
+              </div>
             </div>
+
             <div class="pip-center-deck">
               <div id="pipTimerDisplay" class="pip-timer">25:00</div>
               <div class="pip-controls">
@@ -1179,30 +1399,114 @@
                 <button id="pipSkipBtn" class="pip-btn" title="Skip Phase (S)"><i class="fa-solid fa-forward-step"></i></button>
               </div>
             </div>
+
             <div class="pip-progress-track">
               <div id="pipProgressBar" class="pip-progress-fill"></div>
             </div>
+
+            <!-- Mini Ambient Mixer Row inside PiP -->
+            <div class="pip-mini-mixer">
+              <div class="pip-mixer-item" title="Rain Layer">
+                <i class="fa-solid fa-cloud-rain text-sky-400"></i>
+                <input type="range" id="pipMixRain" min="0" max="1" step="0.05" value="${ambientTracks.rain || 0}">
+              </div>
+              <div class="pip-mixer-item" title="Campfire Layer">
+                <i class="fa-solid fa-fire text-amber-400"></i>
+                <input type="range" id="pipMixCampfire" min="0" max="1" step="0.05" value="${ambientTracks.campfire || 0}">
+              </div>
+              <div class="pip-mixer-item" title="Ocean Waves">
+                <i class="fa-solid fa-water text-cyan-400"></i>
+                <input type="range" id="pipMixWaves" min="0" max="1" step="0.05" value="${ambientTracks.waves || 0}">
+              </div>
+              <div class="pip-mixer-item" title="Gamma 40Hz Focus">
+                <i class="fa-solid fa-bolt text-indigo-400"></i>
+                <input type="range" id="pipMixGamma" min="0" max="1" step="0.05" value="${ambientTracks.gamma || 0}">
+              </div>
+            </div>
+
             <div class="pip-bottom-bar">
-              <canvas id="pipVisualizer" width="120" height="18" class="pip-visualizer"></canvas>
+              <canvas id="pipVisualizer" width="110" height="16" class="pip-visualizer"></canvas>
               <div style="display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-volume-low text-[10px] text-slate-400"></i>
-                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${currentVol}" style="width: 55px; height: 4px; accent-color: #38bdf8; cursor: pointer;">
+                <input type="range" id="pipVolControl" min="0" max="1" step="0.01" value="${currentVol}" style="width: 55px; height: 3px; accent-color: #38bdf8; cursor: pointer;">
               </div>
             </div>
           </div>
         `;
 
-        pipWindow.document.getElementById('pipPlayBtn').addEventListener('click', () => {
-          timerState === 'running' ? pauseTimer() : startTimer();
-        });
-        pipWindow.document.getElementById('pipResetBtn').addEventListener('click', resetTimer);
-        pipWindow.document.getElementById('pipSkipBtn').addEventListener('click', skipCurrentPhase);
+        // Direct, synchronized PiP Handlers
+        const pipPlay = pipWindow.document.getElementById('pipPlayBtn');
+        const pipReset = pipWindow.document.getElementById('pipResetBtn');
+        const pipSkip = pipWindow.document.getElementById('pipSkipBtn');
+        const pipVol = pipWindow.document.getElementById('pipVolControl');
+        const pipTaskSelect = pipWindow.document.getElementById('pipTaskSelector');
+        const pipTaskDone = pipWindow.document.getElementById('pipTaskDoneBtn');
 
-        pipWindow.document.getElementById('pipVolControl').addEventListener('input', (e) => {
+        pipPlay.addEventListener('click', () => {
+          if (timerState === 'running') pauseTimer();
+          else startTimer();
+        });
+
+        pipReset.addEventListener('click', resetTimer);
+        pipSkip.addEventListener('click', skipCurrentPhase);
+
+        pipVol.addEventListener('input', (e) => {
           const vol = parseFloat(e.target.value);
           const volSlider = document.getElementById('volumeControl');
           if (volSlider) volSlider.value = vol;
           setMasterVolume(vol);
+        });
+
+        // Scoped PiP Ambient Sliders
+        const bindPipMixer = (id, trackKey) => {
+          const el = pipWindow.document.getElementById(id);
+          if (el) {
+            el.addEventListener('input', (e) => {
+              const val = parseFloat(e.target.value);
+              setTrackVolume(trackKey, val);
+              renderSoundMixerUI();
+            });
+          }
+        };
+        bindPipMixer('pipMixRain', 'rain');
+        bindPipMixer('pipMixCampfire', 'campfire');
+        bindPipMixer('pipMixWaves', 'waves');
+        bindPipMixer('pipMixGamma', 'gamma');
+
+        // Scoped PiP Task Switcher
+        pipTaskSelect.addEventListener('change', (e) => {
+          const val = parseInt(e.target.value, 10);
+          activeTaskId = val || null;
+          saveTasksToStorage();
+          renderTasks();
+          updateDisplay();
+        });
+
+        pipTaskDone.addEventListener('click', () => {
+          if (activeTaskId) {
+            const cur = tasks.find(t => t.id === activeTaskId);
+            if (cur) {
+              cur.status = 'done';
+              saveTasksToStorage();
+              renderTasks();
+              populatePipTaskSelector();
+              updateDisplay();
+            }
+          }
+        });
+
+        // Keyboard Shortcut Listener Scoped to PiP Window Document
+        pipWindow.document.addEventListener('keydown', (e) => {
+          if (e.code === 'Space') {
+            e.preventDefault();
+            timerState === 'running' ? pauseTimer() : startTimer();
+          } else if (e.key === 'r' || e.key === 'R') {
+            e.preventDefault();
+            resetTimer();
+          } else if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            skipCurrentPhase();
+          }
         });
 
         pipWindow.addEventListener('pagehide', () => {
@@ -1210,10 +1514,28 @@
           autoOpenedPiP = false;
         });
 
+        populatePipTaskSelector();
         updateDisplay();
       } catch (err) {
         console.warn("Document PiP request requires explicit user interaction gesture:", err);
       }
+    }
+
+    function populatePipTaskSelector() {
+      if (!pipWindow || pipWindow.closed) return;
+      const select = pipWindow.document.getElementById('pipTaskSelector');
+      if (!select) return;
+
+      select.innerHTML = '<option value="">No Active Task</option>';
+      tasks.forEach(t => {
+        if (t.status !== 'done') {
+          const opt = pipWindow.document.createElement('option');
+          opt.value = t.id;
+          opt.textContent = `${t.title} (${t.actualPomos || 0}/${t.estPomos || 1}🍅)`;
+          if (t.id === activeTaskId) opt.selected = true;
+          select.appendChild(opt);
+        }
+      });
     }
 
     async function togglePiP() {
@@ -1227,7 +1549,8 @@
       }
     }
 
-    document.getElementById('pipToggleBtn').addEventListener('click', togglePiP);
+    const pipToggleBtn = document.getElementById('pipToggleBtn');
+    if (pipToggleBtn) pipToggleBtn.addEventListener('click', togglePiP);
 
     document.addEventListener('visibilitychange', async () => {
       if (document.visibilityState === 'visible') {
@@ -1253,18 +1576,21 @@
       }
     });
 
-    document.getElementById('wakeLockQuickBtn').addEventListener('click', () => {
-      isWakeLockEnabled = !isWakeLockEnabled;
-      localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
-      if (isWakeLockEnabled && timerState === 'running') {
-        requestWakeLock();
-      } else {
-        releaseWakeLock();
-      }
-      updateWakeLockUI();
-    });
+    const wakeLockQuickBtn = document.getElementById('wakeLockQuickBtn');
+    if (wakeLockQuickBtn) {
+      wakeLockQuickBtn.addEventListener('click', () => {
+        isWakeLockEnabled = !isWakeLockEnabled;
+        localStorage.setItem('aura_wakeLock', isWakeLockEnabled);
+        if (isWakeLockEnabled && timerState === 'running') {
+          requestWakeLock();
+        } else {
+          releaseWakeLock();
+        }
+        updateWakeLockUI();
+      });
+    }
 
-    // --- Web Audio API Engine & Multi-Track Sound Mixer ---
+    // --- Web Audio API Synthesizer & Binaural Multi-Track Mixer Engine ---
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
     let masterGainNode = null;
@@ -1276,7 +1602,8 @@
         audioCtx = new AudioContextClass();
         masterGainNode = audioCtx.createGain();
         analyserNode = audioCtx.createAnalyser();
-        analyserNode.fftSize = 64;
+        analyserNode.fftSize = 128;
+        analyserNode.smoothingTimeConstant = 0.82;
 
         const savedVol = localStorage.getItem('aura_volume') || '0.5';
         const volSlider = document.getElementById('volumeControl');
@@ -1297,7 +1624,9 @@
         masterGainNode.gain.cancelScheduledValues(audioCtx.currentTime);
         masterGainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
       }
-      localAudio.volume = vol;
+      if (typeof localAudio !== 'undefined' && localAudio) {
+        localAudio.volume = vol;
+      }
       if (pipWindow && !pipWindow.closed) {
         const pipVol = pipWindow.document.getElementById('pipVolControl');
         if (pipVol) pipVol.value = vol;
@@ -1367,216 +1696,216 @@
         osc.connect(gain); gain.connect(masterGainNode);
         osc.start(t); osc.stop(t + 2.5);
       }
-
-      if ('Notification' in window && Notification.permission === 'granted') {
-        const title = engineMode === 'pomodoro' ? (isWorkInterval ? "Focus Session Complete!" : "Break Concluded!") : "Timer Finished!";
-        new Notification(title, {
-          body: engineMode === 'pomodoro' ? (isWorkInterval ? "Well done! Take a well-earned rest." : "Break is over. Ready to sprint?") : "Target duration reached.",
-          icon: "https://cdn-icons-png.flaticon.com/512/865/865969.png"
-        });
-      }
     }
 
     function createSoundSource(type) {
-        if (!audioCtx) return null;
-        const sampleRate = audioCtx.sampleRate;
-        const gainNode = audioCtx.createGain();
-        gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
-        gainNode.connect(masterGainNode);
+      if (!audioCtx) return null;
+      const sampleRate = audioCtx.sampleRate;
+      const gainNode = audioCtx.createGain();
+      gainNode.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+      gainNode.connect(masterGainNode);
 
-        let nodes = [];
-        let intervals = [];
+      let nodes = [];
+      let intervals = [];
 
-        if (type === 'white' || type === 'pink' || type === 'brown' || type === 'rain' || type === 'campfire' || type === 'wind' || type === 'thunder') {
-            const bufferSize = sampleRate * 3;
-            const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-            const data = buffer.getChannelData(0);
-            let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
+      if (type === 'white' || type === 'pink' || type === 'brown' || type === 'rain' || type === 'campfire' || type === 'wind' || type === 'thunder') {
+        const bufferSize = sampleRate * 3;
+        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = buffer.getChannelData(0);
+        let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0, last = 0;
 
-            for (let i = 0; i < bufferSize; i++) {
-              const white = Math.random() * 2 - 1;
-              if (type === 'white') {
-                  data[i] = white * 0.12;
-              } else if (type === 'pink') {
-                  b0 = 0.99886 * b0 + white * 0.0555179;
-                  b1 = 0.99332 * b1 + white * 0.0750759;
-                  b2 = 0.96900 * b2 + white * 0.1538520;
-                  b3 = 0.86650 * b3 + white * 0.3104856;
-                  b4 = 0.55000 * b4 + white * 0.5329522;
-                  b5 = -0.7616 * b5 - white * 0.0168980;
-                  data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-                  b6 = white * 0.115926;
-              } else if (type === 'brown' || type === 'thunder') {
-                  last = (last + (0.02 * white)) / 1.02;
-                  data[i] = last * 1.5;
-              } else if (type === 'wind') {
-                  last = (last + (0.04 * white)) / 1.04;
-                  data[i] = last * 0.8;
-              } else if (type === 'rain') {
-                  data[i] = white * 0.2;
-              } else if (type === 'campfire') {
-                  const crackle = Math.random() > 0.994 ? (Math.random() * 2 - 1) * 2.5 : 0;
-                  b0 = 0.99886 * b0 + white * 0.0555;
-                  b1 = 0.99332 * b1 + white * 0.0750;
-                  data[i] = ((b0 + b1 + white * 0.5) * 0.04) + crackle;
-              }
-            }
-
-            const src = audioCtx.createBufferSource();
-            src.buffer = buffer;
-            src.loop = true;
-
-            if (type === 'rain') {
-              const filter = audioCtx.createBiquadFilter();
-              filter.type = 'bandpass';
-              filter.frequency.value = 1400;
-              filter.Q.value = 2.0;
-              src.connect(filter);
-              filter.connect(gainNode);
-              nodes.push(filter);
-            } else if (type === 'wind') {
-              const filter = audioCtx.createBiquadFilter();
-              filter.type = 'lowpass';
-              filter.frequency.value = 400;
-              const lfo = audioCtx.createOscillator();
-              lfo.frequency.value = 0.1;
-              const lfoGain = audioCtx.createGain();
-              lfoGain.gain.value = 250;
-              lfo.connect(filter.frequency);
-              lfo.start();
-              src.connect(filter);
-              filter.connect(gainNode);
-              nodes.push(lfo, lfoGain, filter);
-            } else if (type === 'thunder') {
-              const filter = audioCtx.createBiquadFilter();
-              filter.type = 'lowpass';
-              filter.frequency.value = 180;
-              src.connect(filter);
-              filter.connect(gainNode);
-              nodes.push(filter);
-            } else if (type === 'campfire') {
-              const filter = audioCtx.createBiquadFilter();
-              filter.type = 'lowpass';
-              filter.frequency.value = 1200;
-              src.connect(filter);
-              filter.connect(gainNode);
-              nodes.push(filter);
-            } else {
-              src.connect(gainNode);
-            }
-
-            src.start();
-            nodes.push(src);
-        } else if (type === 'waves') {
-            const bufferSize = sampleRate * 3;
-            const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
-            const data = buffer.getChannelData(0);
-            let last = 0;
-            for (let i = 0; i < bufferSize; i++) {
-              data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
-              last = data[i];
-            }
-            const src = audioCtx.createBufferSource();
-            src.buffer = buffer; src.loop = true;
-            const filter = audioCtx.createBiquadFilter();
-            filter.frequency.value = 450;
-            const lfo = audioCtx.createOscillator();
-            lfo.frequency.value = 0.12;
-            const lfoGain = audioCtx.createGain();
-            lfoGain.gain.value = 0.12;
-            lfo.connect(lfoGain);
-            lfoGain.connect(gainNode.gain);
-            src.connect(filter);
-            filter.connect(gainNode);
-            src.start(); lfo.start();
-            nodes.push(src, lfo, lfoGain, filter);
-        } else if (type === 'cafe') {
-            const osc1 = audioCtx.createOscillator();
-            const osc2 = audioCtx.createOscillator();
-            osc1.type = 'sine'; osc1.frequency.value = 140;
-            osc2.type = 'triangle'; osc2.frequency.value = 240;
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'bandpass'; filter.frequency.value = 520; filter.Q.value = 1.2;
-            osc1.connect(filter); osc2.connect(filter);
-            filter.connect(gainNode);
-            osc1.start(); osc2.start();
-            nodes.push(osc1, osc2, filter);
-        } else if (type === 'alpha' || type === 'theta') {
-            const baseFreq = 200;
-            const diff = type === 'alpha' ? 10 : 6;
-            const oscL = audioCtx.createOscillator();
-            const oscR = audioCtx.createOscillator();
-            const merger = audioCtx.createChannelMerger(2);
-            oscL.type = 'sine'; oscL.frequency.value = baseFreq;
-            oscR.type = 'sine'; oscR.frequency.value = baseFreq + diff;
-            oscL.connect(merger, 0, 0);
-            oscR.connect(merger, 0, 1);
-            merger.connect(gainNode);
-            oscL.start(); oscR.start();
-            nodes.push(oscL, oscR, merger);
-        } else if (type === 'birds') {
-            const intervalId = setInterval(() => {
-              if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
-              try {
-                const chirpOsc = audioCtx.createOscillator();
-                const chirpGain = audioCtx.createGain();
-                const t = audioCtx.currentTime;
-                const startFreq = 2200 + Math.random() * 1200;
-                chirpOsc.type = 'sine';
-                chirpOsc.frequency.setValueAtTime(startFreq, t);
-                chirpOsc.frequency.exponentialRampToValueAtTime(startFreq + 900, t + 0.08);
-                chirpOsc.frequency.exponentialRampToValueAtTime(startFreq - 300, t + 0.16);
-                chirpGain.gain.setValueAtTime(0.001, t);
-                chirpGain.gain.linearRampToValueAtTime(0.12, t + 0.03);
-                chirpGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
-                chirpOsc.connect(chirpGain);
-                chirpGain.connect(gainNode);
-                chirpOsc.start(t);
-                chirpOsc.stop(t + 0.2);
-              } catch(e) {}
-            }, 2400);
-            intervals.push(intervalId);
-        }
-
-        return { gainNode, nodes, intervals };
-    }
-
-    // Audio node teardown without leaks
-    function setTrackVolume(type, vol) {
-        initAudio();
-        ambientTracks[type] = vol;
-        localStorage.setItem(`aura_vol_${type}`, vol);
-
-        if (vol > 0 && !activeSoundSources[type]) {
-          activeSoundSources[type] = createSoundSource(type);
-        }
-
-        if (activeSoundSources[type]) {
-          const gn = activeSoundSources[type].gainNode;
-          gn.gain.cancelScheduledValues(audioCtx.currentTime);
-          gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.05);
-
-          if (vol === 0) {
-            const trackRef = activeSoundSources[type];
-            delete activeSoundSources[type];
-            setTimeout(() => {
-              if (trackRef) {
-                if (trackRef.nodes) {
-                  trackRef.nodes.forEach(n => {
-                    try { if (n.stop) n.stop(); } catch(e) {}
-                    try { if (n.disconnect) n.disconnect(); } catch(e) {}
-                  });
-                }
-                if (trackRef.gainNode) {
-                  try { trackRef.gainNode.disconnect(); } catch(e) {}
-                }
-                if (trackRef.intervals) {
-                  trackRef.intervals.forEach(clearInterval);
-                }
-              }
-            }, 100);
+        for (let i = 0; i < bufferSize; i++) {
+          const white = Math.random() * 2 - 1;
+          if (type === 'white') {
+            data[i] = white * 0.12;
+          } else if (type === 'pink') {
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            b3 = 0.86650 * b3 + white * 0.3104856;
+            b4 = 0.55000 * b4 + white * 0.5329522;
+            b5 = -0.7616 * b5 - white * 0.0168980;
+            data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+            b6 = white * 0.115926;
+          } else if (type === 'brown' || type === 'thunder') {
+            last = (last + (0.02 * white)) / 1.02;
+            data[i] = last * 1.5;
+          } else if (type === 'wind') {
+            last = (last + (0.04 * white)) / 1.04;
+            data[i] = last * 0.8;
+          } else if (type === 'rain') {
+            data[i] = white * 0.2;
+          } else if (type === 'campfire') {
+            const crackle = Math.random() > 0.994 ? (Math.random() * 2 - 1) * 2.5 : 0;
+            b0 = 0.99886 * b0 + white * 0.0555;
+            b1 = 0.99332 * b1 + white * 0.0750;
+            data[i] = ((b0 + b1 + white * 0.5) * 0.04) + crackle;
           }
         }
+
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer;
+        src.loop = true;
+
+        if (type === 'rain') {
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.value = 1400;
+          filter.Q.value = 2.0;
+          src.connect(filter);
+          filter.connect(gainNode);
+          nodes.push(filter);
+        } else if (type === 'wind') {
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 400;
+          const lfo = audioCtx.createOscillator();
+          lfo.frequency.value = 0.1;
+          const lfoGain = audioCtx.createGain();
+          lfoGain.gain.value = 250;
+          lfo.connect(filter.frequency);
+          lfo.start();
+          src.connect(filter);
+          filter.connect(gainNode);
+          nodes.push(lfo, lfoGain, filter);
+        } else if (type === 'thunder') {
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 180;
+          src.connect(filter);
+          filter.connect(gainNode);
+          nodes.push(filter);
+        } else if (type === 'campfire') {
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.value = 1200;
+          src.connect(filter);
+          filter.connect(gainNode);
+          nodes.push(filter);
+        } else {
+          src.connect(gainNode);
+        }
+
+        src.start();
+        nodes.push(src);
+      } else if (type === 'waves') {
+        const bufferSize = sampleRate * 3;
+        const buffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = buffer.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (last + (0.02 * (Math.random() * 2 - 1))) / 1.02;
+          last = data[i];
+        }
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer; src.loop = true;
+        const filter = audioCtx.createBiquadFilter();
+        filter.frequency.value = 450;
+        const lfo = audioCtx.createOscillator();
+        lfo.frequency.value = 0.12;
+        const lfoGain = audioCtx.createGain();
+        lfoGain.gain.value = 0.12;
+        lfo.connect(lfoGain);
+        lfoGain.connect(gainNode.gain);
+        src.connect(filter);
+        filter.connect(gainNode);
+        src.start(); lfo.start();
+        nodes.push(src, lfo, lfoGain, filter);
+      } else if (type === 'cafe') {
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        osc1.type = 'sine'; osc1.frequency.value = 140;
+        osc2.type = 'triangle'; osc2.frequency.value = 240;
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass'; filter.frequency.value = 520; filter.Q.value = 1.2;
+        osc1.connect(filter); osc2.connect(filter);
+        filter.connect(gainNode);
+        osc1.start(); osc2.start();
+        nodes.push(osc1, osc2, filter);
+      } else if (type === 'gamma' || type === 'alpha' || type === 'theta' || type === 'delta') {
+        // Binaural Beat engine: Delta(4Hz), Theta(6Hz), Alpha(10Hz), Gamma(40Hz)
+        let diff = 10;
+        let baseFreq = 200;
+        if (type === 'gamma') { diff = 40; baseFreq = 240; }
+        else if (type === 'alpha') { diff = 10; baseFreq = 200; }
+        else if (type === 'theta') { diff = 6; baseFreq = 180; }
+        else if (type === 'delta') { diff = 4; baseFreq = 140; }
+
+        const oscL = audioCtx.createOscillator();
+        const oscR = audioCtx.createOscillator();
+        const merger = audioCtx.createChannelMerger(2);
+        oscL.type = 'sine'; oscL.frequency.value = baseFreq;
+        oscR.type = 'sine'; oscR.frequency.value = baseFreq + diff;
+        oscL.connect(merger, 0, 0);
+        oscR.connect(merger, 0, 1);
+        merger.connect(gainNode);
+        oscL.start(); oscR.start();
+        nodes.push(oscL, oscR, merger);
+      } else if (type === 'birds') {
+        const intervalId = setInterval(() => {
+          if (!ambientTracks.birds || ambientTracks.birds === 0 || !audioCtx) return;
+          try {
+            const chirpOsc = audioCtx.createOscillator();
+            const chirpGain = audioCtx.createGain();
+            const t = audioCtx.currentTime;
+            const startFreq = 2200 + Math.random() * 1200;
+            chirpOsc.type = 'sine';
+            chirpOsc.frequency.setValueAtTime(startFreq, t);
+            chirpOsc.frequency.exponentialRampToValueAtTime(startFreq + 900, t + 0.08);
+            chirpOsc.frequency.exponentialRampToValueAtTime(startFreq - 300, t + 0.16);
+            chirpGain.gain.setValueAtTime(0.001, t);
+            chirpGain.gain.linearRampToValueAtTime(0.12, t + 0.03);
+            chirpGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+            chirpOsc.connect(chirpGain);
+            chirpGain.connect(gainNode);
+            chirpOsc.start(t);
+            chirpOsc.stop(t + 0.2);
+          } catch(e) {}
+        }, 2400);
+        intervals.push(intervalId);
+      }
+
+      return { gainNode, nodes, intervals };
+    }
+
+    // Audio node teardown with Soft Crossfade Transition
+    function setTrackVolume(type, vol) {
+      initAudio();
+      ambientTracks[type] = vol;
+      localStorage.setItem(`aura_vol_${type}`, vol);
+
+      if (vol > 0 && !activeSoundSources[type]) {
+        activeSoundSources[type] = createSoundSource(type);
+      }
+
+      if (activeSoundSources[type]) {
+        const gn = activeSoundSources[type].gainNode;
+        gn.gain.cancelScheduledValues(audioCtx.currentTime);
+        // Soft crossfade ramp
+        gn.gain.setValueAtTime(Math.max(gn.gain.value, 0.0001), audioCtx.currentTime);
+        gn.gain.exponentialRampToValueAtTime(Math.max(vol * 0.25, 0.0001), audioCtx.currentTime + 0.15);
+
+        if (vol === 0) {
+          const trackRef = activeSoundSources[type];
+          delete activeSoundSources[type];
+          setTimeout(() => {
+            if (trackRef) {
+              if (trackRef.nodes) {
+                trackRef.nodes.forEach(n => {
+                  try { if (n.stop) n.stop(); } catch(e) {}
+                  try { if (n.disconnect) n.disconnect(); } catch(e) {}
+                });
+              }
+              if (trackRef.gainNode) {
+                try { trackRef.gainNode.disconnect(); } catch(e) {}
+              }
+              if (trackRef.intervals) {
+                trackRef.intervals.forEach(clearInterval);
+              }
+            }
+          }, 200);
+        }
+      }
     }
 
     function clearAllAmbientTracks() {
@@ -1631,15 +1960,31 @@
       });
     }
 
-    // --- Drift-Free Clock & Display Engine ---
+    // --- Drift-Free Display & Clock Synchronization Engine ---
     function updateDisplay() {
-      const timeObj = engineMode === 'stopwatch' ? formatTime(stopwatchSeconds) : formatTime(timeRemaining);
+      let timeObj;
+      if (engineMode === 'stopwatch') {
+        timeObj = formatTime(stopwatchSeconds);
+      } else if (isOvertime) {
+        timeObj = formatTime(overtimeSeconds);
+        timeObj.formatted = `+${timeObj.formatted}`;
+      } else {
+        timeObj = formatTime(timeRemaining);
+      }
       
-      if (displayMinimal) displayMinimal.textContent = timeObj.formatted;
-      if (ringTimeText) ringTimeText.textContent = timeObj.formatted;
+      if (displayMinimal) {
+        displayMinimal.textContent = timeObj.formatted;
+        if (isOvertime) displayMinimal.classList.add('text-amber-400');
+        else displayMinimal.classList.remove('text-amber-400');
+      }
+      if (ringTimeText) {
+        ringTimeText.textContent = timeObj.formatted;
+        if (isOvertime) ringTimeText.classList.add('text-amber-400');
+        else ringTimeText.classList.remove('text-amber-400');
+      }
 
       if (progressCircle) {
-        if (engineMode !== 'stopwatch') {
+        if (engineMode !== 'stopwatch' && !isOvertime) {
           const circumference = 660;
           const safeTotal = totalDuration > 0 ? totalDuration : 1;
           const offset = circumference - (timeRemaining / safeTotal) * circumference;
@@ -1664,7 +2009,9 @@
       const pomoCard = document.getElementById('pomoCard');
       if (pomoCard) {
         if (timerState === 'running') {
-          if (engineMode === 'pomodoro') {
+          if (isOvertime) {
+            pomoCard.className = "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 shadow-[0_0_35px_rgba(251,191,36,0.3)] border-amber-400/40";
+          } else if (engineMode === 'pomodoro') {
             pomoCard.className = isWorkInterval 
               ? "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow"
               : "glass-card rounded-3xl p-6 md:p-10 w-full max-w-lg flex flex-col items-center relative overflow-hidden transition-all duration-500 active-glow-rest";
@@ -1676,35 +2023,53 @@
         }
       }
 
+      // PiP Display State Synchronizer
       if (pipWindow && !pipWindow.closed) {
         const pipTime = pipWindow.document.getElementById('pipTimerDisplay');
         const pipMode = pipWindow.document.getElementById('pipModeLabel');
         const pipPlayBtn = pipWindow.document.getElementById('pipPlayBtn');
-        const pipTask = pipWindow.document.getElementById('pipTaskLabel');
         const pipProgress = pipWindow.document.getElementById('pipProgressBar');
         const pipBg = pipWindow.document.getElementById('pipBgLayer');
+        const pipDots = pipWindow.document.querySelectorAll('#pipCycleDots .pip-dot');
 
         if (pipBg) pipBg.style.backgroundImage = `url('${getActiveWallpaperUrl()}')`;
-        if (pipTime) pipTime.textContent = timeObj.formatted;
+        if (pipTime) {
+          pipTime.textContent = timeObj.formatted;
+          if (isOvertime) pipTime.classList.add('overtime');
+          else pipTime.classList.remove('overtime');
+        }
         if (pipMode) {
-          pipMode.textContent = engineMode === 'pomodoro' 
-            ? (isWorkInterval ? 'FOCUS' : 'REST') 
-            : engineMode.toUpperCase();
+          if (isOvertime) {
+            pipMode.textContent = 'OVERTIME';
+            pipMode.className = 'pip-badge overtime';
+          } else if (engineMode === 'pomodoro') {
+            pipMode.textContent = isWorkInterval ? 'FOCUS' : 'REST';
+            pipMode.className = isWorkInterval ? 'pip-badge' : 'pip-badge rest';
+          } else {
+            pipMode.textContent = engineMode.toUpperCase();
+            pipMode.className = 'pip-badge';
+          }
         }
         if (pipPlayBtn) {
           pipPlayBtn.innerHTML = timerState === 'running' 
             ? '<i class="fa-solid fa-pause"></i>' 
             : '<i class="fa-solid fa-play"></i>';
         }
-        if (pipTask) {
-          const activeTask = tasks.find(t => t.id === activeTaskId);
-          pipTask.textContent = activeTask ? `🎯 ${activeTask.title}` : "SPRK Focus";
-        }
-        if (pipProgress && engineMode !== 'stopwatch') {
+        if (pipProgress && engineMode !== 'stopwatch' && !isOvertime) {
           const safeTotal = totalDuration > 0 ? totalDuration : 1;
           const pct = Math.max(0, Math.min(100, ((safeTotal - timeRemaining) / safeTotal) * 100));
           pipProgress.style.width = `${pct}%`;
+        } else if (isOvertime && pipProgress) {
+          pipProgress.style.width = '100%';
+          pipProgress.style.background = '#fbbf24';
         }
+
+        // Update 4-dot Cycle Tracker inside PiP
+        const currentDot = (sessionCycleCount % 4);
+        pipDots.forEach((dot, idx) => {
+          if (idx < currentDot) dot.classList.add('active');
+          else dot.classList.remove('active');
+        });
       }
     }
 
@@ -1715,70 +2080,117 @@
       return { m, s, formatted: `${m}:${s}` };
     }
 
-    // --- Core High-Precision Timer Loop ---
+    // --- Core Drift-Eliminated Frame Loop ---
     function timerFrameLoop() {
       if (timerState !== 'running') return;
 
       const now = Date.now();
-      const elapsedSeconds = Math.floor((now - startTimeTimestamp) / 1000);
 
-      // Deterministic audio ticking
-      if (elapsedSeconds !== lastTickSecondLogged) {
-        lastTickSecondLogged = elapsedSeconds;
-        playTickSound();
-      }
-
-      if (engineMode === 'stopwatch') {
-        stopwatchSeconds = initialRemainingAtStart + elapsedSeconds;
+      if (isOvertime) {
+        // Flow extension mode (Count up)
+        const elapsedOvertime = Math.floor((now - overtimeStartTimestamp) / 1000);
+        overtimeSeconds = elapsedOvertime;
+        if (elapsedOvertime !== lastTickSecondLogged) {
+          lastTickSecondLogged = elapsedOvertime;
+          playTickSound();
+        }
       } else {
-        const currentRemaining = initialRemainingAtStart - elapsedSeconds;
+        const elapsedSeconds = Math.floor((now - startTimeTimestamp) / 1000);
 
-        // Strictly increment focus seconds on whole seconds elapsed (prevents raf frame multi-accumulation)
-        if (engineMode === 'pomodoro' && isWorkInterval && elapsedSeconds > lastElapsedFocusSecs) {
-          const deltaSecs = elapsedSeconds - lastElapsedFocusSecs;
-          totalFocusSecondsCompleted += deltaSecs;
-          lastElapsedFocusSecs = elapsedSeconds;
-          localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
+        if (elapsedSeconds !== lastTickSecondLogged) {
+          lastTickSecondLogged = elapsedSeconds;
+          playTickSound();
         }
 
-        if (currentRemaining > 0) {
-          timeRemaining = currentRemaining;
+        if (engineMode === 'stopwatch') {
+          stopwatchSeconds = initialRemainingAtStart + elapsedSeconds;
         } else {
-          timeRemaining = 0;
-          playAlarmSound();
+          const currentRemaining = initialRemainingAtStart - elapsedSeconds;
 
-          if (engineMode === 'pomodoro') {
-            if (isWorkInterval) {
-              completedSessionsCount++;
-              sessionCycleCount++;
-              localStorage.setItem('aura_completedSessions', completedSessionsCount);
-              
-              if (activeTaskId) {
-                const curTask = tasks.find(t => t.id === activeTaskId);
-                if (curTask) {
-                  curTask.actualPomos = (curTask.actualPomos || 0) + 1;
-                  saveTasksToStorage();
-                  renderTasks();
+          // Accrue deterministic focus time
+          if (engineMode === 'pomodoro' && isWorkInterval && elapsedSeconds > lastElapsedFocusSecs) {
+            const deltaSecs = elapsedSeconds - lastElapsedFocusSecs;
+            totalFocusSecondsCompleted += deltaSecs;
+            lastElapsedFocusSecs = elapsedSeconds;
+            localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
+          }
+
+          if (currentRemaining > 0) {
+            timeRemaining = currentRemaining;
+          } else {
+            // Timer concluded -> Enter Overtime Flow Mode
+            timeRemaining = 0;
+            playAlarmSound();
+
+            if (engineMode === 'pomodoro') {
+              if (isWorkInterval) {
+                completedSessionsCount++;
+                sessionCycleCount++;
+                localStorage.setItem('aura_completedSessions', completedSessionsCount);
+                localStorage.setItem('aura_sessionCycleCount', sessionCycleCount);
+                
+                if (activeTaskId) {
+                  const curTask = tasks.find(t => t.id === activeTaskId);
+                  if (curTask) {
+                    curTask.actualPomos = (curTask.actualPomos || 0) + 1;
+                    saveTasksToStorage();
+                    renderTasks();
+                    populatePipTaskSelector();
+                  }
                 }
+
+                // Heatmap logging
+                const todayKey = getTodayKey();
+                heatmapHistory[todayKey] = (heatmapHistory[todayKey] || 0) + 1;
+                localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
+                updateAnalytics();
+
+                // Trigger HUD notification
+                showHUDToast({
+                  type: 'focus',
+                  title: 'Sprint Complete!',
+                  message: 'Outstanding focus. Ready to rest or extend?',
+                  allowNext: true,
+                  allowExtend: true
+                });
+
+                // Check daily target milestone
+                if (heatmapHistory[todayKey] === dailyGoalTarget) {
+                  setTimeout(() => {
+                    showHUDToast({
+                      type: 'milestone',
+                      title: 'Daily Goal Achieved! 🎯',
+                      message: `You've conquered your target of ${dailyGoalTarget} blocks today. Don't forget to export your backup!`,
+                      allowNext: false,
+                      allowExtend: false
+                    });
+                  }, 2000);
+                }
+              } else {
+                showHUDToast({
+                  type: 'break',
+                  title: 'Rest Concluded!',
+                  message: 'Break is over. Ready to sprint?',
+                  allowNext: true,
+                  allowExtend: true
+                });
               }
 
-              // Record to date-keyed calendar structure
-              const todayKey = getTodayKey();
-              heatmapHistory[todayKey] = (heatmapHistory[todayKey] || 0) + 1;
-              localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
+              // Switch to Overtime Grace Period
+              isOvertime = true;
+              overtimeStartTimestamp = Date.now();
+              overtimeSeconds = 0;
+              lastTickSecondLogged = 0;
+            } else {
+              pauseTimer();
+              showHUDToast({
+                type: 'focus',
+                title: 'Countdown Finished!',
+                message: 'Target timer period has ended.',
+                allowNext: false,
+                allowExtend: false
+              });
             }
-
-            isWorkInterval = !isWorkInterval;
-            switchPomoPhase();
-            updateAnalytics();
-            
-            // Re-sync timestamps for the new phase
-            startTimeTimestamp = Date.now();
-            initialRemainingAtStart = timeRemaining;
-            lastElapsedFocusSecs = 0;
-            lastTickSecondLogged = 0;
-          } else {
-            pauseTimer();
           }
         }
       }
@@ -1795,10 +2207,14 @@
       if (startBtn) startBtn.classList.add('hidden');
       if (pauseBtn) pauseBtn.classList.remove('hidden');
 
-      startTimeTimestamp = Date.now();
-      initialRemainingAtStart = engineMode === 'stopwatch' ? stopwatchSeconds : timeRemaining;
+      if (isOvertime) {
+        overtimeStartTimestamp = Date.now() - (overtimeSeconds * 1000);
+      } else {
+        startTimeTimestamp = Date.now();
+        initialRemainingAtStart = engineMode === 'stopwatch' ? stopwatchSeconds : timeRemaining;
+        lastElapsedFocusSecs = 0;
+      }
       lastTickSecondLogged = 0;
-      lastElapsedFocusSecs = 0;
 
       cancelAnimationFrame(timerAnimationId);
       timerAnimationId = requestAnimationFrame(timerFrameLoop);
@@ -1817,6 +2233,8 @@
 
     function resetTimer() {
       pauseTimer();
+      isOvertime = false;
+      overtimeSeconds = 0;
       if (engineMode === 'pomodoro') {
         timeRemaining = isWorkInterval ? workDurationSecs : breakDurationSecs;
         totalDuration = timeRemaining;
@@ -1837,6 +2255,8 @@
     }
 
     function skipCurrentPhase() {
+      isOvertime = false;
+      overtimeSeconds = 0;
       if (engineMode === 'pomodoro') {
         isWorkInterval = !isWorkInterval;
         switchPomoPhase();
@@ -1906,6 +2326,8 @@
 
     function setEngineMode(mode) {
       engineMode = mode;
+      isOvertime = false;
+      overtimeSeconds = 0;
       [modePomodoro, modeCountdown, modeStopwatch].forEach(btn => {
         if (btn) btn.className = "flex-1 py-1.5 text-xs font-semibold rounded-xl transition-all duration-300 text-slate-400 hover:text-white";
       });
@@ -2047,6 +2469,7 @@
             activeTaskId = task.id;
             saveTasksToStorage();
             renderTasks();
+            populatePipTaskSelector();
             updateDisplay();
           }
         });
@@ -2057,6 +2480,7 @@
           tasks = tasks.filter(t => t.id !== task.id);
           saveTasksToStorage();
           renderTasks();
+          populatePipTaskSelector();
           updateDisplay();
         });
 
@@ -2105,6 +2529,7 @@
           task.status = targetStatus;
           saveTasksToStorage();
           renderTasks();
+          populatePipTaskSelector();
           updateDisplay();
         }
       });
@@ -2123,6 +2548,7 @@
           taskInput.value = '';
           saveTasksToStorage();
           renderTasks();
+          populatePipTaskSelector();
           updateDisplay();
         }
       });
@@ -2132,11 +2558,9 @@
     function calculateConsecutiveStreak(historyMap) {
       let streak = 0;
       const today = new Date();
-      
       const checkDate = new Date(today);
       const todayStr = getTodayKey(checkDate);
       
-      // If user has activity today, start from today; otherwise evaluate streak from yesterday
       if ((historyMap[todayStr] || 0) === 0) {
         checkDate.setDate(checkDate.getDate() - 1);
       }
@@ -2153,7 +2577,7 @@
       return streak;
     }
 
-    // --- Analytics, Heatmap & Export Hub ---
+    // --- Analytics, Heatmap & Automated Backups ---
     function updateAnalytics() {
       const minutes = Math.floor(totalFocusSecondsCompleted / 60);
       const statTotal = document.getElementById('statTotalTime');
@@ -2175,7 +2599,6 @@
       if (goalCircle) goalCircle.style.strokeDashoffset = offset;
       if (goalText) goalText.textContent = `${todayBlocks} of ${dailyGoalTarget} blocks completed today`;
 
-      // Render 28-day window relative to current date
       const heatmapGrid = document.getElementById('heatmapGrid');
       if (heatmapGrid) {
         heatmapGrid.innerHTML = '';
@@ -2186,7 +2609,7 @@
           days.push(getTodayKey(d));
         }
 
-        days.forEach((dayKey, i) => {
+        days.forEach((dayKey) => {
           const count = heatmapHistory[dayKey] || 0;
           const cell = document.createElement('div');
           let bg = 'bg-slate-800/60';
@@ -2222,6 +2645,15 @@
       }
     }
 
+    // Auto-save backup snapshot every 30 seconds
+    setInterval(() => {
+      saveTasksToStorage();
+      localStorage.setItem('aura_focusSeconds', totalFocusSecondsCompleted);
+      localStorage.setItem('aura_completedSessions', completedSessionsCount);
+      localStorage.setItem('aura_sessionCycleCount', sessionCycleCount);
+      localStorage.setItem('aura_heatmapHistory', JSON.stringify(heatmapHistory));
+    }, 30000);
+
     const exportCsvBtn = document.getElementById('exportCsvBtn');
     if (exportCsvBtn) {
       exportCsvBtn.addEventListener('click', () => {
@@ -2245,14 +2677,15 @@
     if (exportJsonBtn) {
       exportJsonBtn.addEventListener('click', () => {
         const data = {
-          version: "2.0",
+          version: "2.1",
           tasks, 
           completedSessionsCount, 
           totalFocusSecondsCompleted, 
           heatmapHistory,
+          sessionCycleCount,
           workDurationSecs, 
           breakDurationSecs, 
-          longBreakDurationSecs,
+          longBreakDurationSecs, 
           dailyGoalTarget, 
           ambientTracks,
           activeTaskId
@@ -2293,6 +2726,11 @@
             if (typeof imported.completedSessionsCount === 'number') {
               completedSessionsCount = imported.completedSessionsCount;
               localStorage.setItem('aura_completedSessions', completedSessionsCount);
+            }
+
+            if (typeof imported.sessionCycleCount === 'number') {
+              sessionCycleCount = imported.sessionCycleCount;
+              localStorage.setItem('aura_sessionCycleCount', sessionCycleCount);
             }
 
             if (typeof imported.totalFocusSecondsCompleted === 'number') {
@@ -2339,8 +2777,15 @@
             saveTasksToStorage();
             updateAnalytics();
             renderTasks();
+            populatePipTaskSelector();
             resetTimer();
-            alert('Workspace state restored successfully!');
+            showHUDToast({
+              type: 'milestone',
+              title: 'Workspace Restored',
+              message: 'Session state, tasks, and audio preferences successfully imported.',
+              allowNext: false,
+              allowExtend: false
+            });
           } catch(err) {
             alert('Failed to parse backup JSON file: ' + err.message);
           }
@@ -2349,17 +2794,11 @@
       });
     }
 
-    // --- Visualizer Bar Canvas Integration (Symmetrical & Dynamic) ---
+    // --- Symmetrical Audio Visualizer Canvas Engine ---
     function startVisualizers() {
       const mainCanvas = document.getElementById('mainAudioVisualizer');
       if (!mainCanvas) return;
       const mainCtx = mainCanvas.getContext('2d');
-
-      // Increase smoothing and responsiveness
-      if (analyserNode) {
-        analyserNode.smoothingTimeConstant = 0.82;
-        analyserNode.fftSize = 128; // Provides 64 frequency bins for rich detail
-      }
 
       function drawVisualizer() {
         requestAnimationFrame(drawVisualizer);
@@ -2372,20 +2811,17 @@
           const dataArray = new Uint8Array(bufferLength);
           analyserNode.getByteFrequencyData(dataArray);
 
-          // Focus on active audible spectrum and sample bins logarithmically/smoothly
-          const barCount = 28; // Total mirrored bars across canvas
+          const barCount = 28;
           const halfCount = Math.floor(barCount / 2);
           const barWidth = (mainCanvas.width / barCount) - 2;
           const centerY = mainCanvas.height / 2;
 
           for (let i = 0; i < halfCount; i++) {
-            // Sample lower-to-mid energetic frequencies with scaling
             const sampleIdx = Math.floor(Math.pow(i / halfCount, 1.4) * (bufferLength * 0.65));
             const rawVal = dataArray[sampleIdx] || 0;
             const normalized = rawVal / 255;
             const barHeight = Math.max(2, normalized * (mainCanvas.height - 2));
 
-            // Neon gradient for modern cyber/glassmorphism vibe
             const grad = mainCtx.createLinearGradient(0, centerY - barHeight / 2, 0, centerY + barHeight / 2);
             grad.addColorStop(0, `rgba(56, 189, 248, ${Math.max(normalized, 0.35)})`);
             grad.addColorStop(0.5, `rgba(168, 85, 247, ${Math.max(normalized, 0.45)})`);
@@ -2393,20 +2829,18 @@
 
             mainCtx.fillStyle = grad;
 
-            // Draw Left Mirror (Center outward)
             const leftX = (halfCount - 1 - i) * (barWidth + 2);
             mainCtx.beginPath();
             mainCtx.roundRect(leftX, centerY - barHeight / 2, barWidth, barHeight, 3);
             mainCtx.fill();
 
-            // Draw Right Mirror (Center outward)
             const rightX = (halfCount + i) * (barWidth + 2);
             mainCtx.beginPath();
             mainCtx.roundRect(rightX, centerY - barHeight / 2, barWidth, barHeight, 3);
             mainCtx.fill();
           }
 
-          // Mini Picture-in-Picture Visualizer Support
+          // PiP Mini Visualizer Sync
           if (pipWindow && !pipWindow.closed) {
             const pipCanvas = pipWindow.document.getElementById('pipVisualizer');
             if (pipCanvas) {
@@ -2552,7 +2986,6 @@
       if (lSat) lSat.textContent = `${bgSaturate}%`;
     }
 
-    // Background Filter Event Listeners
     const bgBlurInput = document.getElementById('bgBlurInput');
     if (bgBlurInput) {
       bgBlurInput.addEventListener('input', (e) => {
@@ -2783,7 +3216,15 @@
       requestNotifBtn.addEventListener('click', () => {
         if ('Notification' in window) {
           Notification.requestPermission().then(permission => {
-            if (permission === 'granted') alert('Desktop Notifications enabled successfully!');
+            if (permission === 'granted') {
+              showHUDToast({
+                type: 'milestone',
+                title: 'Notifications Enabled',
+                message: 'You will receive synchronized alerts across windows.',
+                allowNext: false,
+                allowExtend: false
+              });
+            }
           });
         }
       });
